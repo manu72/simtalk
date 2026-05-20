@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "paths": {
+    "memory_root": ".agentic",
+    "scripts_root": "scripts/agentic",
+    "codemap": ".agentic/CODEMAP.json",
+    "context_cache": ".agentic/CONTEXT/last_context.json"
+  },
+  "ignore_globs": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.next/**",
+    "**/.turbo/**",
+    "**/.cache/**",
+    "**/.git/**",
+    "**/__pycache__/**",
+    "**/*.lock",
+    "**/coverage/**",
+    "**/.vercel/**",
+    "**/playwright-report/**",
+    "**/test-results/**"
+  ],
+  "test_discovery": [
+    "**/tests/**",
+    "**/__tests__/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/*_test.*",
+    "**/test_*.py"
+  ],
+  "high_risk_patterns": [
+    { "match": "**/auth/**", "tags": ["security", "authn"] },
+    { "match": "**/middleware/**", "tags": ["security"] },
+    { "match": "**/secrets/**", "tags": ["secrets"] },
+    { "match": "**/.env*", "tags": ["secrets"] },
+    { "match": "**/realtime/**", "tags": ["realtime", "latency"] },
+    { "match": "**/webrtc/**", "tags": ["realtime", "latency"] },
+    { "match": "**/recording/**", "tags": ["privacy"] },
+    { "match": "**/infra/**", "tags": ["infra"] },
+    { "match": "**/.github/workflows/**", "tags": ["infra", "ci"] },
+    { "match": "**/Dockerfile", "tags": ["infra"] }
+  ],
+  "subsystem_keywords": {
+    "web": [
+      "ui",
+      "page",
+      "component",
+      "view",
+      "react",
+      "vite",
+      "tailwind",
+      "shadcn",
+      "frontend",
+      "browser",
+      "transcript",
+      "playback",
+      "microphone",
+      "mic"
+    ],
+    "api": [
+      "api",
+      "endpoint",
+      "route",
+      "controller",
+      "handler",
+      "hono",
+      "backend",
+      "token",
+      "ephemeral",
+      "rate-limit",
+      "cors",
+      "schema",
+      "zod",
+      "middleware"
+    ],
+    "realtime": [
+      "realtime",
+      "webrtc",
+      "openai",
+      "gpt-realtime-translate",
+      "translation",
+      "translate",
+      "audio",
+      "stream",
+      "session"
+    ],
+    "shared": ["shared", "types", "contract", "dto"],
+    "tests": [
+      "test",
+      "tests",
+      "vitest",
+      "playwright",
+      "e2e",
+      "integration",
+      "unit",
+      "coverage"
+    ],
+    "infra": [
+      "deploy",
+      "vercel",
+      "cloud-run",
+      "gcp",
+      "ci",
+      "github-actions",
+      "workflow",
+      "dockerfile",
+      "env",
+      "environment"
+    ],
+    "security": [
+      "security",
+      "secret",
+      "auth",
+      "password",
+      "csrf",
+      "csp",
+      "hsts",
+      "header",
+      "rate-limit",
+      "allowlist"
+    ],
+    "privacy": ["privacy", "recording", "download", "local-only"]
+  },
+  "generated_artifacts": [
+    ".agentic/CODEMAP.json",
+    ".agentic/CONTEXT/last_context.json"
+  ]
+}
