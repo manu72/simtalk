@@ -1,25 +1,39 @@
 {
-  "task": "Validate and minimally update shared languageCodeSchema to reject invalid BCP-47 language tags",
-  "generated_at": "2026-05-20T12:43:39+00:00",
-  "confidence": "high",
+  "task": "update backend/src/middleware/rateLimit.ts clientKeyFromHeaders x-forwarded-for parsing",
+  "generated_at": "2026-05-20T22:44:52+00:00",
+  "confidence": "low",
   "selected_paths": [
-    "shared/types/package.json",
-    "shared/types/src/index.test.ts",
-    "shared/types/src/index.ts",
-    "shared/types/tsconfig.json",
-    ".pnpm-store/v10/index/47/3786f49bb96da83606fd7f97095526f044deae93b57b247592cb0b27e0e69b-lightningcss-darwin-arm64@1.32.0.json"
+    "backend/src/app.test.ts",
+    "backend/src/app.ts",
+    "backend/src/config.ts",
+    "backend/src/middleware/cors.ts",
+    "backend/src/middleware/securityHeaders.ts",
+    "backend/src/routes/health.ts",
+    "backend/src/server.ts",
+    "backend/.env.example",
+    "backend/package.json",
+    "backend/tsconfig.json"
   ],
   "selected_subsystems": [
-    "shared"
+    "api",
+    "shared",
+    "web"
   ],
   "subsystem_files": [
-    ".agentic/SUBSYSTEMS/shared.md"
+    ".agentic/SUBSYSTEMS/api.md",
+    ".agentic/SUBSYSTEMS/shared.md",
+    ".agentic/SUBSYSTEMS/web.md"
   ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
-  "risk_tags": [],
+  "risk_tags": [
+    "secrets",
+    "security"
+  ],
   "unknowns": [],
-  "stop_conditions": []
+  "stop_conditions": [
+    "Task spans multiple subsystems. Confirm the intended primary subsystem before implementing."
+  ]
 }
