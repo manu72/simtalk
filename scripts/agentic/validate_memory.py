@@ -141,6 +141,9 @@ def _check_curated_path_refs(warnings: list[str]) -> None:
             # Skip URLs.
             if cleaned.startswith(("http://", "https://")):
                 continue
+            # Slash-prefixed tokens are usually external API routes, not repo paths.
+            if cleaned.startswith("/"):
+                continue
             # Skip command-style tokens like `pnpm install`.
             head = cleaned.split("/", 1)[0]
             if head and not head.startswith(".") and "." not in head and "/" not in cleaned:

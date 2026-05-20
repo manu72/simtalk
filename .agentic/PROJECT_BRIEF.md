@@ -35,7 +35,7 @@ SimTalk is a realtime speech-to-speech translation web app that lets people who 
 - `shared` — Cross-package TypeScript types and contracts. `shared/types/`.
 - `tests` — E2E test suite (Playwright) sitting at repo root. `tests/`.
 - `scripts` — Local developer and Agentic OS tooling. `scripts/`.
-- `infra` — Vercel project config, GitHub Actions workflows. `.github/workflows/`.
+- `infra` — Vercel project config and planned GitHub Actions workflows; no in-repo infra config exists yet.
 
 ## Source-of-truth files
 
