@@ -145,7 +145,11 @@ def _check_curated_path_refs(warnings: list[str]) -> None:
             head = cleaned.split("/", 1)[0]
             if head and not head.startswith(".") and "." not in head and "/" not in cleaned:
                 continue
-            target = Path(cleaned)
+            target = md_path.parent.joinpath(cleaned).resolve()
+            if not target.exists():
+                repo_root_target = Path(cleaned).resolve()
+                if repo_root_target.exists():
+                    target = repo_root_target
             if not target.exists():
                 warnings.append(
                     f"{md_path}: referenced path not found on disk: {cleaned}"

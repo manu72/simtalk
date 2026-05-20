@@ -1,8 +1,9 @@
 {
-  "task": "fail fast when update_memory loads missing or invalid agentic JSON",
-  "generated_at": "2026-05-20T06:28:44+00:00",
+  "task": "scripts agentic validate_memory.py fix markdown link paths relative to markdown file directory",
+  "generated_at": "2026-05-20T08:36:10+00:00",
   "confidence": "medium",
   "selected_paths": [
+    "scripts",
     "scripts/agentic"
   ],
   "selected_subsystems": [],
