@@ -1,17 +1,12 @@
 {
-  "task": "Review PR feedback for keyword prefix false positives in scripts/agentic/route_task.py _keyword_part_matches",
-  "generated_at": "2026-05-20T06:19:09+00:00",
+  "task": "fail fast when update_memory loads missing or invalid agentic JSON",
+  "generated_at": "2026-05-20T06:28:44+00:00",
   "confidence": "medium",
   "selected_paths": [
-    "scripts",
     "scripts/agentic"
   ],
-  "selected_subsystems": [
-    "api"
-  ],
-  "subsystem_files": [
-    ".agentic/SUBSYSTEMS/api.md"
-  ],
+  "selected_subsystems": [],
+  "subsystem_files": [],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"

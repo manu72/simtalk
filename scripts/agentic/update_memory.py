@@ -28,15 +28,8 @@ def _run_build_codemap() -> int:
 
 
 def _load_json(path: Path) -> dict[str, Any]:
-    if not path.is_file():
-        print(f"update_memory: missing {path}", file=sys.stderr)
-        return {}
-    try:
-        with path.open("r", encoding="utf-8") as fh:
-            return json.load(fh)
-    except json.JSONDecodeError as exc:
-        print(f"update_memory: invalid JSON in {path}: {exc}", file=sys.stderr)
-        return {}
+    with path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
 
 
 def _detected_subsystems(
