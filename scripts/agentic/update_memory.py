@@ -19,6 +19,7 @@ CODEMAP_PATH = Path(".agentic/CODEMAP.json")
 CONFIG_PATH = Path(".agentic/CONFIG/agentic.json")
 SUBSYSTEMS_DIR = Path(".agentic/SUBSYSTEMS")
 SCRIPTS_DIR = Path("scripts/agentic")
+PLANNED_SUBSYSTEM_STATUS_PREFIX = "> status: planned"
 
 
 def _run_build_codemap() -> int:
@@ -54,6 +55,22 @@ def _existing_subsystem_files() -> set[str]:
     return out
 
 
+def _planned_subsystem_files() -> set[str]:
+    if not SUBSYSTEMS_DIR.is_dir():
+        return set()
+    out: set[str] = set()
+    for p in SUBSYSTEMS_DIR.glob("*.md"):
+        if p.name.lower() == "readme.md":
+            continue
+        lines = p.read_text(encoding="utf-8").splitlines()
+        if any(
+            line.strip().lower().startswith(PLANNED_SUBSYSTEM_STATUS_PREFIX)
+            for line in lines[:8]
+        ):
+            out.add(p.stem)
+    return out
+
+
 def main() -> int:
     rc = _run_build_codemap()
     if rc != 0:
@@ -66,9 +83,10 @@ def main() -> int:
     valid_names |= _existing_subsystem_files()
     detected = _detected_subsystems(codemap, valid_names)
     existing = _existing_subsystem_files()
+    planned = _planned_subsystem_files()
 
     new_subs = sorted(detected - existing)
-    stale_subs = sorted(existing - detected)
+    stale_subs = sorted(existing - detected - planned)
 
     print("update_memory: codemap refreshed.")
     if new_subs:

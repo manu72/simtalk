@@ -1,20 +1,21 @@
 {
-  "task": "scripts agentic route_task.py avoid adding kind dir codemap entries to selected_paths",
-  "generated_at": "2026-05-20T08:45:31+00:00",
+  "task": "scripts/agentic/update_memory.py stale subsystem false positives detected_subsystems seeded subsystem placeholders",
+  "generated_at": "2026-05-20T08:52:49+00:00",
   "confidence": "medium",
   "selected_paths": [
+    ".agentic/SUBSYSTEMS/README.md",
+    ".agentic/SUBSYSTEMS/api.md",
+    ".agentic/SUBSYSTEMS/infra.md",
+    ".agentic/SUBSYSTEMS/shared.md",
+    ".agentic/SUBSYSTEMS/tests.md",
+    ".agentic/SUBSYSTEMS/web.md",
     "scripts/agentic/README.md",
     "scripts/agentic/build_codemap.py",
     "scripts/agentic/route_task.py",
-    "scripts/agentic/update_memory.py",
-    "scripts/agentic/validate_memory.py"
+    "scripts/agentic/update_memory.py"
   ],
-  "selected_subsystems": [
-    "api"
-  ],
-  "subsystem_files": [
-    ".agentic/SUBSYSTEMS/api.md"
-  ],
+  "selected_subsystems": [],
+  "subsystem_files": [],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
