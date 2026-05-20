@@ -1,19 +1,24 @@
 {
-  "task": "build_codemap _matches_any fnmatch glob ignore patterns ineffective",
-  "generated_at": "2026-05-20T06:10:28+00:00",
-  "confidence": "low",
-  "selected_paths": [],
-  "selected_subsystems": [],
-  "subsystem_files": [],
+  "task": "Review PR feedback for keyword prefix false positives in scripts/agentic/route_task.py _keyword_part_matches",
+  "generated_at": "2026-05-20T06:19:09+00:00",
+  "confidence": "medium",
+  "selected_paths": [
+    "scripts",
+    "scripts/agentic"
+  ],
+  "selected_subsystems": [
+    "api"
+  ],
+  "subsystem_files": [
+    ".agentic/SUBSYSTEMS/api.md"
+  ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
   "risk_tags": [],
-  "unknowns": [
-    "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic."
-  ],
+  "unknowns": [],
   "stop_conditions": [
-    "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
+    "No related tests located by the codemap. Add or identify tests before non-trivial changes."
   ]
 }

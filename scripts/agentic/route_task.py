@@ -45,6 +45,19 @@ RISKY_VERBS = {
 }
 
 MAX_SELECTED_PATHS = 10
+WORD_FORM_SUFFIXES = ("s", "es", "d", "ed", "ing", "er", "ers", "ment", "ments")
+WORD_FORM_ALIASES = {
+    "auth": {
+        "authenticate",
+        "authenticated",
+        "authenticating",
+        "authentication",
+        "authorize",
+        "authorized",
+        "authorizing",
+        "authorization",
+    },
+}
 
 
 def _die(msg: str, code: int = 1) -> None:
@@ -68,12 +81,13 @@ def _tokenize(text: str) -> set[str]:
 
 
 def _keyword_part_matches(part: str, task_tokens: set[str]) -> bool:
-    """True when a keyword fragment appears in the task as a token or prefix."""
+    """True when a keyword appears as an exact token or supported word form."""
     if part in task_tokens:
         return True
-    if len(part) < 3:
-        return False
-    return any(tok.startswith(part) for tok in task_tokens)
+    if WORD_FORM_ALIASES.get(part, set()) & task_tokens:
+        return True
+    word_forms = {f"{part}{suffix}" for suffix in WORD_FORM_SUFFIXES}
+    return bool(word_forms & task_tokens)
 
 
 def _keyword_matches_task(keyword: str, task_tokens: set[str]) -> bool:
