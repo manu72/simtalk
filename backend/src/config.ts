@@ -15,8 +15,14 @@ const parseAllowedOrigins = (value: string | undefined): readonly string[] => {
   return origins && origins.length > 0 ? origins : defaultAllowedOrigins;
 };
 
+const parsePort = (value: string | undefined): number => {
+  const port = Number(value);
+
+  return Number.isInteger(port) && port > 0 && port <= 65535 ? port : 3000;
+};
+
 export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => ({
   appEnv: env.APP_ENV ?? 'development',
-  port: Number(env.PORT ?? 3000),
+  port: parsePort(env.PORT),
   allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS)
 });
