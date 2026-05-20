@@ -6,14 +6,23 @@ import { createAppConfig, type AppConfig } from './config.js';
 import { createCorsMiddleware } from './middleware/cors.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
 import { healthRoute } from './routes/health.js';
+import { createRealtimeRoute } from './routes/realtime.js';
 
-export const createApp = (config: AppConfig = createAppConfig()) => {
+type AppDependencies = {
+  readonly fetch?: typeof fetch;
+};
+
+export const createApp = (
+  config: AppConfig = createAppConfig(),
+  dependencies: AppDependencies = {}
+) => {
   const app = new Hono();
 
   app.use('*', createCorsMiddleware(config));
   app.use('*', securityHeaders);
 
   app.route('/health', healthRoute);
+  app.route('/realtime', createRealtimeRoute(config, dependencies));
 
   app.notFound((c) =>
     c.json(

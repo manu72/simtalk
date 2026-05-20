@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  apiErrorSchema,
   conversationModes,
   healthResponseSchema,
   languageCodeSchema,
-  realtimeTokenRequestSchema
+  openAiRealtimeTranslationCallsUrl,
+  realtimeTokenRequestSchema,
+  realtimeTokenResponseSchema,
+  realtimeTokenRoute
 } from './index';
 
 describe('shared API contracts', () => {
@@ -19,6 +23,39 @@ describe('shared API contracts', () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it('defines the backend realtime token route', () => {
+    expect(realtimeTokenRoute).toBe('/realtime/token');
+  });
+
+  it('requires a source language for turn-about mode', () => {
+    const result = realtimeTokenRequestSchema.safeParse({
+      mode: 'turnabout',
+      targetLanguage: 'en'
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        'Turn-about mode requires a source language'
+      );
+    }
+  });
+
+  it('rejects requests that translate a language into itself', () => {
+    const result = realtimeTokenRequestSchema.safeParse({
+      mode: 'practice',
+      sourceLanguage: 'es',
+      targetLanguage: 'es'
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        'Source and target languages must be different'
+      );
+    }
   });
 
   it('rejects unknown conversation modes', () => {
@@ -37,6 +74,34 @@ describe('shared API contracts', () => {
     if (!result.success) {
       expect(result.error.issues[0]?.message).toBe('Invalid BCP-47 language tag');
     }
+  });
+
+  it('validates the browser-safe realtime token response', () => {
+    const parsed = realtimeTokenResponseSchema.parse({
+      clientSecret: 'ek_test',
+      expiresAt: new Date('2026-05-20T13:00:00.000Z').toISOString(),
+      sessionId: 'sess_test',
+      sessionExpiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
+      translationCallUrl: openAiRealtimeTranslationCallsUrl
+    });
+
+    expect(parsed).toMatchObject({
+      clientSecret: 'ek_test',
+      sessionId: 'sess_test',
+      translationCallUrl: openAiRealtimeTranslationCallsUrl
+    });
+  });
+
+  it('validates the standard API error envelope', () => {
+    const parsed = apiErrorSchema.parse({
+      error: {
+        code: 'validation_error',
+        message: 'Request body is invalid',
+        requestId: 'req_test'
+      }
+    });
+
+    expect(parsed.error.code).toBe('validation_error');
   });
 
   it('keeps the health response payload minimal', () => {
