@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-20T04:46:06+00:00",
+  "root": ".",
+  "entries": [
+    {
+      "path": ".agentic",
+      "kind": "dir",
+      "language": null,
+      "subsystem": null,
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        ".agentic"
+      ]
+    },
+    {
+      "path": ".agentic/CONFIG",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".agentic",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "config"
+      ]
+    },
+    {
+      "path": ".agentic/CONTEXT",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".agentic",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "context"
+      ]
+    },
+    {
+      "path": ".agentic/LESSONS",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".agentic",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "lessons"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".agentic",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "subsystems"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS/README.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "readme.md"
+      ]
+    },
+    {
+      "path": ".cursor",
+      "kind": "dir",
+      "language": null,
+      "subsystem": null,
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        ".cursor"
+      ]
+    },
+    {
+      "path": ".cursor/skills",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".cursor",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "skills"
+      ]
+    },
+    {
+      "path": ".cursor/skills/agenticOS-context",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".cursor",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "agenticos-context"
+      ]
+    },
+    {
+      "path": ".cursor/skills/agenticOS-update",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".cursor",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "agenticos-update"
+      ]
+    },
+    {
+      "path": "PRD.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "prd.md"
+      ]
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "readme.md"
+      ]
+    },
+    {
+      "path": "System_Architecture.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "system_architecture.md"
+      ]
+    },
+    {
+      "path": "scripts",
+      "kind": "dir",
+      "language": null,
+      "subsystem": null,
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "scripts"
+      ]
+    },
+    {
+      "path": "scripts/agentic",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "scripts",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "agentic"
+      ]
+    },
+    {
+      "path": "scripts/agentic/README.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "scripts",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "readme.md"
+      ]
+    }
+  ]
+}
