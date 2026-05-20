@@ -13,7 +13,7 @@ import json
 import os
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 CONFIG_PATH = Path(".agentic/CONFIG/agentic.json")
@@ -69,13 +69,26 @@ def _load_config() -> dict[str, Any]:
 
 
 def _matches_any(path: str, globs: list[str]) -> bool:
-    """Match path against globs. Tries the path verbatim and with a leading
-    `./` so that patterns like `**/.git/**` correctly match repo-root paths
-    such as `.git/objects` (fnmatch's `**/X/**` requires something before X).
+    """Match a POSIX path against glob patterns (including ``**`` recursion).
+
+    ``fnmatch`` treats ``*`` as non-recursive and does not honour ``**``, so
+    patterns like ``**/*.lock`` or ``**/.env*`` would miss repo-root paths.
+    Prefer :meth:`PurePosixPath.full_match` (Python 3.13+); older runtimes use
+    a ``**/``-tail strip plus ``fnmatch`` fallback.
     """
-    if any(fnmatch.fnmatch(path, pat) for pat in globs):
-        return True
-    return any(fnmatch.fnmatch("./" + path, pat) for pat in globs)
+    norm = path.replace(os.sep, "/")
+    p = PurePosixPath(norm)
+    full_match = getattr(p, "full_match", None)
+    if full_match is not None:
+        return any(full_match(pat) for pat in globs)
+    for pat in globs:
+        if pat.startswith("**/"):
+            tail = pat[3:]
+            if p.match(tail) or fnmatch.fnmatch(norm, tail):
+                return True
+        if fnmatch.fnmatch(norm, pat) or fnmatch.fnmatch("./" + norm, pat):
+            return True
+    return False
 
 
 # Patterns of the form **/NAME/** indicate "ignore this directory wherever it
@@ -123,7 +136,7 @@ def _detect_risk_tags(rel_path: str, patterns: list[dict[str, Any]]) -> list[str
     for entry in patterns:
         pat = entry.get("match")
         these = entry.get("tags") or []
-        if pat and fnmatch.fnmatch(rel_path, pat):
+        if pat and _matches_any(rel_path, [pat]):
             for t in these:
                 if t not in tags:
                     tags.append(t)

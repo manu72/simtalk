@@ -10,7 +10,7 @@ Runtime context routing. Do NOT bootstrap. If `.agentic/` is missing, stop and t
 ## Workflow
 
 1. Verify `.agentic/CONFIG/agentic.json` and `.agentic/CODEMAP.json` exist. If not, stop.
-2. Run: `python scripts/agentic/route_task.py "<concise task description>"`.
+2. Run: `python3 scripts/agentic/route_task.py "<concise task description>"`.
 3. Parse the JSON bundle from stdout (also at `.agentic/CONTEXT/last_context.json`).
 4. Read ONLY:
    - Files listed in `selected_paths`.

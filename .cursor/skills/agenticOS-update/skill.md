@@ -18,11 +18,11 @@ Do NOT use for routine code changes.
 
 ## Workflow
 
-1. Run: `python scripts/agentic/update_memory.py`.
+1. Run: `python3 scripts/agentic/update_memory.py`.
 2. Review its report. For each suggestion:
    - If accurate and durable, edit the relevant curated file (`PROJECT_BRIEF.md`, `SUBSYSTEMS/<name>.md`, `LESSONS/decisions.md`, `LESSONS/incidents.md`).
    - Keep entries short. Prefer one-liners with links to source-of-truth files.
-3. Re-run: `python scripts/agentic/validate_memory.py`. Resolve warnings.
+3. Re-run: `python3 scripts/agentic/validate_memory.py`. Resolve warnings.
 4. Never auto-overwrite curated files. Generated artifacts (per `generated_artifacts` in `.agentic/CONFIG/agentic.json`) may be regenerated freely.
 
 ## Anti-bloat rules

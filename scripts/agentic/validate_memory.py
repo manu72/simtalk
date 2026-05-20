@@ -36,8 +36,8 @@ REQUIRED_PATHS: list[Path] = [
     Path("scripts/agentic/route_task.py"),
     Path("scripts/agentic/validate_memory.py"),
     Path("scripts/agentic/update_memory.py"),
-    Path(".cursor/skills/agenticOS-context/skill.md"),
-    Path(".cursor/skills/agenticOS-update/skill.md"),
+    Path(".cursor/skills/agenticOS-context/SKILL.md"),
+    Path(".cursor/skills/agenticOS-update/SKILL.md"),
 ]
 
 CURATED_MD_FILES: list[Path] = [
