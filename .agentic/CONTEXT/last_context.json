@@ -1,24 +1,32 @@
 {
-  "task": "fix shared-types build failure tsc command not found after dependency pinning",
-  "generated_at": "2026-05-20T12:27:33+00:00",
+  "task": "Fix frontend package.json React and Vite versions using pnpm-lock.yaml exact locked versions",
+  "generated_at": "2026-05-20T12:33:38+00:00",
   "confidence": "high",
   "selected_paths": [
-    "shared/types/package.json",
-    "shared/types/src/index.test.ts",
-    "shared/types/src/index.ts",
-    "shared/types/tsconfig.json"
+    "frontend/.env.example",
+    "frontend/index.html",
+    "frontend/package.json",
+    "frontend/src/App.test.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/main.tsx",
+    "frontend/src/setupTests.ts",
+    "frontend/src/styles.css",
+    "frontend/tsconfig.app.json",
+    "frontend/tsconfig.json"
   ],
   "selected_subsystems": [
-    "shared"
+    "web"
   ],
   "subsystem_files": [
-    ".agentic/SUBSYSTEMS/shared.md"
+    ".agentic/SUBSYSTEMS/web.md"
   ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
-  "risk_tags": [],
+  "risk_tags": [
+    "secrets"
+  ],
   "unknowns": [],
   "stop_conditions": []
 }
