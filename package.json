@@ -1,0 +1,21 @@
+{
+  "name": "simtalk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.16.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @simtalk/shared-types build && pnpm --parallel --filter @simtalk/shared-types --filter @simtalk/backend --filter @simtalk/frontend dev",
+    "build": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/backend build && pnpm --filter @simtalk/frontend build",
+    "typecheck": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/backend typecheck && pnpm --filter @simtalk/frontend typecheck",
+    "test": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/shared-types test && pnpm --filter @simtalk/backend test && pnpm --filter @simtalk/frontend test",
+    "test:e2e": "pnpm --filter @simtalk/shared-types build && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "typescript": "latest"
+  }
+}
