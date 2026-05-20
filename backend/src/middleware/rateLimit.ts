@@ -14,7 +14,12 @@ type RateLimitEntry = {
 };
 
 const clientKeyFromHeaders = (headers: Headers): string => {
-  const forwardedFor = headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const forwardedFor = headers
+    .get('x-forwarded-for')
+    ?.split(',')
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .at(-1);
   const realIp = headers.get('x-real-ip')?.trim();
 
   return forwardedFor || realIp || 'local';

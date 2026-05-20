@@ -30,10 +30,14 @@ const createTestConfig = (overrides: NodeJS.ProcessEnv = {}) =>
     ...overrides
   });
 
-const createTokenRequest = () =>
+const createTokenRequest = (headers: Record<string, string> = {}) =>
   new Request(`http://localhost${realtimeTokenRoute}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '203.0.113.10' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-forwarded-for': '203.0.113.10',
+      ...headers
+    },
     body: JSON.stringify({
       mode: 'listener',
       targetLanguage: 'es'
@@ -189,8 +193,12 @@ describe('POST /realtime/token', () => {
       { fetch: fetchMock }
     );
 
-    const first = await app.request(createTokenRequest());
-    const second = await app.request(createTokenRequest());
+    const first = await app.request(
+      createTokenRequest({ 'x-forwarded-for': '198.51.100.42, , 203.0.113.10' })
+    );
+    const second = await app.request(
+      createTokenRequest({ 'x-forwarded-for': '192.0.2.99, 203.0.113.10, ' })
+    );
     const body = await second.json();
 
     expect(first.status).toBe(200);
