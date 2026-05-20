@@ -1,28 +1,25 @@
 {
-  "task": "scripts/agentic/update_memory.py stale subsystem false positives detected_subsystems seeded subsystem placeholders",
-  "generated_at": "2026-05-20T08:52:49+00:00",
-  "confidence": "medium",
+  "task": "Validate and minimally update shared languageCodeSchema to reject invalid BCP-47 language tags",
+  "generated_at": "2026-05-20T12:43:39+00:00",
+  "confidence": "high",
   "selected_paths": [
-    ".agentic/SUBSYSTEMS/README.md",
-    ".agentic/SUBSYSTEMS/api.md",
-    ".agentic/SUBSYSTEMS/infra.md",
-    ".agentic/SUBSYSTEMS/shared.md",
-    ".agentic/SUBSYSTEMS/tests.md",
-    ".agentic/SUBSYSTEMS/web.md",
-    "scripts/agentic/README.md",
-    "scripts/agentic/build_codemap.py",
-    "scripts/agentic/route_task.py",
-    "scripts/agentic/update_memory.py"
+    "shared/types/package.json",
+    "shared/types/src/index.test.ts",
+    "shared/types/src/index.ts",
+    "shared/types/tsconfig.json",
+    ".pnpm-store/v10/index/47/3786f49bb96da83606fd7f97095526f044deae93b57b247592cb0b27e0e69b-lightningcss-darwin-arm64@1.32.0.json"
   ],
-  "selected_subsystems": [],
-  "subsystem_files": [],
+  "selected_subsystems": [
+    "shared"
+  ],
+  "subsystem_files": [
+    ".agentic/SUBSYSTEMS/shared.md"
+  ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
   "risk_tags": [],
   "unknowns": [],
-  "stop_conditions": [
-    "No related tests located by the codemap. Add or identify tests before non-trivial changes."
-  ]
+  "stop_conditions": []
 }

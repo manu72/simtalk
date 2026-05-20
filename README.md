@@ -37,32 +37,43 @@ Build a private Phase 1 prototype that proves low-latency speech translation wor
 
 The primary success criterion is product validation, not scale.
 
+Current scaffold:
+
+- pnpm workspace with `frontend`, `backend`, and `shared/types` packages.
+- React 19 + Vite frontend shell.
+- Node.js + Hono backend shell with a typed `/health` endpoint.
+- Shared Zod-backed TypeScript contracts.
+- Vitest unit tests and Playwright E2E smoke tests.
+
 ⸻
 
 Technology Stack
 
 Phase 1
 
-Layer Technology
-Frontend React 19 + Vite 7 + TypeScript
-UI Tailwind CSS + shadcn/ui
-Backend Node.js + Hono
-Realtime Translation OpenAI gpt-realtime-translate
-Transport Browser WebRTC
-Deployment Vercel
-Authentication Vercel Password Protection + allowlist
-Database None
-Storage Browser-local only
-Domain simtalk.app
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 19 + Vite 7 + TypeScript |
+| UI | CSS variables now; planned Tailwind CSS + shadcn/ui |
+| Backend | Node.js + Hono |
+| Shared contracts | TypeScript + Zod |
+| Realtime Translation | OpenAI gpt-realtime-translate |
+| Transport | Browser WebRTC |
+| Deployment | Vercel |
+| Authentication | Vercel Password Protection + allowlist |
+| Database | None |
+| Storage | Browser-local only |
+| Domain | simtalk.app |
 
 Phase 2
 
-Layer Technology
-Backend Hosting Google Cloud Run
-Authentication Supabase Auth or equivalent
-Database Supabase Postgres
-Realtime Rooms LiveKit (likely)
-Storage GCS / Supabase Storage
+| Layer | Technology |
+| --- | --- |
+| Backend Hosting | Google Cloud Run |
+| Authentication | Supabase Auth or equivalent |
+| Database | Supabase Postgres |
+| Realtime Rooms | LiveKit (likely) |
+| Storage | GCS / Supabase Storage |
 
 ⸻
 
@@ -127,9 +138,14 @@ simtalk/
 ├── README.md
 ├── PRD.md
 ├── System_Architecture.md
+├── package.json
+├── pnpm-workspace.yaml
+├── tsconfig.base.json
+├── playwright.config.ts
 ├── .agentic/                  # AI memory layer (PROJECT_BRIEF, MEMORY_INDEX, SUBSYSTEMS)
 ├── docs/                      # planned: api.md, security.md, deployment.md
 ├── frontend/
+│ ├── index.html
 │ ├── src/
 │ ├── public/
 │ └── package.json
@@ -143,6 +159,8 @@ simtalk/
 │ └── package.json
 ├── shared/
 │ └── types/
+│   ├── src/
+│   └── package.json
 ├── scripts/
 ├── tests/
 └── .github/
@@ -336,16 +354,21 @@ Environment Variables
 
 Backend
 
+```bash
 OPENAI_API_KEY=
 APP_ENV=development
+PORT=3000
 APP_URL=http://localhost:5173
-ALLOWED_ORIGINS=http://localhost:5173,https://simtalk.app
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://simtalk.app
 SESSION_SECRET=
 VERCEL_PROTECTION_BYPASS_SECRET=
+```
 
 Frontend
 
+```bash
 VITE_API_BASE_URL=http://localhost:3000
+```
 
 ⸻
 
@@ -359,17 +382,28 @@ Prerequisites
 
 Setup
 
+```bash
 git clone git@github.com:t8/simtalk.git
 cd simtalk
 pnpm install
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 pnpm dev
+```
 
 Services
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
+
+Useful commands:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm build
+```
 
 ⸻
 

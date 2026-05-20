@@ -13,6 +13,23 @@ from scripts.agentic import validate_memory
 
 
 class CuratedPathRefsTest(unittest.TestCase):
+    def test_ignores_external_absolute_api_endpoints(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            md_path = root / "docs" / "guide.md"
+            md_path.parent.mkdir(parents=True)
+            md_path.write_text("Use `/v1/realtime/translations`.\n", encoding="utf-8")
+
+            warnings: list[str] = []
+            original_files = validate_memory.CURATED_MD_FILES
+            validate_memory.CURATED_MD_FILES = [md_path]
+            try:
+                validate_memory._check_curated_path_refs(warnings)
+            finally:
+                validate_memory.CURATED_MD_FILES = original_files
+
+            self.assertEqual([], warnings)
+
     def test_resolves_markdown_references_relative_to_markdown_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

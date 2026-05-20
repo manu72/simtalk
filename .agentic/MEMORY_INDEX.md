@@ -48,7 +48,7 @@ Human-maintained mappings from task intent to relevant subsystems, files, tests,
 - "Listener mode", "Turn-about", "Practice mode" → subsystem `web`. Cross-check `PRD.md` modes section.
 - "Recording", "download transcript" → subsystem `web`. Risk tag: `privacy`. Recording must remain local-only and opt-in.
 - "Auth", "password protection", "allowlist" → subsystem `infra` + `api`. Phase 1 uses Vercel Password Protection; Phase 2 introduces real auth.
-- "Deploy", "Vercel", "Cloud Run", "CI" → subsystem `infra`. Read `.github/workflows/`, Vercel project settings (out-of-tree).
+- "Deploy", "Vercel", "Cloud Run", "CI" → subsystem `infra`. Read `.agentic/SUBSYSTEMS/infra.md`; GitHub Actions workflows are not yet present in-repo, and Vercel project settings are out-of-tree.
 - "Schema", "Zod", "request validation" → subsystem `api` + `shared`. All API boundaries validate with Zod.
 - "Rate limit", "abuse", "DoS" → subsystem `api`. Risk tag: `security`.
 - "Phase 2", "rooms", "LiveKit", "Supabase", "multi-user" → out of current scope; flag as architectural change requiring a decision entry.
