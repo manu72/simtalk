@@ -1,25 +1,19 @@
 {
-  "task": "Wire up the React WebRTC hook for Listener Mode microphone capture",
-  "generated_at": "2026-05-20T04:45:18+00:00",
-  "confidence": "medium",
+  "task": "quoted multi word",
+  "generated_at": "2026-05-20T05:51:10+00:00",
+  "confidence": "low",
   "selected_paths": [],
-  "selected_subsystems": [
-    "realtime",
-    "web"
-  ],
-  "subsystem_files": [
-    ".agentic/SUBSYSTEMS/web.md"
-  ],
+  "selected_subsystems": [],
+  "subsystem_files": [],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
   "risk_tags": [],
   "unknowns": [
-    "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic.",
-    "Realtime path is OpenAI-specific. Confirm whether changes touch backend token issuance, frontend WebRTC, or both."
+    "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic."
   ],
   "stop_conditions": [
-    "No related tests located by the codemap. Add or identify tests before non-trivial changes."
+    "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
   ]
 }

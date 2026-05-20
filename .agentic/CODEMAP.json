@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-20T04:46:06+00:00",
+  "generated_at": "2026-05-20T06:02:04+00:00",
   "root": ".",
   "entries": [
     {
@@ -16,6 +16,18 @@
       ]
     },
     {
+      "path": ".agentic/CODEMAP.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "codemap.json"
+      ]
+    },
+    {
       "path": ".agentic/CONFIG",
       "kind": "dir",
       "language": null,
@@ -25,6 +37,18 @@
       "related_tests": [],
       "read_triggers": [
         "config"
+      ]
+    },
+    {
+      "path": ".agentic/CONFIG/agentic.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "agentic.json"
       ]
     },
     {
@@ -40,6 +64,18 @@
       ]
     },
     {
+      "path": ".agentic/CONTEXT/last_context.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "last_context.json"
+      ]
+    },
+    {
       "path": ".agentic/LESSONS",
       "kind": "dir",
       "language": null,
@@ -49,6 +85,54 @@
       "related_tests": [],
       "read_triggers": [
         "lessons"
+      ]
+    },
+    {
+      "path": ".agentic/LESSONS/decisions.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "decisions.md"
+      ]
+    },
+    {
+      "path": ".agentic/LESSONS/incidents.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "incidents.md"
+      ]
+    },
+    {
+      "path": ".agentic/MEMORY_INDEX.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "memory_index.md"
+      ]
+    },
+    {
+      "path": ".agentic/PROJECT_BRIEF.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "project_brief.md"
       ]
     },
     {
@@ -73,6 +157,66 @@
       "related_tests": [],
       "read_triggers": [
         "readme.md"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS/api.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "api.md"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS/infra.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "infra.md"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS/shared.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "shared.md"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS/tests.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "tests.md"
+      ]
+    },
+    {
+      "path": ".agentic/SUBSYSTEMS/web.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".agentic",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "web.md"
       ]
     },
     {
@@ -112,6 +256,18 @@
       ]
     },
     {
+      "path": ".cursor/skills/agenticOS-context/SKILL.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".cursor",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "skill.md"
+      ]
+    },
+    {
       "path": ".cursor/skills/agenticOS-update",
       "kind": "dir",
       "language": null,
@@ -121,6 +277,18 @@
       "related_tests": [],
       "read_triggers": [
         "agenticos-update"
+      ]
+    },
+    {
+      "path": ".cursor/skills/agenticOS-update/SKILL.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".cursor",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "skill.md"
       ]
     },
     {
@@ -193,6 +361,54 @@
       "related_tests": [],
       "read_triggers": [
         "readme.md"
+      ]
+    },
+    {
+      "path": "scripts/agentic/build_codemap.py",
+      "kind": "file",
+      "language": "python",
+      "subsystem": "scripts",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "build_codemap.py"
+      ]
+    },
+    {
+      "path": "scripts/agentic/route_task.py",
+      "kind": "file",
+      "language": "python",
+      "subsystem": "scripts",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "route_task.py"
+      ]
+    },
+    {
+      "path": "scripts/agentic/update_memory.py",
+      "kind": "file",
+      "language": "python",
+      "subsystem": "scripts",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "update_memory.py"
+      ]
+    },
+    {
+      "path": "scripts/agentic/validate_memory.py",
+      "kind": "file",
+      "language": "python",
+      "subsystem": "scripts",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "validate_memory.py"
       ]
     }
   ]

@@ -247,7 +247,11 @@ def _build_entries(
     }
     for f in files:
         base = Path(f).name
-        if base not in notable_basenames:
+        if  (
+            base not in notable_basenames
+            and _detect_language(base) is None
+            and not f.startswith("scripts/agentic/")
+        ):
             continue
         subsystem = _detect_subsystem(f, keywords_by_subsystem)
         risk = _detect_risk_tags(f, high_risk_patterns)
