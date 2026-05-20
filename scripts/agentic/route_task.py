@@ -67,6 +67,23 @@ def _tokenize(text: str) -> set[str]:
     return {tok for tok in re.split(r"[^a-z0-9]+", text.lower()) if len(tok) > 1}
 
 
+def _keyword_part_matches(part: str, task_tokens: set[str]) -> bool:
+    """True when a keyword fragment appears in the task as a token or prefix."""
+    if part in task_tokens:
+        return True
+    if len(part) < 3:
+        return False
+    return any(tok.startswith(part) for tok in task_tokens)
+
+
+def _keyword_matches_task(keyword: str, task_tokens: set[str]) -> bool:
+    """True when every token in a (possibly hyphenated) keyword matches the task."""
+    parts = _tokenize(keyword)
+    if not parts:
+        return False
+    return all(_keyword_part_matches(p, task_tokens) for p in parts)
+
+
 def _score_entry(
     entry: dict[str, Any],
     task_tokens: set[str],
@@ -84,8 +101,11 @@ def _score_entry(
     subsystem = entry.get("subsystem")
     sub_overlap = 0
     if subsystem and subsystem in subsystem_keywords:
-        kws = {k.lower() for k in subsystem_keywords[subsystem]}
-        sub_overlap = len(task_tokens & kws)
+        sub_overlap = sum(
+            1
+            for k in subsystem_keywords[subsystem]
+            if _keyword_matches_task(k, task_tokens)
+        )
 
     score = 3 * token_overlap + 2 * sub_overlap
     has_relevance = token_overlap > 0 or sub_overlap > 0
@@ -168,7 +188,7 @@ def main(argv: list[str]) -> int:
     # any entries for them yet. Useful for pre-MVP repos where the SUBSYSTEMS
     # stubs are the most authoritative guidance available.
     for sub_name, kws in subsystem_keywords.items():
-        if any(kw.lower() in task_tokens for kw in kws):
+        if any(_keyword_matches_task(kw, task_tokens) for kw in kws):
             selected_subsystems.add(sub_name)
 
     # Real product subsystems are those configured in agentic.json, plus any

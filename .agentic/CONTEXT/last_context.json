@@ -1,19 +1,25 @@
 {
-  "task": "quoted multi word",
-  "generated_at": "2026-05-20T05:51:10+00:00",
-  "confidence": "low",
+  "task": "deploy to cloud run on gcp",
+  "generated_at": "2026-05-20T06:08:01+00:00",
+  "confidence": "medium",
   "selected_paths": [],
-  "selected_subsystems": [],
-  "subsystem_files": [],
+  "selected_subsystems": [
+    "infra"
+  ],
+  "subsystem_files": [
+    ".agentic/SUBSYSTEMS/infra.md"
+  ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
-  "risk_tags": [],
+  "risk_tags": [
+    "infra"
+  ],
   "unknowns": [
     "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic."
   ],
   "stop_conditions": [
-    "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
+    "No related tests located by the codemap. Add or identify tests before non-trivial changes."
   ]
 }
