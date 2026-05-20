@@ -8,6 +8,6 @@ coverage/
 .cache/
 .git/
 __pycache__/
-*.lock
+# *.lock
 *.log
 # *.json
