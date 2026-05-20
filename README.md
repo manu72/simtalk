@@ -22,8 +22,8 @@ Unlike traditional translation apps that rely on text input or awkward turn-base
 
 For product scope and architectural decisions, see:
 
-- Product Requirements Document (PRD)
-- System Architecture Specification
+- [Product Requirements Document (PRD)](./PRD.md)
+- [System Architecture Specification](./System_Architecture.md)
 
 ⸻
 
@@ -125,13 +125,10 @@ Repository Structure
 
 simtalk/
 ├── README.md
-├── WORKING_MEMORY.md
-├── docs/
-│ ├── prd.md
-│ ├── architecture.md
-│ ├── api.md
-│ ├── security.md
-│ └── deployment.md
+├── PRD.md
+├── System_Architecture.md
+├── .agentic/                  # AI memory layer (PROJECT_BRIEF, MEMORY_INDEX, SUBSYSTEMS)
+├── docs/                      # planned: api.md, security.md, deployment.md
 ├── frontend/
 │ ├── src/
 │ ├── public/
@@ -244,7 +241,7 @@ This repository is optimized for AI-assisted development.
 
 Operating Rules
 
-1. Read README.md and WORKING_MEMORY.md before making changes.
+1. Read README.md and .agentic/PROJECT_BRIEF.md before making changes.
 2. Prefer minimal, targeted changes.
 3. Do not introduce new dependencies without justification.
 4. Preserve backward compatibility.
