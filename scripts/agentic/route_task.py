@@ -136,10 +136,9 @@ def _confidence(
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 2 or not argv[1].strip():
+    task = " ".join(argv[1:]).strip()
+    if not task:
         _die('usage: route_task.py "<task description>"', code=2)
-
-    task = argv[1].strip()
     cfg = _load_json(CONFIG_PATH)
     codemap = _load_json(CODEMAP_PATH)
     entries: list[dict[str, Any]] = codemap.get("entries", [])
