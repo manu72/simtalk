@@ -145,6 +145,26 @@ def _select_subsystem_files(selected_subsystems: set[str]) -> list[str]:
     return out
 
 
+def _routable_entries_for_selection(
+    entry: dict[str, Any], entries: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    path = entry.get("path")
+    if not isinstance(path, str) or not path:
+        return []
+    if entry.get("kind") != "dir":
+        return [entry]
+
+    prefix = f"{path.rstrip('/')}/"
+    out: list[dict[str, Any]] = []
+    for candidate in entries:
+        candidate_path = candidate.get("path")
+        if candidate.get("kind") == "dir" or not isinstance(candidate_path, str):
+            continue
+        if candidate_path.startswith(prefix):
+            out.append(candidate)
+    return out
+
+
 def _confidence(
     selected_paths: list[str],
     selected_subsystems: set[str],
@@ -216,12 +236,6 @@ def main(argv: list[str]) -> int:
                 valid_subsystem_names.add(p.stem)
 
     for _, e in scored:
-        if len(selected_paths) >= MAX_SELECTED_PATHS:
-            break
-        path = e.get("path")
-        if not path or path in selected_paths:
-            continue
-        selected_paths.append(path)
         sub = e.get("subsystem")
         if sub and sub in valid_subsystem_names:
             selected_subsystems.add(sub)
@@ -229,6 +243,20 @@ def main(argv: list[str]) -> int:
             risk_tags_present.add(str(t))
         if e.get("related_tests"):
             has_tests = True
+        for candidate in _routable_entries_for_selection(e, entries):
+            candidate_sub = candidate.get("subsystem")
+            if candidate_sub and candidate_sub in valid_subsystem_names:
+                selected_subsystems.add(candidate_sub)
+            for t in candidate.get("risk_tags") or []:
+                risk_tags_present.add(str(t))
+            if candidate.get("related_tests"):
+                has_tests = True
+            if len(selected_paths) >= MAX_SELECTED_PATHS:
+                break
+            candidate_path = candidate.get("path")
+            if not isinstance(candidate_path, str) or candidate_path in selected_paths:
+                continue
+            selected_paths.append(candidate_path)
 
     selected_subsystems &= valid_subsystem_names
 
