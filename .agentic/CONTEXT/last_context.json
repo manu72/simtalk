@@ -1,32 +1,25 @@
 {
-  "task": "Fix frontend package.json React and Vite versions using pnpm-lock.yaml exact locked versions",
-  "generated_at": "2026-05-20T12:33:38+00:00",
+  "task": "Validate and minimally update shared languageCodeSchema to reject invalid BCP-47 language tags",
+  "generated_at": "2026-05-20T12:43:39+00:00",
   "confidence": "high",
   "selected_paths": [
-    "frontend/.env.example",
-    "frontend/index.html",
-    "frontend/package.json",
-    "frontend/src/App.test.tsx",
-    "frontend/src/App.tsx",
-    "frontend/src/main.tsx",
-    "frontend/src/setupTests.ts",
-    "frontend/src/styles.css",
-    "frontend/tsconfig.app.json",
-    "frontend/tsconfig.json"
+    "shared/types/package.json",
+    "shared/types/src/index.test.ts",
+    "shared/types/src/index.ts",
+    "shared/types/tsconfig.json",
+    ".pnpm-store/v10/index/47/3786f49bb96da83606fd7f97095526f044deae93b57b247592cb0b27e0e69b-lightningcss-darwin-arm64@1.32.0.json"
   ],
   "selected_subsystems": [
-    "web"
+    "shared"
   ],
   "subsystem_files": [
-    ".agentic/SUBSYSTEMS/web.md"
+    ".agentic/SUBSYSTEMS/shared.md"
   ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
-  "risk_tags": [
-    "secrets"
-  ],
+  "risk_tags": [],
   "unknowns": [],
   "stop_conditions": []
 }

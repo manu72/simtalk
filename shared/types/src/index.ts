@@ -7,8 +7,17 @@ export const conversationModeSchema = z.enum(conversationModes);
 export const languageCodeSchema = z
   .string()
   .trim()
-  .min(2)
-  .max(35)
+  .refine(
+    (value: string) => {
+      try {
+        new Intl.Locale(value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Invalid BCP-47 language tag' }
+  )
   .describe('BCP-47 language tag, for example en, es, en-AU, or zh-Hans');
 
 export const realtimeTokenRequestSchema = z.object({
