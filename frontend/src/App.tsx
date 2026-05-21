@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 
 import { conversationModes, type ConversationMode, type RealtimeTokenResponse } from '@simtalk/shared-types';
 
@@ -44,6 +44,7 @@ export const App = () => {
   const [status, setStatus] = useState<SessionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [preparedSession, setPreparedSession] = useState<PreparedSession | null>(null);
+  const activeTokenRequestRef = useRef(0);
 
   const needsSourceLanguage = selectedMode === 'turnabout' || selectedMode === 'practice';
   const sourceHelpText = useMemo(
@@ -55,6 +56,7 @@ export const App = () => {
   );
 
   const handleModeSelect = (mode: ConversationMode) => {
+    activeTokenRequestRef.current += 1;
     setSelectedMode(mode);
     setStatus('idle');
     setErrorMessage(null);
@@ -63,6 +65,8 @@ export const App = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const requestId = activeTokenRequestRef.current + 1;
+    activeTokenRequestRef.current = requestId;
     setStatus('loading');
     setErrorMessage(null);
     setPreparedSession(null);
@@ -75,9 +79,17 @@ export const App = () => {
       });
 
       const { clientSecret: _clientSecret, ...browserSafeSession } = token;
+      if (activeTokenRequestRef.current !== requestId) {
+        return;
+      }
+
       setPreparedSession(browserSafeSession);
       setStatus('ready');
     } catch (error) {
+      if (activeTokenRequestRef.current !== requestId) {
+        return;
+      }
+
       const message =
         error instanceof RealtimeTokenClientError ? error.message : fallbackErrorMessage;
       setErrorMessage(message);
