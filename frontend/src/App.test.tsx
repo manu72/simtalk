@@ -59,7 +59,8 @@ describe('App', () => {
       body: JSON.stringify({
         mode: 'listener',
         targetLanguage: 'es'
-      })
+      }),
+      signal: expect.any(AbortSignal)
     });
     expect(screen.queryByText('ek_test_client_secret')).not.toBeInTheDocument();
   });
@@ -82,7 +83,8 @@ describe('App', () => {
         mode: 'turnabout',
         sourceLanguage: 'en',
         targetLanguage: 'es'
-      })
+      }),
+      signal: expect.any(AbortSignal)
     });
   });
 

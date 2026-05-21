@@ -16,7 +16,7 @@ type RealtimeTokenClientOptions = {
 export class RealtimeTokenClientError extends Error {
   constructor(
     message: string,
-    readonly code: ApiErrorCode | 'network_error',
+    readonly code: ApiErrorCode | 'network_error' | 'timeout_error',
     readonly status?: number
   ) {
     super(message);
@@ -25,6 +25,7 @@ export class RealtimeTokenClientError extends Error {
 }
 
 const defaultApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+const realtimeTokenRequestTimeoutMs = 8_000;
 
 const joinUrl = (baseUrl: string, path: string): string =>
   `${baseUrl.replace(/\/+$/, '')}${path}`;
@@ -43,17 +44,38 @@ export const requestRealtimeToken = async (
   }
 
   let response: Response;
+  let didTimeout = false;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    didTimeout = true;
+    controller.abort();
+  }, realtimeTokenRequestTimeoutMs);
+
   try {
     response = await fetchImpl(joinUrl(apiBaseUrl, realtimeTokenRoute), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsedRequest.data)
+      body: JSON.stringify(parsedRequest.data),
+      signal: controller.signal
     });
-  } catch {
+  } catch (error) {
+    if (
+      didTimeout ||
+      (error instanceof DOMException && error.name === 'AbortError') ||
+      controller.signal.aborted
+    ) {
+      throw new RealtimeTokenClientError(
+        'Realtime token request timed out. Check your network connection and try again.',
+        'timeout_error'
+      );
+    }
+
     throw new RealtimeTokenClientError(
       'Unable to reach the SimTalk backend. Check that the API server is running.',
       'network_error'
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   const payload = (await response.json().catch(() => null)) as unknown;
