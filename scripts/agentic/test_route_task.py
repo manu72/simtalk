@@ -32,58 +32,160 @@ class KeywordPartMatchesTest(unittest.TestCase):
 
 
 class RouteTaskBundleTest(unittest.TestCase):
+    def _write_fixture(
+        self,
+        root: Path,
+        entries: list[dict[str, object]],
+        subsystem_keywords: dict[str, list[str]] | None = None,
+    ) -> None:
+        (root / ".agentic" / "CONFIG").mkdir(parents=True)
+        (root / ".agentic" / "CONTEXT").mkdir()
+        (root / ".agentic" / "PROJECT_BRIEF.md").write_text("# Brief\n", encoding="utf-8")
+        (root / ".agentic" / "MEMORY_INDEX.md").write_text("# Memory\n", encoding="utf-8")
+        (root / ".agentic" / "CONFIG" / "agentic.json").write_text(
+            json.dumps({"subsystem_keywords": subsystem_keywords or {}}),
+            encoding="utf-8",
+        )
+        (root / ".agentic" / "CODEMAP.json").write_text(
+            json.dumps({"entries": entries}),
+            encoding="utf-8",
+        )
+
+    def _run_route(self, root: Path, task: str) -> dict[str, object]:
+        original_cwd = Path.cwd()
+        stdout = io.StringIO()
+        try:
+            os.chdir(root)
+            with contextlib.redirect_stdout(stdout):
+                rc = main(["route_task.py", task])
+        finally:
+            os.chdir(original_cwd)
+
+        bundle = json.loads(stdout.getvalue())
+        self.assertEqual(0, rc)
+        return bundle
+
     def test_selected_paths_excludes_scored_directory_entries(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / ".agentic" / "CONFIG").mkdir(parents=True)
-            (root / ".agentic" / "CONTEXT").mkdir()
-            (root / ".agentic" / "PROJECT_BRIEF.md").write_text("# Brief\n", encoding="utf-8")
-            (root / ".agentic" / "MEMORY_INDEX.md").write_text("# Memory\n", encoding="utf-8")
-            (root / ".agentic" / "CONFIG" / "agentic.json").write_text(
-                json.dumps({"subsystem_keywords": {}}),
-                encoding="utf-8",
-            )
-            (root / ".agentic" / "CODEMAP.json").write_text(
-                json.dumps(
+            (root / "scripts" / "agentic").mkdir(parents=True)
+            (root / "scripts" / "agentic" / "route_task.py").write_text("# route\n", encoding="utf-8")
+            self._write_fixture(
+                root,
+                [
                     {
-                        "entries": [
-                            {
-                                "path": "scripts",
-                                "kind": "dir",
-                                "subsystem": "scripts",
-                                "role": "supporting",
-                                "risk_tags": [],
-                                "read_triggers": ["routing"],
-                                "related_tests": [],
-                            },
-                            {
-                                "path": "scripts/agentic/route_task.py",
-                                "kind": "file",
-                                "subsystem": "scripts",
-                                "role": "supporting",
-                                "risk_tags": [],
-                                "read_triggers": ["route_task.py"],
-                                "related_tests": ["scripts/agentic/test_route_task.py"],
-                            },
-                        ]
-                    }
-                ),
-                encoding="utf-8",
+                        "path": "scripts",
+                        "kind": "dir",
+                        "subsystem": "scripts",
+                        "role": "supporting",
+                        "risk_tags": [],
+                        "read_triggers": ["routing"],
+                        "related_tests": [],
+                    },
+                    {
+                        "path": "scripts/agentic/route_task.py",
+                        "kind": "file",
+                        "subsystem": "scripts",
+                        "role": "supporting",
+                        "risk_tags": [],
+                        "read_triggers": ["route_task.py"],
+                        "related_tests": ["scripts/agentic/test_route_task.py"],
+                    },
+                ],
             )
 
-            original_cwd = Path.cwd()
-            stdout = io.StringIO()
-            try:
-                os.chdir(root)
-                with contextlib.redirect_stdout(stdout):
-                    rc = main(["route_task.py", "routing"])
-            finally:
-                os.chdir(original_cwd)
-
-            bundle = json.loads(stdout.getvalue())
-            self.assertEqual(0, rc)
+            bundle = self._run_route(root, "routing")
             self.assertNotIn("scripts", bundle["selected_paths"])
             self.assertIn("scripts/agentic/route_task.py", bundle["selected_paths"])
+
+    def test_exact_path_reference_includes_existing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rate_limit_path = root / "backend" / "src" / "middleware" / "rateLimit.ts"
+            rate_limit_path.parent.mkdir(parents=True)
+            rate_limit_path.write_text("export const value = 1;\n", encoding="utf-8")
+            self._write_fixture(
+                root,
+                [
+                    {
+                        "path": "backend/src/middleware/rateLimit.ts",
+                        "kind": "file",
+                        "subsystem": "api",
+                        "role": "supporting",
+                        "risk_tags": ["security"],
+                        "read_triggers": [],
+                        "related_tests": ["backend/src/middleware/rateLimit.test.ts"],
+                    }
+                ],
+                {
+                    "api": ["api"],
+                    "web": ["web"],
+                    "shared": ["shared"],
+                },
+            )
+
+            bundle = self._run_route(
+                root,
+                "Fix backend/src/middleware/rateLimit.ts across api web shared boundaries",
+            )
+
+            self.assertIn("backend/src/middleware/rateLimit.ts", bundle["selected_paths"])
+            self.assertFalse(
+                any("multiple subsystems" in stop for stop in bundle["stop_conditions"])
+            )
+
+    def test_basename_reference_includes_existing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rate_limit_path = root / "backend" / "src" / "middleware" / "rateLimit.ts"
+            rate_limit_path.parent.mkdir(parents=True)
+            rate_limit_path.write_text("export const value = 1;\n", encoding="utf-8")
+            self._write_fixture(
+                root,
+                [
+                    {
+                        "path": "backend/src/middleware/rateLimit.ts",
+                        "kind": "file",
+                        "subsystem": "api",
+                        "role": "supporting",
+                        "risk_tags": ["security"],
+                        "read_triggers": [],
+                        "related_tests": ["backend/src/middleware/rateLimit.test.ts"],
+                    }
+                ],
+            )
+
+            bundle = self._run_route(root, "Fix rateLimit.ts")
+
+            self.assertIn("backend/src/middleware/rateLimit.ts", bundle["selected_paths"])
+
+    def test_function_and_file_hint_includes_existing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rate_limit_path = root / "backend" / "src" / "middleware" / "rateLimit.ts"
+            rate_limit_path.parent.mkdir(parents=True)
+            rate_limit_path.write_text(
+                "export function clientKeyFromHeaders() {}\n",
+                encoding="utf-8",
+            )
+            self._write_fixture(
+                root,
+                [
+                    {
+                        "path": "backend/src/middleware/rateLimit.ts",
+                        "kind": "file",
+                        "subsystem": "api",
+                        "role": "supporting",
+                        "risk_tags": ["security"],
+                        "read_triggers": [],
+                        "related_tests": ["backend/src/middleware/rateLimit.test.ts"],
+                    }
+                ],
+            )
+
+            bundle = self._run_route(root, "Fix clientKeyFromHeaders in rateLimit.ts")
+
+            self.assertIn("backend/src/middleware/rateLimit.ts", bundle["selected_paths"])
 
 
 if __name__ == "__main__":

@@ -98,6 +98,42 @@ def _keyword_matches_task(keyword: str, task_tokens: set[str]) -> bool:
     return all(_keyword_part_matches(p, task_tokens) for p in parts)
 
 
+def _contains_explicit_reference(normalized_task: str, reference: str) -> bool:
+    """True when a path or filename appears as its own task reference."""
+    if not reference:
+        return False
+    boundary = r"a-z0-9_./-"
+    return (
+        re.search(
+            rf"(?<![{boundary}]){re.escape(reference)}(?![{boundary}])",
+            normalized_task,
+        )
+        is not None
+    )
+
+
+def _explicit_file_reference_matches(
+    task: str, entries: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Return existing codemap file entries explicitly named by path or basename."""
+    normalized_task = task.lower().replace("\\", "/")
+    matches: list[dict[str, Any]] = []
+    for entry in entries:
+        path = entry.get("path")
+        if entry.get("kind") == "dir" or not isinstance(path, str) or not path:
+            continue
+        normalized_path = path.replace("\\", "/")
+        if not Path(normalized_path).is_file():
+            continue
+        basename = Path(normalized_path).name.lower()
+        normalized_path_lower = normalized_path.lower()
+        if _contains_explicit_reference(
+            normalized_task, normalized_path_lower
+        ) or _contains_explicit_reference(normalized_task, basename):
+            matches.append(entry)
+    return sorted(matches, key=lambda entry: str(entry.get("path", "")))
+
+
 def _score_entry(
     entry: dict[str, Any],
     task_tokens: set[str],
@@ -169,6 +205,7 @@ def _confidence(
     selected_paths: list[str],
     selected_subsystems: set[str],
     has_tests: bool,
+    has_explicit_paths: bool = False,
 ) -> tuple[str, list[str]]:
     stops: list[str] = []
     if not selected_paths and not selected_subsystems:
@@ -176,7 +213,7 @@ def _confidence(
             "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
         )
         return "low", stops
-    if len(selected_subsystems) >= 3:
+    if len(selected_subsystems) >= 3 and not has_explicit_paths:
         stops.append(
             "Task spans multiple subsystems. Confirm the intended primary subsystem before implementing."
         )
@@ -235,6 +272,19 @@ def main(argv: list[str]) -> int:
             if p.name.lower() != "readme.md":
                 valid_subsystem_names.add(p.stem)
 
+    explicit_entries = _explicit_file_reference_matches(task, entries)
+    for e in explicit_entries:
+        sub = e.get("subsystem")
+        if sub and sub in valid_subsystem_names:
+            selected_subsystems.add(sub)
+        for t in e.get("risk_tags") or []:
+            risk_tags_present.add(str(t))
+        if e.get("related_tests"):
+            has_tests = True
+        candidate_path = e.get("path")
+        if isinstance(candidate_path, str) and candidate_path not in selected_paths:
+            selected_paths.append(candidate_path)
+
     for _, e in scored:
         sub = e.get("subsystem")
         if sub and sub in valid_subsystem_names:
@@ -269,7 +319,7 @@ def main(argv: list[str]) -> int:
     subsystem_files = _select_subsystem_files(selected_subsystems)
 
     confidence, stop_conditions = _confidence(
-        selected_paths, selected_subsystems, has_tests
+        selected_paths, selected_subsystems, has_tests, bool(explicit_entries)
     )
 
     unknowns: list[str] = []
