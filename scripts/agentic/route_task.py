@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -45,6 +46,17 @@ RISKY_VERBS = {
 }
 
 MAX_SELECTED_PATHS = 10
+PRUNED_SCAN_DIRS = {
+    ".cache",
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+}
 WORD_FORM_SUFFIXES = ("s", "es", "d", "ed", "ing", "er", "ers", "ment", "ments")
 WORD_FORM_ALIASES = {
     "auth": {
@@ -134,6 +146,37 @@ def _explicit_file_reference_matches(
     return sorted(matches, key=lambda entry: str(entry.get("path", "")))
 
 
+def _explicit_files_from_filesystem(task: str) -> list[str]:
+    normalized_task = task.lower().replace("\\", "/")
+    candidates: list[str] = []
+
+    for dirpath, dirnames, filenames in os.walk("."):
+        dirnames[:] = sorted(
+            dirname
+            for dirname in dirnames
+            if dirname not in PRUNED_SCAN_DIRS and not dirname.endswith(".egg-info")
+        )
+
+        current_dir = Path(dirpath)
+        for filename in sorted(filenames):
+            path = current_dir / filename
+            if not path.is_file():
+                continue
+
+            rel = path.as_posix()
+            rel_lower = rel.lower()
+            basename = path.name.lower()
+
+            if _contains_explicit_reference(
+                normalized_task, rel_lower
+            ) or _contains_explicit_reference(normalized_task, basename):
+                candidates.append(rel)
+                if len(candidates) >= MAX_SELECTED_PATHS:
+                    return sorted(set(candidates))[:MAX_SELECTED_PATHS]
+
+    return sorted(set(candidates))
+
+
 def _score_entry(
     entry: dict[str, Any],
     task_tokens: set[str],
@@ -208,6 +251,10 @@ def _confidence(
     has_explicit_paths: bool = False,
 ) -> tuple[str, list[str]]:
     stops: list[str] = []
+    if has_explicit_paths and selected_paths:
+        if has_tests:
+            return "high", []
+        return "medium", []
     if not selected_paths and not selected_subsystems:
         stops.append(
             "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
@@ -282,8 +329,20 @@ def main(argv: list[str]) -> int:
         if e.get("related_tests"):
             has_tests = True
         candidate_path = e.get("path")
-        if isinstance(candidate_path, str) and candidate_path not in selected_paths:
+        if (
+            isinstance(candidate_path, str)
+            and candidate_path not in selected_paths
+            and len(selected_paths) < MAX_SELECTED_PATHS
+        ):
             selected_paths.append(candidate_path)
+
+    explicit_fs_paths = _explicit_files_from_filesystem(task)
+
+    for p in reversed(explicit_fs_paths):
+        if len(selected_paths) >= MAX_SELECTED_PATHS:
+            break
+        if p not in selected_paths:
+            selected_paths.insert(0, p)
 
     for _, e in scored:
         sub = e.get("subsystem")
@@ -318,8 +377,10 @@ def main(argv: list[str]) -> int:
 
     subsystem_files = _select_subsystem_files(selected_subsystems)
 
+    has_explicit_paths = bool(explicit_entries or explicit_fs_paths)
+
     confidence, stop_conditions = _confidence(
-        selected_paths, selected_subsystems, has_tests, bool(explicit_entries)
+        selected_paths, selected_subsystems, has_tests, has_explicit_paths
     )
 
     unknowns: list[str] = []

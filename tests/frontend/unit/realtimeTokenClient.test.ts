@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { RealtimeTokenClientError, requestRealtimeToken } from './realtimeTokenClient';
+import {
+  RealtimeTokenClientError,
+  requestRealtimeToken
+} from '../../../frontend/src/realtimeTokenClient';
 
 const tokenRequest = {
   mode: 'listener',

@@ -163,6 +163,10 @@ simtalk/
 │   └── package.json
 ├── scripts/
 ├── tests/
+│ ├── backend/                  # Vitest unit and integration tests for the Hono API
+│ ├── frontend/                 # Vitest unit/component tests and React Testing Library setup
+│ ├── shared/                   # Vitest contract tests for shared Zod schemas/types
+│ └── e2e/                      # Playwright browser smoke and journey tests
 └── .github/
 └── workflows/
 
@@ -309,15 +313,23 @@ Frontend
 
 - Vitest.
 - React Testing Library.
+- Tests live in `tests/frontend/unit`, `tests/frontend/component`, and `tests/frontend/support`.
 
 Backend
 
 - Vitest.
 - Integration tests for API endpoints.
+- Tests live in `tests/backend/unit` and `tests/backend/integration`.
+
+Shared Contracts
+
+- Vitest.
+- Contract tests live in `tests/shared/unit`.
 
 End-to-End
 
 - Playwright.
+- Browser-driven tests live in `tests/e2e`.
 
 Critical Scenarios
 

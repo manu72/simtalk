@@ -9,7 +9,7 @@ import {
   realtimeTokenRequestSchema,
   realtimeTokenResponseSchema,
   realtimeTokenRoute
-} from './index';
+} from '../../../shared/types/src/index';
 
 describe('shared API contracts', () => {
   it('defines the supported Phase 1 conversation modes', () => {

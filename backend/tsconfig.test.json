@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "lib": ["ES2022", "DOM"],
+    "noEmit": true,
+    "paths": {
+      "@simtalk/shared-types": ["../shared/types/src/index.ts"],
+      "vitest": ["./node_modules/vitest/dist/index.d.ts"],
+      "vitest/config": ["./node_modules/vitest/config.d.ts"]
+    },
+    "rootDir": ".."
+  },
+  "include": ["src/**/*.ts", "../tests/backend/**/*.ts", "vitest.config.ts"],
+  "exclude": ["dist"]
+}
