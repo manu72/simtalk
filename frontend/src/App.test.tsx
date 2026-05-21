@@ -112,4 +112,54 @@ describe('App', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('returns to the idle status when switching modes after preparing a session', async () => {
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveClass('status-card--ready');
+    });
+
+    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No translation session has been prepared yet. Audio capture will remain inactive.'
+    );
+    expect(screen.getByRole('status')).not.toHaveClass('status-card--ready');
+  });
+
+  it('returns to the idle status when switching modes after a request error', async () => {
+    mockFetch(
+      Response.json(
+        {
+          error: {
+            code: 'validation_error',
+            message: 'Source and target languages must be different'
+          }
+        },
+        { status: 400 }
+      )
+    );
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
+    fireEvent.change(screen.getByLabelText(/Translation language/i), {
+      target: { value: 'en' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveClass('status-card--error');
+    });
+
+    fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No translation session has been prepared yet. Audio capture will remain inactive.'
+    );
+    expect(screen.getByRole('status')).not.toHaveClass('status-card--error');
+  });
 });

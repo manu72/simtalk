@@ -56,6 +56,7 @@ export const App = () => {
 
   const handleModeSelect = (mode: ConversationMode) => {
     setSelectedMode(mode);
+    setStatus('idle');
     setErrorMessage(null);
     setPreparedSession(null);
   };
