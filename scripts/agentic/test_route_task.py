@@ -221,7 +221,7 @@ class RouteTaskBundleTest(unittest.TestCase):
 
             bundle = self._run_route(root, "Fix target.py")
 
-            self.assertLessEqual(len(bundle["selected_paths"]), MAX_SELECTED_PATHS)
+            self.assertEqual(len(bundle["selected_paths"]), MAX_SELECTED_PATHS)
 
 
 if __name__ == "__main__":
