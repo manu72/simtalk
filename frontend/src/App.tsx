@@ -269,8 +269,14 @@ export const App = () => {
 
     link.href = url;
     link.download = `simtalk-transcript-${new Date().toISOString()}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+    document.body.append(link);
+
+    try {
+      link.click();
+    } finally {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
