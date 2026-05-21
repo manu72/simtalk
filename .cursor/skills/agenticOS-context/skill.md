@@ -20,7 +20,11 @@ Runtime context routing. Do NOT bootstrap. If `.agentic/` is missing, stop and t
    - List any `unknowns` and `stop_conditions`. If a stop condition is hit, ask the user before proceeding.
    - State the bundle `confidence`. If confidence is low, do not implement until the user confirms the route or provides more context.
 6. Prefer minimal sufficient evidence. Do not expand the read set unless a specific gap blocks the task.
-7. If the user explicitly names a file, path, function, endpoint, or test, treat it as a routing anchor. If the routing bundle omits that target but the file exists, read the explicitly named file and report that the routing engine needs correction.
+7. If the user explicitly names a file, path, function, endpoint, or test, treat it as a routing anchor.
+   - If the route bundle includes it, proceed with that file.
+   - If the route bundle omits it but the file exists, read the explicitly named file and proceed with the narrowest safe edit.
+   - Report that the routing engine needs correction.
+   - Do not stop merely because the route is low-confidence when the user supplied an existing file target.
 8. If the bundle looks wrong (e.g. missing the obvious source-of-truth), refine the task string and re-run once; if still wrong, ask the user.
 
 ## Non-goals

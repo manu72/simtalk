@@ -134,6 +134,27 @@ def _explicit_file_reference_matches(
     return sorted(matches, key=lambda entry: str(entry.get("path", "")))
 
 
+def _explicit_files_from_filesystem(task: str) -> list[str]:
+    normalized_task = task.lower().replace("\\", "/")
+    candidates: list[str] = []
+
+    for path in Path(".").rglob("*"):
+        if not path.is_file():
+            continue
+
+        rel = path.as_posix()
+        if rel.startswith(".git/") or "node_modules/" in rel:
+            continue
+
+        rel_lower = rel.lower()
+        basename = path.name.lower()
+
+        if _contains_explicit_reference(normalized_task, rel_lower) or _contains_explicit_reference(normalized_task, basename):
+            candidates.append(rel)
+
+    return sorted(set(candidates))
+
+
 def _score_entry(
     entry: dict[str, Any],
     task_tokens: set[str],
@@ -208,6 +229,10 @@ def _confidence(
     has_explicit_paths: bool = False,
 ) -> tuple[str, list[str]]:
     stops: list[str] = []
+    if has_explicit_paths and selected_paths:
+        if has_tests:
+            return "high", []
+        return "medium", []
     if not selected_paths and not selected_subsystems:
         stops.append(
             "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
@@ -285,6 +310,12 @@ def main(argv: list[str]) -> int:
         if isinstance(candidate_path, str) and candidate_path not in selected_paths:
             selected_paths.append(candidate_path)
 
+    explicit_fs_paths = _explicit_files_from_filesystem(task)
+
+    for p in explicit_fs_paths:
+        if p not in selected_paths:
+            selected_paths.insert(0, p)
+
     for _, e in scored:
         sub = e.get("subsystem")
         if sub and sub in valid_subsystem_names:
@@ -318,8 +349,10 @@ def main(argv: list[str]) -> int:
 
     subsystem_files = _select_subsystem_files(selected_subsystems)
 
+    has_explicit_paths = bool(explicit_entries or explicit_fs_paths)
+
     confidence, stop_conditions = _confidence(
-        selected_paths, selected_subsystems, has_tests, bool(explicit_entries)
+        selected_paths, selected_subsystems, has_tests, has_explicit_paths
     )
 
     unknowns: list[str] = []

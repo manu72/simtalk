@@ -20,6 +20,29 @@ CONFIG_PATH = Path(".agentic/CONFIG/agentic.json")
 OUT_PATH = Path(".agentic/CODEMAP.json")
 SCHEMA_VERSION = "1.0"
 
+DEFAULT_IGNORE_PARTS = {
+    ".git",
+    ".agentic/CONTEXT",
+    "node_modules",
+    ".pnpm-store",
+    ".pnpm",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "dist",
+    "build",
+    ".next",
+    ".turbo",
+    ".cache",
+    ".parcel-cache",
+    ".vite",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "coverage",
+    "vendor",
+}
+
 LANGUAGE_BY_EXT: dict[str, str] = {
     ".ts": "typescript",
     ".tsx": "typescript",
@@ -89,6 +112,11 @@ def _matches_any(path: str, globs: list[str]) -> bool:
         if fnmatch.fnmatch(norm, pat) or fnmatch.fnmatch("./" + norm, pat):
             return True
     return False
+
+def _is_default_ignored(path: str) -> bool:
+    norm = path.replace(os.sep, "/").strip("/")
+    parts = norm.split("/")
+    return any(part in DEFAULT_IGNORE_PARTS for part in parts)
 
 
 # Patterns of the form **/NAME/** indicate "ignore this directory wherever it
@@ -165,6 +193,8 @@ def _walk(
     basename_ignores = _ignored_basenames(ignore_globs)
 
     def _is_ignored_dir(rel: str, basename: str) -> bool:
+        if _is_default_ignored(rel) or basename in DEFAULT_IGNORE_PARTS:
+            return True
         if basename in basename_ignores:
             return True
         return _matches_any(rel + "/", ignore_globs) or _matches_any(rel, ignore_globs)
@@ -192,7 +222,7 @@ def _walk(
 
         for fname in filenames:
             file_rel = f"{rel_root_norm}/{fname}".lstrip("/")
-            if _matches_any(file_rel, ignore_globs):
+            if _is_default_ignored(file_rel) or _matches_any(file_rel, ignore_globs):
                 continue
             files.append(file_rel)
 
