@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-21T06:29:41+00:00",
+  "generated_at": "2026-05-21T07:21:09+00:00",
   "root": ".",
   "entries": [
     {
@@ -383,10 +383,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -415,10 +412,7 @@
         "secrets"
       ],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         ".env.example",
@@ -446,10 +440,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -477,10 +468,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -501,37 +489,6 @@
       ]
     },
     {
-      "path": "backend/src/app.test.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "api",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
-      ],
-      "read_triggers": [
-        "api",
-        "app.test.ts",
-        "backend",
-        "controller",
-        "cors",
-        "endpoint",
-        "ephemeral",
-        "handler",
-        "hono",
-        "middleware",
-        "rate-limit",
-        "route",
-        "schema",
-        "token",
-        "zod"
-      ]
-    },
-    {
       "path": "backend/src/app.ts",
       "kind": "file",
       "language": "typescript",
@@ -539,46 +496,12 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
         "app.ts",
         "backend",
-        "controller",
-        "cors",
-        "endpoint",
-        "ephemeral",
-        "handler",
-        "hono",
-        "middleware",
-        "rate-limit",
-        "route",
-        "schema",
-        "token",
-        "zod"
-      ]
-    },
-    {
-      "path": "backend/src/config.test.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "api",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
-      ],
-      "read_triggers": [
-        "api",
-        "backend",
-        "config.test.ts",
         "controller",
         "cors",
         "endpoint",
@@ -601,10 +524,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -632,10 +552,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -664,10 +581,7 @@
         "security"
       ],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -697,10 +611,7 @@
         "security"
       ],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -730,10 +641,7 @@
         "security"
       ],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -761,10 +669,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -792,10 +697,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -816,37 +718,6 @@
       ]
     },
     {
-      "path": "backend/src/routes/realtime.test.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "api",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
-      ],
-      "read_triggers": [
-        "api",
-        "backend",
-        "controller",
-        "cors",
-        "endpoint",
-        "ephemeral",
-        "handler",
-        "hono",
-        "middleware",
-        "rate-limit",
-        "realtime.test.ts",
-        "route",
-        "schema",
-        "token",
-        "zod"
-      ]
-    },
-    {
       "path": "backend/src/routes/realtime.ts",
       "kind": "file",
       "language": "typescript",
@@ -854,10 +725,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -885,10 +753,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -916,10 +781,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -947,10 +809,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -971,37 +830,6 @@
       ]
     },
     {
-      "path": "backend/src/services/openAiRealtime.test.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "api",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
-      ],
-      "read_triggers": [
-        "api",
-        "backend",
-        "controller",
-        "cors",
-        "endpoint",
-        "ephemeral",
-        "handler",
-        "hono",
-        "middleware",
-        "openairealtime.test.ts",
-        "rate-limit",
-        "route",
-        "schema",
-        "token",
-        "zod"
-      ]
-    },
-    {
       "path": "backend/src/services/openAiRealtime.ts",
       "kind": "file",
       "language": "typescript",
@@ -1009,10 +837,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -1040,10 +865,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "backend/src/app.test.ts",
-        "backend/src/config.test.ts",
-        "backend/src/routes/realtime.test.ts",
-        "backend/src/services/openAiRealtime.test.ts"
+        "backend/tsconfig.test.json"
       ],
       "read_triggers": [
         "api",
@@ -1064,6 +886,62 @@
       ]
     },
     {
+      "path": "backend/tsconfig.test.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "backend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "tsconfig.test.json",
+        "zod"
+      ]
+    },
+    {
+      "path": "backend/vitest.config.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "backend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "vitest.config.ts",
+        "zod"
+      ]
+    },
+    {
       "path": "frontend",
       "kind": "dir",
       "language": null,
@@ -1071,8 +949,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1101,8 +978,7 @@
         "secrets"
       ],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         ".env.example",
@@ -1130,8 +1006,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1159,8 +1034,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1188,8 +1062,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1217,8 +1090,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1239,35 +1111,6 @@
       ]
     },
     {
-      "path": "frontend/src/App.test.tsx",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "web",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
-      ],
-      "read_triggers": [
-        "app.test.tsx",
-        "browser",
-        "component",
-        "frontend",
-        "mic",
-        "microphone",
-        "page",
-        "playback",
-        "react",
-        "shadcn",
-        "tailwind",
-        "transcript",
-        "ui",
-        "view",
-        "vite"
-      ]
-    },
-    {
       "path": "frontend/src/App.tsx",
       "kind": "file",
       "language": "typescript",
@@ -1275,8 +1118,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "app.tsx",
@@ -1304,8 +1146,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1326,35 +1167,6 @@
       ]
     },
     {
-      "path": "frontend/src/realtimeTokenClient.test.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "web",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
-      ],
-      "read_triggers": [
-        "browser",
-        "component",
-        "frontend",
-        "mic",
-        "microphone",
-        "page",
-        "playback",
-        "react",
-        "realtimetokenclient.test.ts",
-        "shadcn",
-        "tailwind",
-        "transcript",
-        "ui",
-        "view",
-        "vite"
-      ]
-    },
-    {
       "path": "frontend/src/realtimeTokenClient.ts",
       "kind": "file",
       "language": "typescript",
@@ -1362,8 +1174,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1384,35 +1195,6 @@
       ]
     },
     {
-      "path": "frontend/src/setupTests.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "web",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
-      ],
-      "read_triggers": [
-        "browser",
-        "component",
-        "frontend",
-        "mic",
-        "microphone",
-        "page",
-        "playback",
-        "react",
-        "setuptests.ts",
-        "shadcn",
-        "tailwind",
-        "transcript",
-        "ui",
-        "view",
-        "vite"
-      ]
-    },
-    {
       "path": "frontend/src/styles.css",
       "kind": "file",
       "language": "css",
@@ -1420,8 +1202,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1449,8 +1230,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1478,8 +1258,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1507,8 +1286,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1529,6 +1307,34 @@
       ]
     },
     {
+      "path": "frontend/tsconfig.test.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "tsconfig.test.json",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
       "path": "frontend/vite.config.ts",
       "kind": "file",
       "language": "typescript",
@@ -1536,8 +1342,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "frontend/src/App.test.tsx",
-        "frontend/src/realtimeTokenClient.test.ts"
+        "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
         "browser",
@@ -1773,7 +1578,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "shared/types/src/index.test.ts"
+        "shared/types/tsconfig.test.json"
       ],
       "read_triggers": [
         "contract",
@@ -1790,7 +1595,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "shared/types/src/index.test.ts"
+        "shared/types/tsconfig.test.json"
       ],
       "read_triggers": [
         "contract",
@@ -1807,7 +1612,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "shared/types/src/index.test.ts"
+        "shared/types/tsconfig.test.json"
       ],
       "read_triggers": [
         "contract",
@@ -1825,31 +1630,13 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "shared/types/src/index.test.ts"
+        "shared/types/tsconfig.test.json"
       ],
       "read_triggers": [
         "contract",
         "dto",
         "shared",
         "src",
-        "types"
-      ]
-    },
-    {
-      "path": "shared/types/src/index.test.ts",
-      "kind": "file",
-      "language": "typescript",
-      "subsystem": "shared",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [
-        "shared/types/src/index.test.ts"
-      ],
-      "read_triggers": [
-        "contract",
-        "dto",
-        "index.test.ts",
-        "shared",
         "types"
       ]
     },
@@ -1861,7 +1648,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "shared/types/src/index.test.ts"
+        "shared/types/tsconfig.test.json"
       ],
       "read_triggers": [
         "contract",
@@ -1879,7 +1666,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "shared/types/src/index.test.ts"
+        "shared/types/tsconfig.test.json"
       ],
       "read_triggers": [
         "contract",
@@ -1890,6 +1677,42 @@
       ]
     },
     {
+      "path": "shared/types/tsconfig.test.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": "shared",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "shared/types/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "contract",
+        "dto",
+        "shared",
+        "tsconfig.test.json",
+        "types"
+      ]
+    },
+    {
+      "path": "shared/types/vitest.config.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "shared",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "shared/types/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "contract",
+        "dto",
+        "shared",
+        "types",
+        "vitest.config.ts"
+      ]
+    },
+    {
       "path": "tests",
       "kind": "dir",
       "language": null,
@@ -1897,7 +1720,15 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "tests/e2e/home.spec.ts"
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
       ],
       "read_triggers": [
         "coverage",
@@ -1911,6 +1742,329 @@
       ]
     },
     {
+      "path": "tests/backend",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "api",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/integration",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "api",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "integration",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/integration/app.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "app.test.ts",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/integration/routes",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "api",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "routes",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/integration/routes/realtime.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "realtime.test.ts",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/unit",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "api",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "unit",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/unit/config.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "config.test.ts",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/unit/services",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "api",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "services",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/unit/services/openAiRealtime.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "openairealtime.test.ts",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
       "path": "tests/e2e",
       "kind": "dir",
       "language": null,
@@ -1918,7 +2072,15 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
-        "tests/e2e/home.spec.ts"
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
       ],
       "read_triggers": [
         "coverage",
@@ -1939,7 +2101,15 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
-        "tests/e2e/home.spec.ts"
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
       ],
       "read_triggers": [
         "coverage",
@@ -1951,6 +2121,333 @@
         "tests",
         "unit",
         "vitest"
+      ]
+    },
+    {
+      "path": "tests/frontend",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/frontend/component",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/frontend/component/App.test.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "app.test.tsx",
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/frontend/support",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "support",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/frontend/support/setupTests.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "setuptests.ts",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/frontend/unit",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "unit",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/frontend/unit/realtimeTokenClient.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "realtimetokenclient.test.ts",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "tests/shared",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "shared",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "contract",
+        "dto",
+        "shared",
+        "types"
+      ]
+    },
+    {
+      "path": "tests/shared/unit",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "shared",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "contract",
+        "dto",
+        "shared",
+        "types",
+        "unit"
+      ]
+    },
+    {
+      "path": "tests/shared/unit/index.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "shared",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts",
+        "tests/frontend/unit/realtimeTokenClient.test.ts",
+        "tests/shared/unit/index.test.ts"
+      ],
+      "read_triggers": [
+        "contract",
+        "dto",
+        "index.test.ts",
+        "shared",
+        "types"
       ]
     },
     {

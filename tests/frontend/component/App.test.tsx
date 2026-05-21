@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { App } from './App';
+import { App } from '../../../frontend/src/App';
 
 const tokenResponse = {
   clientSecret: 'ek_test_client_secret',

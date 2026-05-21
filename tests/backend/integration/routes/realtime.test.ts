@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { openAiRealtimeTranslationCallsUrl, realtimeTokenRoute } from '@simtalk/shared-types';
 
-import { createApp } from '../app.js';
-import { createAppConfig } from '../config.js';
+import { createApp } from '../../../../backend/src/app.js';
+import { createAppConfig } from '../../../../backend/src/config.js';
 
 const openAiSuccessPayload = {
   value: 'ek_test_client_secret',
@@ -46,7 +46,9 @@ const createTokenRequest = (headers: Record<string, string> = {}) =>
 
 describe('POST /realtime/token', () => {
   it('mints a browser-safe gpt-realtime-translate client secret', async () => {
-    const fetchMock = vi.fn(async () => createJsonResponse(openAiSuccessPayload));
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) =>
+      createJsonResponse(openAiSuccessPayload)
+    );
     const config = createTestConfig();
     const app = createApp(config, { fetch: fetchMock });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createAppConfig } from './config.js';
+import { createAppConfig } from '../../../backend/src/config.js';
 
 describe('createAppConfig', () => {
   it.each([

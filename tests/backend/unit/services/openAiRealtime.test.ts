@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AppConfig } from '../config.js';
-import { createOpenAiRealtimeService } from './openAiRealtime.js';
+import type { AppConfig } from '../../../../backend/src/config.js';
+import { createOpenAiRealtimeService } from '../../../../backend/src/services/openAiRealtime.js';
 
 const openAiSuccessPayload = {
   value: 'ek_test_client_secret',

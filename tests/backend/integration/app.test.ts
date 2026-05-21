@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createApp } from './app.js';
-import { createAppConfig } from './config.js';
+import { createApp } from '../../../backend/src/app.js';
+import { createAppConfig } from '../../../backend/src/config.js';
 
 const config = createAppConfig({
   APP_ENV: 'test',
