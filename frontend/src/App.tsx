@@ -34,7 +34,14 @@ const languageOptions = [
   { code: 'zh-Hans', label: 'Chinese (Simplified)' }
 ] as const;
 
-type SessionStatus = 'idle' | 'loading' | 'ready' | 'connecting' | 'connected' | 'error';
+type SessionStatus =
+  | 'idle'
+  | 'loading'
+  | 'ready'
+  | 'connecting'
+  | 'connected'
+  | 'streaming'
+  | 'error';
 
 type PreparedSession = Pick<
   RealtimeTokenResponse,
@@ -162,7 +169,7 @@ export const App = () => {
         },
         onRemoteAudio: () => {
           if (activeWebRtcRequestRef.current === requestId) {
-            setStatus('connected');
+            setStatus('streaming');
           }
         }
       });
@@ -203,6 +210,8 @@ export const App = () => {
         translationCallUrl: preparedToken.translationCallUrl
       }
     : null;
+  const isWebRtcSessionActive = status === 'connected' || status === 'streaming';
+  const canShowPreparedSession = status === 'ready' || isWebRtcSessionActive;
 
   useEffect(
     () => () => {
@@ -310,8 +319,12 @@ export const App = () => {
           )}
           {status === 'loading' && <p>Requesting a short-lived translation credential...</p>}
           {status === 'connecting' && <p>Requesting microphone access and connecting WebRTC...</p>}
+          {status === 'connected' && (
+            <p>WebRTC session established. Waiting for translated audio.</p>
+          )}
+          {status === 'streaming' && <p>Translated audio stream received.</p>}
           {status === 'error' && <p>{errorMessage}</p>}
-          {(status === 'ready' || status === 'connected') && browserSafeSession && (
+          {canShowPreparedSession && browserSafeSession && (
             <dl>
               <div>
                 <dt>Prepared session</dt>
@@ -332,7 +345,7 @@ export const App = () => {
           <div className="session-actions">
             <button
               className="primary-action"
-              disabled={status === 'connecting' || status === 'connected'}
+              disabled={status === 'connecting' || isWebRtcSessionActive}
               onClick={handleStartWebRtc}
               type="button"
             >
@@ -340,7 +353,7 @@ export const App = () => {
             </button>
             <button
               className="secondary-action"
-              disabled={status !== 'connected'}
+              disabled={!isWebRtcSessionActive}
               onClick={handleStopWebRtc}
               type="button"
             >
