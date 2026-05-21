@@ -1,25 +1,24 @@
 {
-  "task": "Add timeout and AbortError handling to OpenAI realtime client secret fetch",
-  "generated_at": "2026-05-21T00:52:37+00:00",
-  "confidence": "medium",
-  "selected_paths": [],
-  "selected_subsystems": [
-    "realtime",
-    "security"
+  "task": "Normalize language tag comparison in shared types validation",
+  "generated_at": "2026-05-21T01:52:36+00:00",
+  "confidence": "high",
+  "selected_paths": [
+    "shared/types/package.json",
+    "shared/types/src/index.test.ts",
+    "shared/types/src/index.ts",
+    "shared/types/tsconfig.json"
   ],
-  "subsystem_files": [],
+  "selected_subsystems": [
+    "shared"
+  ],
+  "subsystem_files": [
+    ".agentic/SUBSYSTEMS/shared.md"
+  ],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
-  "risk_tags": [
-    "secrets"
-  ],
-  "unknowns": [
-    "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic.",
-    "Realtime path is OpenAI-specific. Confirm whether changes touch backend token issuance, frontend WebRTC, or both."
-  ],
-  "stop_conditions": [
-    "No related tests located by the codemap. Add or identify tests before non-trivial changes."
-  ]
+  "risk_tags": [],
+  "unknowns": [],
+  "stop_conditions": []
 }
