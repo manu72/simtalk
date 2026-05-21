@@ -254,11 +254,6 @@ export const App = () => {
     resetPreparedSession();
   };
 
-  const handlePausePractice = () => {
-    invalidateWebRtcSession();
-    setStatus(preparedToken ? 'ready' : 'idle');
-  };
-
   const handleNewPracticeAttempt = () => {
     invalidateWebRtcSession();
     setInputTranscript('');
@@ -611,7 +606,7 @@ export const App = () => {
                     {isPracticeMode ? (
                       <Button
                         disabled={!isWebRtcSessionActive}
-                        onClick={handlePausePractice}
+                        onClick={handleStopWebRtc}
                         type="button"
                         variant="secondary"
                       >
