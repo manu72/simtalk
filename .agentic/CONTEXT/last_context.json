@@ -1,6 +1,6 @@
 {
-  "task": "update backend/src/middleware/rateLimit.ts clientKeyFromHeaders x-forwarded-for parsing",
-  "generated_at": "2026-05-20T22:44:52+00:00",
+  "task": "Fix AbortController timeout handling for fetchImpl in backend/src/services/openAiRealtime.ts",
+  "generated_at": "2026-05-21T00:44:07+00:00",
   "confidence": "low",
   "selected_paths": [
     "backend/src/app.test.ts",
