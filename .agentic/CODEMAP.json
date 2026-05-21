@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-21T01:22:51+00:00",
+  "generated_at": "2026-05-21T03:43:10+00:00",
   "root": ".",
   "entries": [
     {
@@ -305,6 +305,30 @@
     },
     {
       "path": ".cursor/skills/agenticOS-update/SKILL.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".cursor",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "skill.md"
+      ]
+    },
+    {
+      "path": ".cursor/skills/test-structure",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".cursor",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "test-structure"
+      ]
+    },
+    {
+      "path": ".cursor/skills/test-structure/SKILL.md",
       "kind": "file",
       "language": "markdown",
       "subsystem": ".cursor",
@@ -9696,6 +9720,34 @@
         "page",
         "playback",
         "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/realtimeTokenClient.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/src/App.test.tsx"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "realtimetokenclient.ts",
         "shadcn",
         "tailwind",
         "transcript",

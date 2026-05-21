@@ -39,7 +39,10 @@ export const realtimeTokenRequestSchema = z
       });
     }
 
-    if (request.sourceLanguage && request.sourceLanguage === request.targetLanguage) {
+    if (
+      request.sourceLanguage &&
+      request.sourceLanguage.toLowerCase() === request.targetLanguage.toLowerCase()
+    ) {
       ctx.addIssue({
         code: 'custom',
         message: 'Source and target languages must be different',

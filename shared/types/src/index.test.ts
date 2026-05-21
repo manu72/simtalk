@@ -58,6 +58,21 @@ describe('shared API contracts', () => {
     }
   });
 
+  it('rejects equivalent language tags with different casing', () => {
+    const result = realtimeTokenRequestSchema.safeParse({
+      mode: 'practice',
+      sourceLanguage: 'en-us',
+      targetLanguage: 'en-US'
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        'Source and target languages must be different'
+      );
+    }
+  });
+
   it('rejects unknown conversation modes', () => {
     const result = realtimeTokenRequestSchema.safeParse({
       mode: 'conference',

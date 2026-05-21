@@ -4,6 +4,8 @@
   --color-surface-raised: #ffffff;
   --color-primary: #1e40af;
   --color-primary-strong: #172554;
+  --color-primary-soft-shadow: rgb(30 64 175 / 12%);
+  --color-danger: #b91c1c;
   --color-text: #0f172a;
   --color-text-muted: #475569;
   --color-border: #cbd5e1;
@@ -30,12 +32,15 @@ body {
 }
 
 button,
-a {
+a,
+select {
   font: inherit;
 }
 
 button:focus-visible,
-a:focus-visible {
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
   outline: 0.25rem solid var(--color-focus);
   outline-offset: 0.25rem;
 }
@@ -115,33 +120,158 @@ p {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+legend {
+  margin-bottom: var(--space-1);
+  color: var(--color-primary-strong);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.field-help {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
 }
 
 .mode-card {
   display: grid;
+  grid-template-columns: auto 1fr;
   gap: var(--space-2);
-  align-content: space-between;
+  align-items: start;
   border: 1px solid var(--color-border);
   border-radius: 1rem;
+  cursor: pointer;
   padding: var(--space-3);
 }
 
-.mode-card button {
+.mode-card:has(input:checked) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.1875rem var(--color-primary-soft-shadow);
+}
+
+.mode-card input {
+  margin-top: 0.25rem;
+}
+
+.mode-card strong,
+.mode-card small {
+  display: block;
+}
+
+.mode-card small {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.session-form,
+.language-grid,
+.field,
+.status-card dl,
+.status-card div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.session-form {
+  margin-top: var(--space-3);
+}
+
+.language-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.field span {
+  color: var(--color-primary-strong);
+  font-weight: 800;
+}
+
+.field small {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.field select {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  padding: 0.75rem var(--space-2);
+}
+
+.field select:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.primary-action {
+  width: fit-content;
   border: 0;
   border-radius: 999px;
   background: var(--color-primary);
   color: var(--color-surface-raised);
   cursor: pointer;
-  padding: var(--space-1) var(--space-2);
+  font-weight: 800;
+  padding: 0.75rem var(--space-3);
 }
 
-.mode-card button:hover {
+.primary-action:hover:not(:disabled) {
   background: var(--color-primary-strong);
+}
+
+.primary-action:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .status-panel {
   display: grid;
   gap: var(--space-1);
+}
+
+.status-card {
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: var(--space-3);
+}
+
+.status-card--ready {
+  border-color: var(--color-primary);
+}
+
+.status-card--error {
+  border-color: var(--color-danger);
+}
+
+.status-card p {
+  margin-bottom: 0;
+}
+
+.status-card dl {
+  margin: 0;
+}
+
+.status-card div {
+  gap: 0.25rem;
+}
+
+.status-card dt {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.status-card dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 @media (prefers-reduced-motion: reduce) {

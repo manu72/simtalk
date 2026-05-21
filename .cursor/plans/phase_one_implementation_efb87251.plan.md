@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: frontend-session
     content: Replace the static frontend shell with accessible mode/language/session controls wired to the backend token contract.
-    status: pending
+    status: completed
   - id: webrtc-translation
     content: Implement browser-native WebRTC setup for gpt-realtime-translate, remote translated audio playback, transcript deltas, and teardown.
     status: pending
