@@ -10,6 +10,7 @@ const tokenResponse = {
   sessionExpiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
   translationCallUrl: 'https://api.openai.com/v1/realtime/translations/calls'
 };
+const backendValidationErrorMessage = 'Backend rejected the requested language pair';
 
 const mockFetch = (response: Response) => {
   const fetchMock = vi.fn(async () => response);
@@ -89,12 +90,12 @@ describe('App', () => {
   });
 
   it('surfaces backend validation errors accessibly', async () => {
-    mockFetch(
+    const fetchMock = mockFetch(
       Response.json(
         {
           error: {
             code: 'validation_error',
-            message: 'Source and target languages must be different'
+            message: backendValidationErrorMessage
           }
         },
         { status: 400 }
@@ -103,16 +104,12 @@ describe('App', () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    fireEvent.change(screen.getByLabelText(/Translation language/i), {
-      target: { value: 'en' }
-    });
     fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Source and target languages must be different')
-      ).toBeInTheDocument();
+      expect(screen.getByText(backendValidationErrorMessage)).toBeInTheDocument();
     });
+    expect(fetchMock).toHaveBeenCalled();
   });
 
   it('returns to the idle status when switching modes after preparing a session', async () => {
@@ -164,12 +161,12 @@ describe('App', () => {
   });
 
   it('returns to the idle status when switching modes after a request error', async () => {
-    mockFetch(
+    const fetchMock = mockFetch(
       Response.json(
         {
           error: {
             code: 'validation_error',
-            message: 'Source and target languages must be different'
+            message: backendValidationErrorMessage
           }
         },
         { status: 400 }
@@ -178,14 +175,13 @@ describe('App', () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    fireEvent.change(screen.getByLabelText(/Translation language/i), {
-      target: { value: 'en' }
-    });
     fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveClass('status-card--error');
+      expect(screen.getByText(backendValidationErrorMessage)).toBeInTheDocument();
     });
+    expect(fetchMock).toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
 
