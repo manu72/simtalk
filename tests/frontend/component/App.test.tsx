@@ -97,6 +97,42 @@ describe('App', () => {
     });
   });
 
+  it('switches turn-about speaker direction and clears stale prepared sessions', async () => {
+    const fetchMock = mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('sess_test')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Switch speaker direction/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No translation session has been prepared yet. Audio capture will remain inactive.'
+    );
+    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    expect(fetchMock).toHaveBeenLastCalledWith('http://localhost:3000/realtime/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'turnabout',
+        sourceLanguage: 'es',
+        targetLanguage: 'en'
+      }),
+      signal: expect.any(AbortSignal)
+    });
+  });
+
   it('surfaces backend validation errors accessibly', async () => {
     const fetchMock = mockFetch(
       Response.json(
@@ -257,6 +293,48 @@ describe('App', () => {
 
     expect(screen.getByText('hello')).toBeInTheDocument();
     expect(screen.getByText('hola')).toBeInTheDocument();
+  });
+
+  it('lets Practice mode pause for review and start a new attempt', async () => {
+    let onTranscriptDelta!: (delta: { kind: 'input' | 'output'; text: string }) => void;
+    const stop = vi.fn();
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      onTranscriptDelta = options.onTranscriptDelta;
+      return { stop };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start practice attempt/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start practice attempt/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    act(() => {
+      onTranscriptDelta({ kind: 'input', text: 'hello' });
+      onTranscriptDelta({ kind: 'output', text: 'hola' });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Pause and review phrase/i }));
+
+    expect(stop).toHaveBeenCalled();
+    expect(screen.getByText(/Review this attempt/i)).toBeInTheDocument();
+    expect(screen.getByText('hello')).toBeInTheDocument();
+    expect(screen.getByText('hola')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /New practice attempt/i }));
+
+    expect(screen.queryByText('hello')).not.toBeInTheDocument();
+    expect(screen.queryByText('hola')).not.toBeInTheDocument();
+    expect(screen.getByText(/Ready for another phrase/i)).toBeInTheDocument();
   });
 
   it('stops the active WebRTC session', async () => {

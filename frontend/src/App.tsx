@@ -11,6 +11,7 @@ import {
   Mic,
   MicOff,
   Radio,
+  RotateCcw,
   Sparkles,
   Square,
   type LucideIcon
@@ -178,6 +179,8 @@ export const App = () => {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   const needsSourceLanguage = selectedMode === 'turnabout' || selectedMode === 'practice';
+  const isTurnaboutMode = selectedMode === 'turnabout';
+  const isPracticeMode = selectedMode === 'practice';
   const sourceHelpText = useMemo(
     () =>
       selectedMode === 'listener'
@@ -192,6 +195,8 @@ export const App = () => {
   const hasTranscript = inputTranscript.length > 0 || outputTranscript.length > 0;
   const activeStatusDetails = statusDetails[status];
   const StatusIcon = activeStatusDetails.icon;
+  const startWebRtcLabel = isPracticeMode ? 'Start practice attempt' : 'Start microphone and WebRTC';
+  const practiceReviewMessage = hasTranscript ? 'Review this attempt' : 'Ready for another phrase';
 
   const handleTranscriptDelta = (delta: TranscriptDelta) => {
     if (delta.kind === 'input') {
@@ -247,6 +252,19 @@ export const App = () => {
     setSourceLanguage(targetLanguage);
     setTargetLanguage(sourceLanguage);
     resetPreparedSession();
+  };
+
+  const handlePausePractice = () => {
+    invalidateWebRtcSession();
+    setStatus(preparedToken ? 'ready' : 'idle');
+  };
+
+  const handleNewPracticeAttempt = () => {
+    invalidateWebRtcSession();
+    setInputTranscript('');
+    setOutputTranscript('');
+    setErrorMessage(null);
+    setStatus(preparedToken ? 'ready' : 'idle');
   };
 
   const handleDownloadTranscript = () => {
@@ -397,7 +415,7 @@ export const App = () => {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,var(--gradient-start),transparent_32rem),radial-gradient(circle_at_85%_12%,var(--gradient-end),transparent_28rem)]" />
         <div className="mx-auto grid w-full max-w-7xl gap-6">
           <header className="grid gap-6 rounded-[2.5rem] border border-border bg-card/78 p-6 shadow-[0_28px_100px_var(--shadow-shell)] backdrop-blur sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:p-10">
-            <div className="grid gap-5">
+            <div className="grid gap-4">
               <Badge variant="secondary" className="w-fit">
                 <Sparkles className="size-3.5" />
                 Private Phase 1 Prototype
@@ -414,7 +432,7 @@ export const App = () => {
               </div>
             </div>
             <Card className="overflow-hidden rounded-[2rem] bg-background/72">
-              <CardContent className="grid gap-5 p-6">
+              <CardContent className="grid gap-4 p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Current state</p>
@@ -452,7 +470,7 @@ export const App = () => {
 
                         return (
                           <label
-                            className="group grid cursor-pointer gap-4 rounded-[1.5rem] border border-border bg-background/72 p-5 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/8 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
+                            className="group grid cursor-pointer gap-4 rounded-[1.5rem] border border-border bg-background/72 p-6 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/8 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
                             key={mode}
                           >
                             <input
@@ -463,7 +481,7 @@ export const App = () => {
                               type="radio"
                               value={mode}
                             />
-                            <span className="flex items-center justify-between gap-3">
+                            <span className="flex items-center justify-between gap-4">
                               <span className="grid size-12 place-items-center rounded-full bg-secondary text-muted-foreground transition-colors group-has-[:checked]:bg-primary group-has-[:checked]:text-primary-foreground">
                                 <Icon className="size-5" />
                               </span>
@@ -509,15 +527,16 @@ export const App = () => {
                       </label>
 
                       <Button
-                        aria-label="Flip selected languages"
-                        className="mb-10 size-14 justify-self-start lg:justify-self-center"
+                        aria-label={isTurnaboutMode ? 'Switch speaker direction' : 'Flip selected languages'}
+                        className="mb-10 h-14 justify-self-start px-6 lg:justify-self-center"
                         disabled={!needsSourceLanguage || status === 'loading' || status === 'connecting'}
                         onClick={handleFlipLanguages}
-                        size="icon"
+                        size={isTurnaboutMode ? 'default' : 'icon'}
                         type="button"
                         variant="outline"
                       >
                         <ArrowLeftRight className="size-5" />
+                        {isTurnaboutMode && <span>Switch speaker direction</span>}
                       </Button>
 
                       <label className="grid gap-2">
@@ -540,7 +559,7 @@ export const App = () => {
                     </div>
                   </fieldset>
 
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-4">
                     <Button disabled={status === 'loading'} size="lg" type="submit">
                       {status === 'loading' ? 'Preparing session...' : 'Prepare translation session'}
                     </Button>
@@ -580,29 +599,41 @@ export const App = () => {
                 </div>
 
                 {preparedToken && (
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-4">
                     <Button
                       disabled={status === 'connecting' || isWebRtcSessionActive}
                       onClick={handleStartWebRtc}
                       type="button"
                     >
                       <Mic className="size-4" />
-                      {status === 'connecting' ? 'Connecting audio...' : 'Start microphone and WebRTC'}
+                      {status === 'connecting' ? 'Connecting audio...' : startWebRtcLabel}
                     </Button>
-                    <Button
-                      disabled={!isWebRtcSessionActive}
-                      onClick={handleStopWebRtc}
-                      type="button"
-                      variant="secondary"
-                    >
-                      <Square className="size-4" />
-                      Stop audio
-                    </Button>
+                    {isPracticeMode ? (
+                      <Button
+                        disabled={!isWebRtcSessionActive}
+                        onClick={handlePausePractice}
+                        type="button"
+                        variant="secondary"
+                      >
+                        <Square className="size-4" />
+                        Pause and review phrase
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled={!isWebRtcSessionActive}
+                        onClick={handleStopWebRtc}
+                        type="button"
+                        variant="secondary"
+                      >
+                        <Square className="size-4" />
+                        Stop audio
+                      </Button>
+                    )}
                   </div>
                 )}
 
                 {canShowPreparedSession && browserSafeSession && (
-                  <dl className="grid gap-3 rounded-[1.5rem] border border-border bg-background/70 p-4 text-sm">
+                  <dl className="grid gap-4 rounded-[1.5rem] border border-border bg-background/70 p-4 text-sm">
                     <div className="grid gap-1">
                       <dt className="font-medium text-muted-foreground">Prepared session</dt>
                       <dd className="break-all font-semibold text-foreground">{browserSafeSession.sessionId}</dd>
@@ -625,10 +656,61 @@ export const App = () => {
             </Card>
           </section>
 
+          <Card className="bg-card/88 backdrop-blur" aria-labelledby="mode-flow-title">
+            <CardHeader>
+              <Badge variant="secondary" className="w-fit">
+                Mode flow
+              </Badge>
+              <CardTitle id="mode-flow-title">{modeLabels[selectedMode]}</CardTitle>
+              <CardDescription>
+                {selectedMode === 'listener' &&
+                  'Listener mode keeps source language detection automatic and continuously translates into the selected target language.'}
+                {selectedMode === 'turnabout' &&
+                  'Turn-about mode assumes one active speaker at a time. Switch the direction manually before the next person speaks.'}
+                {selectedMode === 'practice' &&
+                  'Practice mode treats each attempt as a phrase: start, speak, pause, review transcripts, then clear for another attempt.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[1.5rem] border border-border bg-background/70 p-6">
+                <p className="text-sm font-semibold text-muted-foreground">Current direction</p>
+                <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-foreground">
+                  {needsSourceLanguage ? getLanguageLabel(sourceLanguage) : 'Auto-detected'} to{' '}
+                  {getLanguageLabel(targetLanguage)}
+                </p>
+              </div>
+              <div className="rounded-[1.5rem] border border-border bg-background/70 p-6">
+                <p className="text-sm font-semibold text-muted-foreground">Mode rule</p>
+                <p className="mt-2 text-sm leading-6 text-foreground">
+                  {selectedMode === 'listener' &&
+                    'Keep speaking naturally. No diarisation or speaker switching is required.'}
+                  {selectedMode === 'turnabout' &&
+                    'Only one direction is active. Use the switch action between speakers.'}
+                  {selectedMode === 'practice' &&
+                    'Pause after each phrase so the source and translated transcripts can be reviewed.'}
+                </p>
+              </div>
+              <div className="rounded-[1.5rem] border border-border bg-background/70 p-6">
+                <p className="text-sm font-semibold text-muted-foreground">Next action</p>
+                <p className="mt-2 text-sm leading-6 text-foreground">
+                  {selectedMode === 'listener' && 'Prepare a session, then start the microphone.'}
+                  {selectedMode === 'turnabout' && 'Prepare again after switching direction to avoid stale credentials.'}
+                  {selectedMode === 'practice' && practiceReviewMessage}
+                </p>
+                {isPracticeMode && (
+                  <Button className="mt-4" onClick={handleNewPracticeAttempt} type="button" variant="outline">
+                    <RotateCcw className="size-4" />
+                    New practice attempt
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <section className="grid gap-6 lg:grid-cols-2" aria-labelledby="transcript-title">
             <div className="flex flex-wrap items-end justify-between gap-4 lg:col-span-2">
               <div>
-                <Badge variant="secondary" className="mb-3 w-fit">
+                <Badge variant="secondary" className="mb-4 w-fit">
                   Transcript panels
                 </Badge>
                 <h2 id="transcript-title" className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
@@ -651,7 +733,7 @@ export const App = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-5">
+                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-6">
                   <p className="whitespace-pre-wrap break-words text-base leading-8 text-foreground">
                     {inputTranscript || 'Waiting for input transcript deltas.'}
                   </p>
@@ -667,7 +749,7 @@ export const App = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-5">
+                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-6">
                   <p className="whitespace-pre-wrap break-words text-base leading-8 text-foreground">
                     {outputTranscript || 'Waiting for translated transcript deltas.'}
                   </p>
