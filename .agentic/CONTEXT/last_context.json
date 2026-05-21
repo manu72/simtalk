@@ -1,39 +1,25 @@
 {
-  "task": "Fix AbortController timeout handling for fetchImpl in backend/src/services/openAiRealtime.ts",
-  "generated_at": "2026-05-21T00:44:07+00:00",
-  "confidence": "low",
-  "selected_paths": [
-    "backend/src/app.test.ts",
-    "backend/src/app.ts",
-    "backend/src/config.ts",
-    "backend/src/middleware/cors.ts",
-    "backend/src/middleware/securityHeaders.ts",
-    "backend/src/routes/health.ts",
-    "backend/src/server.ts",
-    "backend/.env.example",
-    "backend/package.json",
-    "backend/tsconfig.json"
-  ],
+  "task": "Add timeout and AbortError handling to OpenAI realtime client secret fetch",
+  "generated_at": "2026-05-21T00:52:37+00:00",
+  "confidence": "medium",
+  "selected_paths": [],
   "selected_subsystems": [
-    "api",
-    "shared",
-    "web"
+    "realtime",
+    "security"
   ],
-  "subsystem_files": [
-    ".agentic/SUBSYSTEMS/api.md",
-    ".agentic/SUBSYSTEMS/shared.md",
-    ".agentic/SUBSYSTEMS/web.md"
-  ],
+  "subsystem_files": [],
   "memory_files": [
     ".agentic/PROJECT_BRIEF.md",
     ".agentic/MEMORY_INDEX.md"
   ],
   "risk_tags": [
-    "secrets",
-    "security"
+    "secrets"
   ],
-  "unknowns": [],
+  "unknowns": [
+    "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic.",
+    "Realtime path is OpenAI-specific. Confirm whether changes touch backend token issuance, frontend WebRTC, or both."
+  ],
   "stop_conditions": [
-    "Task spans multiple subsystems. Confirm the intended primary subsystem before implementing."
+    "No related tests located by the codemap. Add or identify tests before non-trivial changes."
   ]
 }
