@@ -196,6 +196,7 @@ export const App = () => {
   const activeStatusDetails = statusDetails[status];
   const StatusIcon = activeStatusDetails.icon;
   const startWebRtcLabel = isPracticeMode ? 'Start practice attempt' : 'Start microphone and WebRTC';
+  const stopWebRtcLabel = isPracticeMode ? 'Pause and review phrase' : 'Stop audio';
   const practiceReviewMessage = hasTranscript ? 'Review this attempt' : 'Ready for another phrase';
 
   const handleTranscriptDelta = (delta: TranscriptDelta) => {
@@ -599,27 +600,15 @@ export const App = () => {
                       <Mic className="size-4" />
                       {status === 'connecting' ? 'Connecting audio...' : startWebRtcLabel}
                     </Button>
-                    {isPracticeMode ? (
-                      <Button
-                        disabled={!isWebRtcSessionActive}
-                        onClick={handleStopWebRtc}
-                        type="button"
-                        variant="secondary"
-                      >
-                        <Square className="size-4" />
-                        Pause and review phrase
-                      </Button>
-                    ) : (
-                      <Button
-                        disabled={!isWebRtcSessionActive}
-                        onClick={handleStopWebRtc}
-                        type="button"
-                        variant="secondary"
-                      >
-                        <Square className="size-4" />
-                        Stop audio
-                      </Button>
-                    )}
+                    <Button
+                      disabled={!isWebRtcSessionActive}
+                      onClick={handleStopWebRtc}
+                      type="button"
+                      variant="secondary"
+                    >
+                      <Square className="size-4" />
+                      {stopWebRtcLabel}
+                    </Button>
                   </div>
                 )}
 
