@@ -12,6 +12,10 @@ class DefaultIgnorePartsTest(unittest.TestCase):
     def test_multi_segment_default_ignore_entries_match_path_segments(self) -> None:
         self.assertTrue(_is_default_ignored(".agentic/CONTEXT/last_context.json"))
 
+    def test_multi_segment_default_ignore_entries_do_not_match_individual_segments(self) -> None:
+        self.assertFalse(_is_default_ignored(".agentic/PROJECT_BRIEF.md"))
+        self.assertFalse(_is_default_ignored("notes/CONTEXT/overview.md"))
+
 
 if __name__ == "__main__":
     unittest.main()

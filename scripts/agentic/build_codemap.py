@@ -44,10 +44,10 @@ DEFAULT_IGNORE_PARTS = {
 }
 
 DEFAULT_IGNORE_PART_SEGMENTS = {
-    part
+    normalized
     for entry in DEFAULT_IGNORE_PARTS
-    for part in entry.replace(os.sep, "/").strip("/").split("/")
-    if part
+    for normalized in (entry.replace(os.sep, "/").strip("/"),)
+    if normalized
 }
 
 LANGUAGE_BY_EXT: dict[str, str] = {
@@ -122,8 +122,12 @@ def _matches_any(path: str, globs: list[str]) -> bool:
 
 def _is_default_ignored(path: str) -> bool:
     norm = path.replace(os.sep, "/").strip("/")
-    parts = norm.split("/")
-    return any(part in DEFAULT_IGNORE_PART_SEGMENTS for part in parts)
+    if not norm:
+        return False
+    return any(
+        norm == ignored or norm.startswith(f"{ignored}/")
+        for ignored in DEFAULT_IGNORE_PART_SEGMENTS
+    )
 
 
 # Patterns of the form **/NAME/** indicate "ignore this directory wherever it
