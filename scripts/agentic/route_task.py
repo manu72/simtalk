@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -45,6 +46,17 @@ RISKY_VERBS = {
 }
 
 MAX_SELECTED_PATHS = 10
+PRUNED_SCAN_DIRS = {
+    ".cache",
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+}
 WORD_FORM_SUFFIXES = ("s", "es", "d", "ed", "ing", "er", "ers", "ment", "ments")
 WORD_FORM_ALIASES = {
     "auth": {
@@ -138,19 +150,29 @@ def _explicit_files_from_filesystem(task: str) -> list[str]:
     normalized_task = task.lower().replace("\\", "/")
     candidates: list[str] = []
 
-    for path in Path(".").rglob("*"):
-        if not path.is_file():
-            continue
+    for dirpath, dirnames, filenames in os.walk("."):
+        dirnames[:] = sorted(
+            dirname
+            for dirname in dirnames
+            if dirname not in PRUNED_SCAN_DIRS and not dirname.endswith(".egg-info")
+        )
 
-        rel = path.as_posix()
-        if rel.startswith(".git/") or "node_modules/" in rel:
-            continue
+        current_dir = Path(dirpath)
+        for filename in sorted(filenames):
+            path = current_dir / filename
+            if not path.is_file():
+                continue
 
-        rel_lower = rel.lower()
-        basename = path.name.lower()
+            rel = path.as_posix()
+            rel_lower = rel.lower()
+            basename = path.name.lower()
 
-        if _contains_explicit_reference(normalized_task, rel_lower) or _contains_explicit_reference(normalized_task, basename):
-            candidates.append(rel)
+            if _contains_explicit_reference(
+                normalized_task, rel_lower
+            ) or _contains_explicit_reference(normalized_task, basename):
+                candidates.append(rel)
+                if len(candidates) >= MAX_SELECTED_PATHS:
+                    return sorted(set(candidates))[:MAX_SELECTED_PATHS]
 
     return sorted(set(candidates))
 
@@ -307,12 +329,18 @@ def main(argv: list[str]) -> int:
         if e.get("related_tests"):
             has_tests = True
         candidate_path = e.get("path")
-        if isinstance(candidate_path, str) and candidate_path not in selected_paths:
+        if (
+            isinstance(candidate_path, str)
+            and candidate_path not in selected_paths
+            and len(selected_paths) < MAX_SELECTED_PATHS
+        ):
             selected_paths.append(candidate_path)
 
     explicit_fs_paths = _explicit_files_from_filesystem(task)
 
-    for p in explicit_fs_paths:
+    for p in reversed(explicit_fs_paths):
+        if len(selected_paths) >= MAX_SELECTED_PATHS:
+            break
         if p not in selected_paths:
             selected_paths.insert(0, p)
 

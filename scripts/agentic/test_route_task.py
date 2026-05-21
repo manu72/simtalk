@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.agentic.route_task import _keyword_part_matches, main
+from scripts.agentic.route_task import MAX_SELECTED_PATHS, _keyword_part_matches, main
 
 
 class KeywordPartMatchesTest(unittest.TestCase):
@@ -186,6 +186,42 @@ class RouteTaskBundleTest(unittest.TestCase):
             bundle = self._run_route(root, "Fix clientKeyFromHeaders in rateLimit.ts")
 
             self.assertIn("backend/src/middleware/rateLimit.ts", bundle["selected_paths"])
+
+    def test_filesystem_explicit_matches_skip_build_cache_and_venv_dirs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            selected_path = root / "src" / "target.py"
+            ignored_paths = [
+                root / ".venv" / "lib" / "target.py",
+                root / "venv" / "target.py",
+                root / "build" / "target.py",
+                root / "dist" / "target.py",
+                root / "__pycache__" / "target.py",
+                root / ".pytest_cache" / "target.py",
+                root / ".cache" / "target.py",
+                root / "package.egg-info" / "target.py",
+            ]
+            for path in [selected_path, *ignored_paths]:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("# target\n", encoding="utf-8")
+            self._write_fixture(root, [])
+
+            bundle = self._run_route(root, "Fix target.py")
+
+            self.assertEqual(["src/target.py"], bundle["selected_paths"])
+
+    def test_filesystem_explicit_matches_are_capped_to_selected_path_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for index in range(MAX_SELECTED_PATHS + 3):
+                path = root / f"pkg_{index:02d}" / "target.py"
+                path.parent.mkdir(parents=True)
+                path.write_text("# target\n", encoding="utf-8")
+            self._write_fixture(root, [])
+
+            bundle = self._run_route(root, "Fix target.py")
+
+            self.assertLessEqual(len(bundle["selected_paths"]), MAX_SELECTED_PATHS)
 
 
 if __name__ == "__main__":
