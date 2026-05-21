@@ -1,7 +1,27 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
+import {
+  ArrowLeftRight,
+  Bot,
+  CheckCircle2,
+  CircleAlert,
+  Download,
+  GraduationCap,
+  Languages,
+  Mic,
+  MicOff,
+  Radio,
+  Sparkles,
+  Square,
+  type LucideIcon
+} from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { conversationModes, type ConversationMode, type RealtimeTokenResponse } from '@simtalk/shared-types';
 
+import { Badge } from './components/ui/badge';
+import { Button } from './components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { cn } from './lib/utils';
 import { RealtimeTokenClientError, requestRealtimeToken } from './realtimeTokenClient';
 import {
   createRealtimeTranslationSession,
@@ -17,9 +37,15 @@ const modeLabels: Record<ConversationMode, string> = {
 };
 
 const modeDescriptions: Record<ConversationMode, string> = {
-  listener: 'Listen to any supported language and hear live translated audio.',
-  turnabout: 'Share one device and switch speaker roles during a conversation.',
-  practice: 'Speak, pause, replay, and review translations for learning.'
+  listener: 'Let OpenAI detect incoming speech and return live translated audio.',
+  turnabout: 'Share one device and flip speaker roles during a conversation.',
+  practice: 'Speak, pause, listen back, and review translations for learning.'
+};
+
+const modeMeta: Record<ConversationMode, { readonly icon: LucideIcon; readonly eyebrow: string }> = {
+  listener: { icon: Radio, eyebrow: 'hands-free listening' },
+  turnabout: { icon: ArrowLeftRight, eyebrow: 'shared device' },
+  practice: { icon: GraduationCap, eyebrow: 'guided repetition' }
 };
 
 const languageOptions = [
@@ -48,8 +74,93 @@ type PreparedSession = Pick<
   'expiresAt' | 'sessionExpiresAt' | 'sessionId' | 'translationCallUrl'
 >;
 
+type StatusDetails = {
+  readonly label: string;
+  readonly message: string;
+  readonly icon: LucideIcon;
+  readonly badgeVariant: 'secondary' | 'success' | 'warning' | 'destructive';
+};
+
+const statusDetails: Record<SessionStatus, StatusDetails> = {
+  idle: {
+    label: 'Idle',
+    message: 'No translation session has been prepared yet. Audio capture will remain inactive.',
+    icon: MicOff,
+    badgeVariant: 'secondary'
+  },
+  loading: {
+    label: 'Preparing',
+    message: 'Requesting a short-lived translation credential from the SimTalk backend.',
+    icon: Bot,
+    badgeVariant: 'warning'
+  },
+  ready: {
+    label: 'Ready',
+    message: 'Credential prepared. Start the microphone when you are ready to test audio.',
+    icon: CheckCircle2,
+    badgeVariant: 'success'
+  },
+  connecting: {
+    label: 'Connecting',
+    message: 'Requesting microphone access and connecting the WebRTC session.',
+    icon: Mic,
+    badgeVariant: 'warning'
+  },
+  connected: {
+    label: 'Listening',
+    message: 'WebRTC is connected. Speak naturally while SimTalk waits for translated audio.',
+    icon: Mic,
+    badgeVariant: 'success'
+  },
+  streaming: {
+    label: 'Translating',
+    message: 'Translated audio and transcript deltas are streaming back to this browser.',
+    icon: Languages,
+    badgeVariant: 'success'
+  },
+  error: {
+    label: 'Needs attention',
+    message: 'Realtime translation could not be prepared.',
+    icon: CircleAlert,
+    badgeVariant: 'destructive'
+  }
+};
+
 const fallbackErrorMessage = 'Realtime translation could not be prepared.';
 const fallbackWebRtcErrorMessage = 'Realtime audio could not be started.';
+
+const getLanguageLabel = (languageCode: string) =>
+  languageOptions.find((language) => language.code === languageCode)?.label ?? languageCode;
+
+const selectClassName =
+  'h-16 w-full rounded-2xl border border-border bg-background/80 px-4 text-lg font-semibold text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-55';
+
+type ListeningOrbProps = {
+  readonly isActive: boolean;
+  readonly prefersReducedMotion: boolean;
+};
+
+const ListeningOrb = ({ isActive, prefersReducedMotion }: ListeningOrbProps) => (
+  <div className="relative grid size-24 place-items-center sm:size-28" aria-hidden="true">
+    {isActive && !prefersReducedMotion && (
+      <motion.span
+        animate={{ opacity: [0.42, 0.08, 0.42], scale: [1, 1.18, 1] }}
+        className="absolute inset-0 rounded-full border border-primary/50 bg-primary/10"
+        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    )}
+    <span
+      className={cn(
+        'relative grid size-20 place-items-center rounded-full border shadow-[0_20px_70px_var(--shadow-primary)] sm:size-24',
+        isActive
+          ? 'border-primary/60 bg-primary text-primary-foreground'
+          : 'border-border bg-secondary text-muted-foreground'
+      )}
+    >
+      {isActive ? <Mic className="size-8" /> : <MicOff className="size-8" />}
+    </span>
+  </div>
+);
 
 export const App = () => {
   const [selectedMode, setSelectedMode] = useState<ConversationMode>('listener');
@@ -64,26 +175,23 @@ export const App = () => {
   const activeWebRtcRequestRef = useRef(0);
   const activeWebRtcAbortControllerRef = useRef<AbortController | null>(null);
   const translationSessionRef = useRef<RealtimeTranslationSession | null>(null);
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   const needsSourceLanguage = selectedMode === 'turnabout' || selectedMode === 'practice';
   const sourceHelpText = useMemo(
     () =>
       selectedMode === 'listener'
-        ? 'Listener Mode lets OpenAI detect the spoken language from incoming audio.'
+        ? 'Listener Mode keeps spoken language on automatic detection.'
         : 'Choose the language spoken into this device before requesting a session.',
     [selectedMode]
   );
 
-  const handleModeSelect = (mode: ConversationMode) => {
-    activeTokenRequestRef.current += 1;
-    invalidateWebRtcSession();
-    setSelectedMode(mode);
-    setStatus('idle');
-    setErrorMessage(null);
-    setPreparedToken(null);
-    setInputTranscript('');
-    setOutputTranscript('');
-  };
+  const isWebRtcSessionActive = status === 'connected' || status === 'streaming';
+  const isListening = status === 'connecting' || isWebRtcSessionActive;
+  const canShowPreparedSession = status === 'ready' || status === 'connecting' || isWebRtcSessionActive;
+  const hasTranscript = inputTranscript.length > 0 || outputTranscript.length > 0;
+  const activeStatusDetails = statusDetails[status];
+  const StatusIcon = activeStatusDetails.icon;
 
   const handleTranscriptDelta = (delta: TranscriptDelta) => {
     if (delta.kind === 'input') {
@@ -104,6 +212,65 @@ export const App = () => {
     activeWebRtcAbortControllerRef.current?.abort();
     activeWebRtcAbortControllerRef.current = null;
     stopTranslationSession();
+  };
+
+  const resetPreparedSession = () => {
+    activeTokenRequestRef.current += 1;
+    invalidateWebRtcSession();
+    setStatus('idle');
+    setErrorMessage(null);
+    setPreparedToken(null);
+    setInputTranscript('');
+    setOutputTranscript('');
+  };
+
+  const handleModeSelect = (mode: ConversationMode) => {
+    if (mode === selectedMode) {
+      return;
+    }
+
+    setSelectedMode(mode);
+    resetPreparedSession();
+  };
+
+  const handleSourceLanguageChange = (languageCode: string) => {
+    setSourceLanguage(languageCode);
+    resetPreparedSession();
+  };
+
+  const handleTargetLanguageChange = (languageCode: string) => {
+    setTargetLanguage(languageCode);
+    resetPreparedSession();
+  };
+
+  const handleFlipLanguages = () => {
+    setSourceLanguage(targetLanguage);
+    setTargetLanguage(sourceLanguage);
+    resetPreparedSession();
+  };
+
+  const handleDownloadTranscript = () => {
+    const sourceLabel = needsSourceLanguage ? getLanguageLabel(sourceLanguage) : 'Auto-detected source';
+    const transcript = [
+      'SimTalk transcript',
+      `Mode: ${modeLabels[selectedMode]}`,
+      `Source: ${sourceLabel}`,
+      `Target: ${getLanguageLabel(targetLanguage)}`,
+      '',
+      'Input transcript:',
+      inputTranscript || 'No input transcript captured.',
+      '',
+      'Translated transcript:',
+      outputTranscript || 'No translated transcript captured.'
+    ].join('\n');
+    const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = `simtalk-transcript-${new Date().toISOString()}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -210,8 +377,6 @@ export const App = () => {
         translationCallUrl: preparedToken.translationCallUrl
       }
     : null;
-  const isWebRtcSessionActive = status === 'connected' || status === 'streaming';
-  const canShowPreparedSession = status === 'ready' || isWebRtcSessionActive;
 
   useEffect(
     () => () => {
@@ -221,163 +386,295 @@ export const App = () => {
   );
 
   return (
-    <main className="app-shell">
-      <section className="hero" aria-labelledby="hero-title">
-        <p className="eyebrow">Private Phase 1 prototype</p>
-        <h1 id="hero-title">SimTalk</h1>
-        <p className="hero-copy">
-          Speak naturally. Hear instantly. This scaffold keeps secrets on the backend and leaves
-          audio, transcripts, and recordings in the browser.
-        </p>
-        <a className="skip-link" href="#session-setup">
-          Prepare a translation session
-        </a>
-      </section>
-
-      <section className="panel" aria-labelledby="session-setup">
-        <div>
-          <p className="eyebrow">Session setup</p>
-          <h2 id="session-setup">Choose the workflow to validate first</h2>
-          <p>
-            This prepares the short-lived translation credential only. Microphone capture and
-            WebRTC start only after you explicitly start the microphone.
-          </p>
-        </div>
-
-        <form className="session-form" onSubmit={handleSubmit}>
-          <fieldset className="mode-grid" aria-describedby="mode-help">
-            <legend>Conversation mode</legend>
-            <p id="mode-help" className="field-help">
-              Select one Phase 1 workflow. Controls stay keyboard-accessible native inputs.
-            </p>
-            {conversationModes.map((mode) => (
-              <label className="mode-card" key={mode}>
-                <input
-                  checked={selectedMode === mode}
-                  name="conversation-mode"
-                  onChange={() => handleModeSelect(mode)}
-                  type="radio"
-                  value={mode}
-                />
-                <span>
-                  <strong>{modeLabels[mode]}</strong>
-                  <small>{modeDescriptions[mode]}</small>
-                </span>
-              </label>
-            ))}
-          </fieldset>
-
-          <div className="language-grid">
-            <label className="field">
-              <span>Spoken language</span>
-              <select
-                aria-describedby="source-language-help"
-                disabled={!needsSourceLanguage}
-                onChange={(event) => setSourceLanguage(event.target.value)}
-                value={sourceLanguage}
-              >
-                {languageOptions.map((language) => (
-                  <option key={language.code} value={language.code}>
-                    {language.label}
-                  </option>
-                ))}
-              </select>
-              <small id="source-language-help">{sourceHelpText}</small>
-            </label>
-
-            <label className="field">
-              <span>Translation language</span>
-              <select
-                onChange={(event) => setTargetLanguage(event.target.value)}
-                value={targetLanguage}
-              >
-                {languageOptions.map((language) => (
-                  <option key={language.code} value={language.code}>
-                    {language.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <button className="primary-action" disabled={status === 'loading'} type="submit">
-            {status === 'loading' ? 'Preparing session...' : 'Prepare translation session'}
-          </button>
-        </form>
-      </section>
-
-      <section className="panel status-panel" aria-labelledby="session-status">
-        <div>
-          <p className="eyebrow">Session status</p>
-          <h2 id="session-status">Recording is off by default</h2>
-        </div>
-        <div aria-live="polite" className={`status-card status-card--${status}`} role="status">
-          {status === 'idle' && (
-            <p>
-              No translation session has been prepared yet. Audio capture will remain inactive.
-            </p>
-          )}
-          {status === 'loading' && <p>Requesting a short-lived translation credential...</p>}
-          {status === 'connecting' && <p>Requesting microphone access and connecting WebRTC...</p>}
-          {status === 'connected' && (
-            <p>WebRTC session established. Waiting for translated audio.</p>
-          )}
-          {status === 'streaming' && <p>Translated audio stream received.</p>}
-          {status === 'error' && <p>{errorMessage}</p>}
-          {canShowPreparedSession && browserSafeSession && (
-            <dl>
-              <div>
-                <dt>Prepared session</dt>
-                <dd>{browserSafeSession.sessionId}</dd>
+    <main className="min-h-dvh overflow-hidden bg-background text-foreground">
+      <section className="relative isolate px-4 py-6 sm:px-6 lg:px-8" aria-labelledby="hero-title">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,var(--gradient-start),transparent_32rem),radial-gradient(circle_at_85%_12%,var(--gradient-end),transparent_28rem)]" />
+        <div className="mx-auto grid w-full max-w-7xl gap-6">
+          <header className="grid gap-6 rounded-[2.5rem] border border-border bg-card/78 p-6 shadow-[0_28px_100px_var(--shadow-shell)] backdrop-blur sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:p-10">
+            <div className="grid gap-5">
+              <Badge variant="secondary" className="w-fit">
+                <Sparkles className="size-3.5" />
+                Private Phase 1 Prototype
+              </Badge>
+              <div className="grid gap-4">
+                <h1 id="hero-title" className="max-w-4xl text-5xl font-semibold tracking-[-0.07em] text-balance sm:text-7xl lg:text-8xl">
+                  SimTalk
+                </h1>
+                <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
+                  Speak naturally. Hear instantly. A polished browser-owned translation console for
+                  validating live speech, translated audio, and local transcript review without
+                  exposing long-lived secrets.
+                </p>
               </div>
+            </div>
+            <Card className="overflow-hidden rounded-[2rem] bg-background/72">
+              <CardContent className="grid gap-5 p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Current state</p>
+                    <p className="text-2xl font-semibold tracking-[-0.03em]">{activeStatusDetails.label}</p>
+                  </div>
+                  <ListeningOrb isActive={isListening} prefersReducedMotion={prefersReducedMotion} />
+                </div>
+                <p className="text-sm leading-6 text-muted-foreground">{activeStatusDetails.message}</p>
+              </CardContent>
+            </Card>
+          </header>
+
+          <section className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
+            <Card className="bg-card/88 backdrop-blur" id="session-setup">
+              <CardHeader>
+                <Badge variant="secondary" className="w-fit">
+                  Session setup
+                </Badge>
+                <CardTitle>Choose the conversation workflow</CardTitle>
+                <CardDescription>
+                  Preparing a session only requests a short-lived credential. Microphone capture starts
+                  later, after an explicit action.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="grid gap-8" onSubmit={handleSubmit}>
+                  <fieldset className="grid gap-4" aria-describedby="mode-help">
+                    <legend className="text-base font-semibold text-foreground">Conversation mode</legend>
+                    <p id="mode-help" className="text-sm leading-6 text-muted-foreground">
+                      Native radio controls are styled as large cards and remain keyboard accessible.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {conversationModes.map((mode) => {
+                        const Icon = modeMeta[mode].icon;
+
+                        return (
+                          <label
+                            className="group grid cursor-pointer gap-4 rounded-[1.5rem] border border-border bg-background/72 p-5 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/8 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
+                            key={mode}
+                          >
+                            <input
+                              checked={selectedMode === mode}
+                              className="sr-only"
+                              name="conversation-mode"
+                              onChange={() => handleModeSelect(mode)}
+                              type="radio"
+                              value={mode}
+                            />
+                            <span className="flex items-center justify-between gap-3">
+                              <span className="grid size-12 place-items-center rounded-full bg-secondary text-muted-foreground transition-colors group-has-[:checked]:bg-primary group-has-[:checked]:text-primary-foreground">
+                                <Icon className="size-5" />
+                              </span>
+                              <span className="text-xs font-semibold tracking-[0.1em] text-muted-foreground uppercase">
+                                {modeMeta[mode].eyebrow}
+                              </span>
+                            </span>
+                            <span className="grid gap-2">
+                              <strong className="text-lg font-semibold tracking-[-0.02em] text-foreground">
+                                {modeLabels[mode]}
+                              </strong>
+                              <small className="text-sm leading-6 text-muted-foreground">
+                                {modeDescriptions[mode]}
+                              </small>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="grid gap-4">
+                    <legend className="text-base font-semibold text-foreground">Language direction</legend>
+                    <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-semibold text-muted-foreground">Spoken language</span>
+                        <select
+                          aria-describedby="source-language-help"
+                          className={selectClassName}
+                          disabled={!needsSourceLanguage}
+                          onChange={(event) => handleSourceLanguageChange(event.target.value)}
+                          value={sourceLanguage}
+                        >
+                          {languageOptions.map((language) => (
+                            <option key={language.code} value={language.code}>
+                              {language.label}
+                            </option>
+                          ))}
+                        </select>
+                        <small id="source-language-help" className="min-h-10 text-sm leading-5 text-muted-foreground">
+                          {sourceHelpText}
+                        </small>
+                      </label>
+
+                      <Button
+                        aria-label="Flip selected languages"
+                        className="mb-10 size-14 justify-self-start lg:justify-self-center"
+                        disabled={!needsSourceLanguage || status === 'loading' || status === 'connecting'}
+                        onClick={handleFlipLanguages}
+                        size="icon"
+                        type="button"
+                        variant="outline"
+                      >
+                        <ArrowLeftRight className="size-5" />
+                      </Button>
+
+                      <label className="grid gap-2">
+                        <span className="text-sm font-semibold text-muted-foreground">Translation language</span>
+                        <select
+                          className={selectClassName}
+                          onChange={(event) => handleTargetLanguageChange(event.target.value)}
+                          value={targetLanguage}
+                        >
+                          {languageOptions.map((language) => (
+                            <option key={language.code} value={language.code}>
+                              {language.label}
+                            </option>
+                          ))}
+                        </select>
+                        <small className="min-h-10 text-sm leading-5 text-muted-foreground">
+                          Translated audio and output transcript use this language.
+                        </small>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button disabled={status === 'loading'} size="lg" type="submit">
+                      {status === 'loading' ? 'Preparing session...' : 'Prepare translation session'}
+                    </Button>
+                    <p className="max-w-md text-sm leading-6 text-muted-foreground">
+                      Changing the mode or languages clears any prepared credential so WebRTC cannot
+                      start with stale direction settings.
+                    </p>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/88 backdrop-blur" aria-labelledby="session-status">
+              <CardHeader>
+                <Badge variant={activeStatusDetails.badgeVariant} className="w-fit">
+                  <StatusIcon className="size-3.5" />
+                  {activeStatusDetails.label}
+                </Badge>
+                <CardTitle id="session-status">Recording is off by default</CardTitle>
+                <CardDescription>
+                  Recording and capture remain off until you explicitly start the browser session.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6">
+                <div
+                  aria-live="polite"
+                  className={cn(
+                    'status-card grid place-items-center rounded-[2rem] border border-border bg-background/70 p-8',
+                    `status-card--${status}`
+                  )}
+                  role="status"
+                >
+                  <ListeningOrb isActive={isListening} prefersReducedMotion={prefersReducedMotion} />
+                  <p className="mt-4 text-center text-sm leading-6 text-muted-foreground">
+                    {status === 'error' ? errorMessage : activeStatusDetails.message}
+                  </p>
+                </div>
+
+                {preparedToken && (
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      disabled={status === 'connecting' || isWebRtcSessionActive}
+                      onClick={handleStartWebRtc}
+                      type="button"
+                    >
+                      <Mic className="size-4" />
+                      {status === 'connecting' ? 'Connecting audio...' : 'Start microphone and WebRTC'}
+                    </Button>
+                    <Button
+                      disabled={!isWebRtcSessionActive}
+                      onClick={handleStopWebRtc}
+                      type="button"
+                      variant="secondary"
+                    >
+                      <Square className="size-4" />
+                      Stop audio
+                    </Button>
+                  </div>
+                )}
+
+                {canShowPreparedSession && browserSafeSession && (
+                  <dl className="grid gap-3 rounded-[1.5rem] border border-border bg-background/70 p-4 text-sm">
+                    <div className="grid gap-1">
+                      <dt className="font-medium text-muted-foreground">Prepared session</dt>
+                      <dd className="break-all font-semibold text-foreground">{browserSafeSession.sessionId}</dd>
+                    </div>
+                    <div className="grid gap-1">
+                      <dt className="font-medium text-muted-foreground">Credential expires</dt>
+                      <dd className="font-semibold text-foreground">
+                        {new Date(browserSafeSession.expiresAt).toLocaleTimeString()}
+                      </dd>
+                    </div>
+                    <div className="grid gap-1">
+                      <dt className="font-medium text-muted-foreground">WebRTC endpoint</dt>
+                      <dd className="break-all font-semibold text-foreground">
+                        {browserSafeSession.translationCallUrl}
+                      </dd>
+                    </div>
+                  </dl>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-6 lg:grid-cols-2" aria-labelledby="transcript-title">
+            <div className="flex flex-wrap items-end justify-between gap-4 lg:col-span-2">
               <div>
-                <dt>Credential expires</dt>
-                <dd>{new Date(browserSafeSession.expiresAt).toLocaleTimeString()}</dd>
+                <Badge variant="secondary" className="mb-3 w-fit">
+                  Transcript panels
+                </Badge>
+                <h2 id="transcript-title" className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                  Review what SimTalk heard and returned
+                </h2>
               </div>
-              <div>
-                <dt>WebRTC call endpoint</dt>
-                <dd>{browserSafeSession.translationCallUrl}</dd>
-              </div>
-            </dl>
-          )}
+              <Button disabled={!hasTranscript} onClick={handleDownloadTranscript} type="button" variant="outline">
+                <Download className="size-4" />
+                Download transcript
+              </Button>
+            </div>
+
+            <Card className="bg-card/88 backdrop-blur">
+              <CardHeader>
+                <CardTitle>Input transcript</CardTitle>
+                <CardDescription>
+                  {needsSourceLanguage
+                    ? `Spoken ${getLanguageLabel(sourceLanguage)} captured from the microphone.`
+                    : 'Listener Mode uses automatic source-language detection.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-5">
+                  <p className="whitespace-pre-wrap break-words text-base leading-8 text-foreground">
+                    {inputTranscript || 'Waiting for input transcript deltas.'}
+                  </p>
+                </article>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/88 backdrop-blur">
+              <CardHeader>
+                <CardTitle>Translated transcript</CardTitle>
+                <CardDescription>
+                  Output audio and text target {getLanguageLabel(targetLanguage)}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-5">
+                  <p className="whitespace-pre-wrap break-words text-base leading-8 text-foreground">
+                    {outputTranscript || 'Waiting for translated transcript deltas.'}
+                  </p>
+                </article>
+              </CardContent>
+            </Card>
+          </section>
+
+          <footer className="rounded-[2rem] border border-border bg-card/72 p-6 text-sm leading-6 text-muted-foreground backdrop-blur">
+            The browser receives only a short-lived client secret. Audio flows directly from this browser
+            to OpenAI over WebRTC and is not sent to the SimTalk backend.
+          </footer>
         </div>
-        {preparedToken && (
-          <div className="session-actions">
-            <button
-              className="primary-action"
-              disabled={status === 'connecting' || isWebRtcSessionActive}
-              onClick={handleStartWebRtc}
-              type="button"
-            >
-              {status === 'connecting' ? 'Connecting audio...' : 'Start microphone and WebRTC'}
-            </button>
-            <button
-              className="secondary-action"
-              disabled={!isWebRtcSessionActive}
-              onClick={handleStopWebRtc}
-              type="button"
-            >
-              Stop audio
-            </button>
-          </div>
-        )}
-        <section className="transcript-panel" aria-labelledby="transcript-title">
-          <h3 id="transcript-title">Live transcript preview</h3>
-          <div className="transcript-grid">
-            <article>
-              <h4>Input transcript</h4>
-              <p>{inputTranscript || 'Waiting for input transcript deltas.'}</p>
-            </article>
-            <article>
-              <h4>Translated transcript</h4>
-              <p>{outputTranscript || 'Waiting for translated transcript deltas.'}</p>
-            </article>
-          </div>
-        </section>
-        <p>
-          The browser receives only a short-lived client secret. Audio flows directly from this
-          browser to OpenAI over WebRTC and is not sent to the SimTalk backend.
-        </p>
       </section>
     </main>
   );
