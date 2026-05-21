@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: webrtc-translation
     content: Implement browser-native WebRTC setup for gpt-realtime-translate, remote translated audio playback, transcript deltas, and teardown.
-    status: pending
+    status: completed
   - id: mode-flows
     content: Implement Listener, Turn-about, and Practice mode behavior without diarisation or multi-user room assumptions.
     status: pending

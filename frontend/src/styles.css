@@ -210,29 +210,44 @@ legend {
   opacity: 0.65;
 }
 
-.primary-action {
+.primary-action,
+.secondary-action {
   width: fit-content;
-  border: 0;
   border-radius: 999px;
-  background: var(--color-primary);
-  color: var(--color-surface-raised);
   cursor: pointer;
   font-weight: 800;
   padding: 0.75rem var(--space-3);
+}
+
+.primary-action {
+  border: 0;
+  background: var(--color-primary);
+  color: var(--color-surface-raised);
+}
+
+.secondary-action {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-primary-strong);
 }
 
 .primary-action:hover:not(:disabled) {
   background: var(--color-primary-strong);
 }
 
-.primary-action:disabled {
+.secondary-action:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.primary-action:disabled,
+.secondary-action:disabled {
   cursor: wait;
   opacity: 0.7;
 }
 
 .status-panel {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .status-card {
@@ -272,6 +287,42 @@ legend {
   overflow-wrap: anywhere;
   color: var(--color-text);
   font-weight: 700;
+}
+
+.session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.transcript-panel {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: var(--space-3);
+}
+
+.transcript-panel h3,
+.transcript-panel h4 {
+  margin-bottom: 0;
+}
+
+.transcript-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-2);
+}
+
+.transcript-grid article {
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: var(--space-2);
+}
+
+.transcript-grid p {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
 }
 
 @media (prefers-reduced-motion: reduce) {

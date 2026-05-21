@@ -1,6 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+const createRealtimeTranslationSessionMock = vi.hoisted(() => vi.fn());
+
+vi.mock('../../../frontend/src/realtimeTranslationSession', () => ({
+  createRealtimeTranslationSession: createRealtimeTranslationSessionMock,
+  RealtimeTranslationSessionError: class RealtimeTranslationSessionError extends Error {}
+}));
+
 import { App } from '../../../frontend/src/App';
 
 const tokenResponse = {
@@ -19,6 +26,7 @@ const mockFetch = (response: Response) => {
 };
 
 afterEach(() => {
+  createRealtimeTranslationSessionMock.mockReset();
   vi.unstubAllGlobals();
 });
 
@@ -189,5 +197,164 @@ describe('App', () => {
       'No translation session has been prepared yet. Audio capture will remain inactive.'
     );
     expect(screen.getByRole('status')).not.toHaveClass('status-card--error');
+  });
+
+  it('starts WebRTC only after an explicit user action', async () => {
+    const stop = vi.fn();
+    createRealtimeTranslationSessionMock.mockResolvedValue({ stop });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    expect(createRealtimeTranslationSessionMock).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: tokenResponse,
+          signal: expect.any(AbortSignal),
+          onTranscriptDelta: expect.any(Function),
+          onRemoteAudio: expect.any(Function)
+        })
+      );
+    });
+
+    expect(screen.queryByText('ek_test_client_secret')).not.toBeInTheDocument();
+  });
+
+  it('renders transcript deltas emitted by the WebRTC session', async () => {
+    let onTranscriptDelta!: (delta: { kind: 'input' | 'output'; text: string }) => void;
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      onTranscriptDelta = options.onTranscriptDelta;
+      return { stop: vi.fn() };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    act(() => {
+      onTranscriptDelta({ kind: 'input', text: 'hello' });
+      onTranscriptDelta({ kind: 'output', text: 'hola' });
+    });
+
+    expect(screen.getByText('hello')).toBeInTheDocument();
+    expect(screen.getByText('hola')).toBeInTheDocument();
+  });
+
+  it('stops the active WebRTC session', async () => {
+    const stop = vi.fn();
+    createRealtimeTranslationSessionMock.mockResolvedValue({ stop });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Stop audio/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Stop audio/i }));
+
+    expect(stop).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+  });
+
+  it('stops stale WebRTC sessions that resolve after a mode switch', async () => {
+    let resolveSession!: (session: { stop: () => void }) => void;
+    let webRtcSignal!: AbortSignal;
+    const staleStop = vi.fn();
+    createRealtimeTranslationSessionMock.mockImplementation((options) => {
+      webRtcSignal = options.signal;
+      return new Promise((resolve) => {
+        resolveSession = resolve;
+      });
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
+
+    expect(webRtcSignal.aborted).toBe(true);
+
+    await act(async () => {
+      resolveSession({ stop: staleStop });
+    });
+
+    expect(staleStop).toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No translation session has been prepared yet. Audio capture will remain inactive.'
+    );
+  });
+
+  it('aborts and stops pending WebRTC startup when the app unmounts', async () => {
+    let resolveSession!: (session: { stop: () => void }) => void;
+    let webRtcSignal!: AbortSignal;
+    const staleStop = vi.fn();
+    createRealtimeTranslationSessionMock.mockImplementation((options) => {
+      webRtcSignal = options.signal;
+      return new Promise((resolve) => {
+        resolveSession = resolve;
+      });
+    });
+    mockFetch(Response.json(tokenResponse));
+    const { unmount } = render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    unmount();
+
+    expect(webRtcSignal.aborted).toBe(true);
+
+    await act(async () => {
+      resolveSession({ stop: staleStop });
+    });
+
+    expect(staleStop).toHaveBeenCalled();
   });
 });
