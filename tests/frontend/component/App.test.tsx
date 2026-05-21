@@ -20,7 +20,7 @@ const tokenResponse = {
 const backendValidationErrorMessage = 'Backend rejected the requested language pair';
 
 const mockFetch = (response: Response) => {
-  const fetchMock = vi.fn(async () => response);
+  const fetchMock = vi.fn(async () => response.clone());
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 };
@@ -119,6 +119,9 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+    await waitFor(() => {
+      expect(screen.getByText('sess_test')).toBeInTheDocument();
     });
 
     expect(fetchMock).toHaveBeenLastCalledWith('http://localhost:3000/realtime/token', {
