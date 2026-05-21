@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { createApp } from './app.js';
+import { createAppConfig } from './config.js';
 
-const config = {
-  appEnv: 'test',
-  port: 3000,
-  allowedOrigins: ['http://localhost:5173']
-} as const;
+const config = createAppConfig({
+  APP_ENV: 'test',
+  PORT: '3000',
+  ALLOWED_ORIGINS: 'http://localhost:5173'
+});
 
 describe('SimTalk API app', () => {
   it('returns a minimal health payload without secrets', async () => {
