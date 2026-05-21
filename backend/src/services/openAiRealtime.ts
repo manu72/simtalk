@@ -18,6 +18,11 @@ type OpenAiClientSecretResponse = {
   };
 };
 
+const maxClientSecretRequestTimeoutMs = 10_000;
+
+const isAbortError = (error: unknown): boolean =>
+  typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError';
+
 export class OpenAiRealtimeError extends Error {
   constructor(
     message: string,
@@ -88,6 +93,13 @@ export const createOpenAiRealtimeService = (
     }
 
     let response: Response;
+    const abortController = new AbortController();
+    const clientSecretRequestTimeoutMs = Math.min(
+      config.realtimeClientSecretTtlSeconds * 1000,
+      maxClientSecretRequestTimeoutMs
+    );
+    const timeout = setTimeout(() => abortController.abort(), clientSecretRequestTimeoutMs);
+
     try {
       response = await fetchImpl(config.openAiRealtimeClientSecretUrl, {
         method: 'POST',
@@ -95,6 +107,7 @@ export const createOpenAiRealtimeService = (
           Authorization: `Bearer ${config.openAiApiKey}`,
           'Content-Type': 'application/json'
         },
+        signal: abortController.signal,
         body: JSON.stringify({
           session: {
             model: 'gpt-realtime-translate',
@@ -110,11 +123,20 @@ export const createOpenAiRealtimeService = (
           }
         })
       });
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw new OpenAiRealtimeError(
+          'OpenAI realtime translation client secret request timed out',
+          'upstream_unavailable'
+        );
+      }
+
       throw new OpenAiRealtimeError(
         'OpenAI realtime translation client secret request could not be sent',
         'upstream_unavailable'
       );
+    } finally {
+      clearTimeout(timeout);
     }
 
     if (!response.ok) {
