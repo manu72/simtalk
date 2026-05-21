@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-21T10:18:30+00:00",
+  "generated_at": "2026-05-21T23:56:14+00:00",
   "root": ".",
   "entries": [
     {
@@ -918,6 +918,102 @@
       ]
     },
     {
+      "path": "components.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "components.json"
+      ]
+    },
+    {
+      "path": "docs",
+      "kind": "dir",
+      "language": null,
+      "subsystem": null,
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "docs"
+      ]
+    },
+    {
+      "path": "docs/_generated",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "docs",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "_generated"
+      ]
+    },
+    {
+      "path": "docs/_generated/00_repo_context.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "docs",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "00_repo_context.md"
+      ]
+    },
+    {
+      "path": "docs/_generated/01_architecture_map.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "docs",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "01_architecture_map.md"
+      ]
+    },
+    {
+      "path": "docs/_generated/02_folder_structure.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "docs",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "02_folder_structure.md"
+      ]
+    },
+    {
+      "path": "docs/_generated/03_file_index.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "docs",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "03_file_index.md"
+      ]
+    },
+    {
+      "path": "docs/_generated/04_readme_gap_analysis.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "docs",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "04_readme_gap_analysis.md"
+      ]
+    },
+    {
       "path": "frontend",
       "kind": "dir",
       "language": null,
@@ -1110,6 +1206,201 @@
         "tailwind",
         "transcript",
         "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "components",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/badge.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "badge.tsx",
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/button.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "button.tsx",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/card.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "card.tsx",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/lib",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "lib",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/lib/utils.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "utils.ts",
         "view",
         "vite"
       ]
