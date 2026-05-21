@@ -43,6 +43,13 @@ DEFAULT_IGNORE_PARTS = {
     "vendor",
 }
 
+DEFAULT_IGNORE_PART_SEGMENTS = {
+    part
+    for entry in DEFAULT_IGNORE_PARTS
+    for part in entry.replace(os.sep, "/").strip("/").split("/")
+    if part
+}
+
 LANGUAGE_BY_EXT: dict[str, str] = {
     ".ts": "typescript",
     ".tsx": "typescript",
@@ -116,7 +123,7 @@ def _matches_any(path: str, globs: list[str]) -> bool:
 def _is_default_ignored(path: str) -> bool:
     norm = path.replace(os.sep, "/").strip("/")
     parts = norm.split("/")
-    return any(part in DEFAULT_IGNORE_PARTS for part in parts)
+    return any(part in DEFAULT_IGNORE_PART_SEGMENTS for part in parts)
 
 
 # Patterns of the form **/NAME/** indicate "ignore this directory wherever it
