@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-21T07:21:09+00:00",
+  "generated_at": "2026-05-21T08:55:56+00:00",
   "root": ".",
   "entries": [
     {
@@ -49,30 +49,6 @@
       "related_tests": [],
       "read_triggers": [
         "agentic.json"
-      ]
-    },
-    {
-      "path": ".agentic/CONTEXT",
-      "kind": "dir",
-      "language": null,
-      "subsystem": ".agentic",
-      "role": "module",
-      "risk_tags": [],
-      "related_tests": [],
-      "read_triggers": [
-        "context"
-      ]
-    },
-    {
-      "path": ".agentic/CONTEXT/last_context.json",
-      "kind": "file",
-      "language": "json",
-      "subsystem": ".agentic",
-      "role": "source-of-truth",
-      "risk_tags": [],
-      "related_tests": [],
-      "read_triggers": [
-        "last_context.json"
       ]
     },
     {
@@ -1418,6 +1394,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1434,6 +1411,7 @@
       "role": "module",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1450,6 +1428,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1466,6 +1445,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1482,12 +1462,30 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
       ],
       "read_triggers": [
         "route_task.py"
+      ]
+    },
+    {
+      "path": "scripts/agentic/test_build_codemap.py",
+      "kind": "file",
+      "language": "python",
+      "subsystem": "scripts",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
+        "scripts/agentic/test_route_task.py",
+        "scripts/agentic/test_update_memory.py",
+        "scripts/agentic/test_validate_memory.py"
+      ],
+      "read_triggers": [
+        "test_build_codemap.py"
       ]
     },
     {
@@ -1498,6 +1496,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1514,6 +1513,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1530,6 +1530,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1546,6 +1547,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
@@ -1562,6 +1564,7 @@
       "role": "source-of-truth",
       "risk_tags": [],
       "related_tests": [
+        "scripts/agentic/test_build_codemap.py",
         "scripts/agentic/test_route_task.py",
         "scripts/agentic/test_update_memory.py",
         "scripts/agentic/test_validate_memory.py"
