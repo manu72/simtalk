@@ -204,6 +204,41 @@ describe('App', () => {
     expect(screen.getByRole('status')).not.toHaveClass('status-card--ready');
   });
 
+  it('ignores stale token responses after starting a new practice attempt while loading', async () => {
+    let resolveTokenRequest!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveTokenRequest = resolve;
+        })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /New practice attempt/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No translation session has been prepared yet. Audio capture will remain inactive.'
+    );
+
+    await act(async () => {
+      resolveTokenRequest(Response.json(tokenResponse));
+    });
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No translation session has been prepared yet. Audio capture will remain inactive.'
+    );
+    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).not.toHaveClass('status-card--ready');
+  });
+
   it('returns to the idle status when switching modes after a request error', async () => {
     const fetchMock = mockFetch(
       Response.json(

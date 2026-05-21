@@ -255,11 +255,7 @@ export const App = () => {
   };
 
   const handleNewPracticeAttempt = () => {
-    invalidateWebRtcSession();
-    setInputTranscript('');
-    setOutputTranscript('');
-    setErrorMessage(null);
-    setStatus(preparedToken ? 'ready' : 'idle');
+    resetPreparedSession();
   };
 
   const handleDownloadTranscript = () => {
