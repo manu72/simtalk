@@ -1,398 +1,232 @@
-# simtalk
+# SimTalk
 
 Speak naturally. Hear instantly.
 
-SimTalk is a real-time speech translation application built on OpenAI’s gpt-realtime-translate model. It enables people who speak different languages to communicate naturally using live translated audio and transcripts.
+SimTalk is a realtime speech-to-speech translation web app built around OpenAI `gpt-realtime-translate`. It is designed to let people who do not share a spoken language hold a low-latency conversation with live translated audio and transcripts.
 
-Phase 1 is a private, single-user web application focused on rapid validation of three core conversation modes:
+Phase 1 is a private, single-device prototype for validating three conversation workflows:
 
-- Listener Mode (UN Mode) — Listen to any supported language and hear live translation in your preferred language.
-- Turn-about Mode — Two people share one device and take turns speaking.
-- Practice Mode — Speak, pause, and review translations for language learning.
+- Listener Mode (UN Mode): listen to any supported spoken language and hear translation in a selected target language.
+- Turn-about Mode: two people share one device and manually switch speaker direction.
+- Practice Mode: speak deliberately, pause, replay, and review translation output for language learning.
 
-Phase 2 will expand SimTalk into a public multi-user application with authenticated accounts and live translation rooms for 2–10 participants.
+Phase 2 is planned to add authenticated accounts, persistence, and remote multi-user rooms.
 
-⸻
+For source product and architecture context, see:
 
-Product Context
-
-SimTalk solves a simple but universal problem: two people want to communicate, but they do not share a common language.
-
-Unlike traditional translation apps that rely on text input or awkward turn-based interactions, SimTalk is designed for low-latency speech-to-speech translation that feels as close as possible to a natural conversation.
-
-For product scope and architectural decisions, see:
-
-- [Product Requirements Document (PRD)](./PRD.md)
+- [Product Requirements Document](./PRD.md)
 - [System Architecture Specification](./System_Architecture.md)
 
-⸻
+## Project Status
 
-Project Status
+Status: pre-MVP Phase 1 prototype.
 
-Status: Pre-MVP
+The current codebase is past the initial scaffold. It includes the shared API contract, backend realtime-token boundary, frontend session preparation flow, and browser-native WebRTC startup path.
 
-Current objective:
-
-Build a private Phase 1 prototype that proves low-latency speech translation works reliably in real-world conversations.
-
-The primary success criterion is product validation, not scale.
-
-Current scaffold:
+Implemented now:
 
 - pnpm workspace with `frontend`, `backend`, and `shared/types` packages.
-- React 19 + Vite frontend shell.
-- Node.js + Hono backend shell with a typed `/health` endpoint.
-- Shared Zod-backed TypeScript contracts.
-- Vitest unit tests and Playwright E2E smoke tests.
+- React 19 + Vite 7 frontend with accessible mode/language/session controls.
+- Hono backend with `GET /health` and `POST /realtime/token`.
+- Shared Zod schemas and inferred TypeScript types for modes, language tags, token requests/responses, API errors, and health responses.
+- Server-side OpenAI realtime translation client-secret minting.
+- Configured-origin CORS, baseline security headers, and in-memory rate limiting for token issuance.
+- Browser token request client with schema validation and timeout handling.
+- Browser-native WebRTC setup using microphone capture, `RTCPeerConnection`, SDP exchange with OpenAI, remote translated audio playback, transcript delta handling, and cleanup.
+- Vitest coverage for shared contracts, backend config/routes/services, frontend components/clients/WebRTC service, plus a Playwright frontend smoke test.
 
-⸻
+Still pending:
 
-Technology Stack
+- Full mode-specific behavior for Listener, Turn-about, and Practice beyond the current controls and token request shape.
+- Explicit browser-local recording and transcript/audio download.
+- In-repo CI/deploy configuration.
+- Manual realtime validation with a real OpenAI key and browser microphone permissions.
 
-Phase 1
+## Technology Stack
 
-| Layer | Technology |
+Phase 1:
+
+| Layer | Current technology |
 | --- | --- |
-| Frontend | React 19 + Vite 7 + TypeScript |
-| UI | CSS variables now; planned Tailwind CSS + shadcn/ui |
-| Backend | Node.js + Hono |
-| Shared contracts | TypeScript + Zod |
-| Realtime Translation | OpenAI gpt-realtime-translate |
-| Transport | Browser WebRTC |
-| Deployment | Vercel |
-| Authentication | Vercel Password Protection + allowlist |
-| Database | None |
-| Storage | Browser-local only |
-| Domain | simtalk.app |
+| Frontend | React 19, Vite 7, TypeScript |
+| UI styling | Custom CSS variables and plain CSS |
+| Backend | Node.js 22+, Hono |
+| Shared contracts | TypeScript, Zod |
+| Realtime translation | OpenAI `gpt-realtime-translate` |
+| Browser transport | WebRTC |
+| Package manager | pnpm 10.16.1 |
+| Unit/component tests | Vitest, React Testing Library, jsdom |
+| E2E tests | Playwright |
+| Deployment target | Vercel for Phase 1 |
+| Authentication/access | Vercel Password Protection and allowlist, configured out of repo |
+| Database | None in Phase 1 |
+| Server-side audio/transcript storage | None |
 
-Phase 2
+Tailwind CSS and shadcn/ui are architecture options from earlier planning, but they are not installed in the current codebase.
 
-| Layer | Technology |
+Phase 2 target stack:
+
+| Layer | Planned technology |
 | --- | --- |
-| Backend Hosting | Google Cloud Run |
-| Authentication | Supabase Auth or equivalent |
-| Database | Supabase Postgres |
-| Realtime Rooms | LiveKit (likely) |
-| Storage | GCS / Supabase Storage |
+| Backend hosting | Google Cloud Run |
+| Authentication | Supabase Auth, Firebase Auth, Auth0, or equivalent |
+| Database | Supabase Postgres or Cloud SQL |
+| Realtime rooms | LiveKit or equivalent |
+| Object storage | GCS or Supabase Storage for explicitly user-controlled recordings |
 
-⸻
+## Architecture
 
-Core Design Principles
+The Phase 1 runtime has three boundaries:
 
-1. Conversation first — Optimize for fluid communication, not perfect literal translation.
-2. Ship fast — Validate with real users before adding complexity.
-3. Privacy by default — No server-side storage in Phase 1.
-4. Keep architecture simple — Introduce only the components needed today.
-5. AI-friendly codebase — Clear conventions, deterministic structure, and comprehensive documentation.
-6. Security by default — Secrets never exposed to the browser.
-7. Evolutionary architecture — Phase 1 decisions should not block Phase 2.
+1. Browser app
+   - Renders the mode/language/session UI.
+   - Requests a short-lived realtime translation credential from the backend.
+   - Captures microphone audio only after explicit user action.
+   - Establishes a direct WebRTC session with OpenAI using the short-lived client secret.
+   - Plays remote translated audio and renders transcript deltas.
+   - Cleans up microphone tracks, peer connection, data channel, and audio elements when stopped or aborted.
 
-⸻
+2. Hono backend
+   - Exposes `GET /health`.
+   - Exposes `POST /realtime/token`.
+   - Validates requests with shared Zod schemas.
+   - Reads `OPENAI_API_KEY` server-side only.
+   - Calls OpenAI's realtime translations client-secret endpoint.
+   - Returns a browser-safe token response.
+   - Applies CORS, security headers, and token request rate limiting.
+   - Does not receive or proxy audio/transcript content.
 
-Functional Requirements
+3. OpenAI Realtime Translate
+   - Issues realtime translation client secrets through the server-side API call.
+   - Accepts the browser's SDP offer at the translation calls endpoint.
+   - Handles speech recognition, translation, synthesized audio output, and transcript deltas.
 
-Listener Mode (UN Mode)
+Current token/WebRTC flow:
 
-- Capture live microphone audio.
-- Translate from any supported input language.
-- Play translated audio in selected target language.
-- Display source and translated transcripts.
+```text
+Browser UI
+  -> POST /realtime/token
+  -> Hono validates request and rate limit
+  -> Hono calls OpenAI client-secret endpoint with OPENAI_API_KEY
+  -> Hono returns short-lived client secret and translation call URL
+  -> User starts microphone/WebRTC
+  -> Browser sends SDP offer directly to OpenAI
+  -> OpenAI returns SDP answer, translated audio, and transcript deltas
+```
 
-Turn-about Mode
+## Security And Privacy
 
-- Configure two language directions.
-- Large toggle to switch speaker roles.
-- Shared-device conversational workflow.
+Phase 1 security controls currently in code:
 
-Practice Mode
+- `OPENAI_API_KEY` is used only by the backend.
+- Token responses are schema-validated and must not include the server API key.
+- Token requests are validated before any OpenAI call.
+- `POST /realtime/token` uses an in-memory per-client rate limiter.
+- CORS only reflects origins listed in `ALLOWED_ORIGINS`.
+- Backend responses include baseline security headers:
+  - `Content-Security-Policy`
+  - `Strict-Transport-Security`
+  - `X-Frame-Options`
+  - `Referrer-Policy`
+  - `X-Content-Type-Options`
+- OpenAI upstream errors are mapped to sanitized client responses.
+- Token responses are returned with `Cache-Control: no-store`.
 
-- Push-to-talk or record/pause workflow.
-- Replay translated response.
-- Review transcripts.
+Phase 1 privacy invariants:
 
-Optional Local Recording
+- No database.
+- No server-side transcript storage.
+- No server-side audio storage.
+- No backend audio proxy.
+- Optional recording must stay browser-local and explicit when implemented.
+- Refreshing the page should clear unsaved session data.
 
-- Off by default.
-- Record audio locally in browser.
-- Allow transcript and audio download.
-- Never upload recordings to SimTalk servers.
+Important limitation: Vercel Password Protection and the single-user allowlist are Phase 1 deployment controls configured outside this repo. They are not implemented as in-repo backend auth.
 
-⸻
+## Project Structure
 
-Non-Goals (Phase 1)
+Generated/vendor folders such as `node_modules/`, `dist/`, `test-results/`, coverage output, and Python `__pycache__/` are intentionally excluded.
 
-- Public signup.
-- Multi-user rooms.
-- Server-side transcript storage.
-- Billing.
-- Native mobile apps.
-- Video conferencing.
-- Offline translation.
-- AI teaching/tutoring.
-
-⸻
-
-Repository Structure
-
+```text
 simtalk/
-├── README.md
-├── PRD.md
-├── System_Architecture.md
-├── package.json
-├── pnpm-workspace.yaml
-├── tsconfig.base.json
-├── playwright.config.ts
-├── .agentic/                  # AI memory layer (PROJECT_BRIEF, MEMORY_INDEX, SUBSYSTEMS)
-├── docs/                      # planned: api.md, security.md, deployment.md
-├── frontend/
-│ ├── index.html
-│ ├── src/
-│ ├── public/
-│ └── package.json
-├── backend/
-│ ├── src/
-│ │ ├── routes/
-│ │ ├── services/
-│ │ ├── middleware/
-│ │ ├── schemas/
-│ │ └── utils/
-│ └── package.json
-├── shared/
-│ └── types/
-│   ├── src/
-│   └── package.json
-├── scripts/
-├── tests/
-│ ├── backend/                  # Vitest unit and integration tests for the Hono API
-│ ├── frontend/                 # Vitest unit/component tests and React Testing Library setup
-│ ├── shared/                   # Vitest contract tests for shared Zod schemas/types
-│ └── e2e/                      # Playwright browser smoke and journey tests
-└── .github/
-└── workflows/
-
-⸻
-
-Architecture Overview
-
-Browser Responsibilities
-
-- Microphone capture.
-- WebRTC session establishment.
-- Playback of translated audio.
-- Transcript rendering.
-- Local recording and download.
-
-Backend Responsibilities
-
-- Health checks.
-- OpenAI ephemeral token generation.
-- Request validation.
-- Rate limiting.
-- Security enforcement.
-
-OpenAI Responsibilities
-
-- Speech recognition.
-- Translation.
-- Audio synthesis.
-- Transcript streaming.
-
-⸻
-
-Security Model
-
-Phase 1 Security Controls
-
-- Vercel Password Protection.
-- Single-user allowlist.
-- No public registration.
-- OpenAI API key stored server-side only.
-- Ephemeral tokens issued to browser.
-- Strict CORS.
-- Rate limiting on token endpoints.
-- No transcript logging.
-- Secure response headers.
-- Dependency scanning.
-
-Data Handling
-
-Data Type Stored Server-Side?
-Audio streams No
-Transcripts No
-User accounts No
-Usage metrics Minimal, non-content only
-Local recordings Browser only
-
-⸻
-
-Development Workflow
-
-Branch Strategy
-
-- main — Production-ready.
-- develop — Integration branch.
-- feature/\* — Feature work.
-- fix/\* — Bug fixes.
-
-Commit Style
-
-Conventional Commits:
-
-- feat:
-- fix:
-- refactor:
-- docs:
-- test:
-- chore:
-
-Pull Requests
-
-Each PR should include:
-
-- Problem statement.
-- Scope.
-- Security considerations.
-- Testing evidence.
-- Rollback notes.
-
-⸻
-
-AI Coding Assistant Guidelines
-
-This repository is optimized for AI-assisted development.
-
-Operating Rules
-
-1. Read README.md and .agentic/PROJECT_BRIEF.md before making changes.
-2. Prefer minimal, targeted changes.
-3. Do not introduce new dependencies without justification.
-4. Preserve backward compatibility.
-5. Update documentation when architecture changes.
-6. Add or update tests for all non-trivial logic.
-7. Never expose secrets to client-side code.
-8. If requirements are ambiguous, stop and ask.
-
-Success Criteria for Tasks
-
-- Build passes.
-- Tests pass.
-- No lint/type errors.
-- No security regressions.
-- Documentation updated.
-
-⸻
-
-Coding Standards
-
-General
-
-- TypeScript strict mode enabled.
-- Avoid any unless documented.
-- Use Zod for schema validation.
-- Prefer pure functions.
-- Keep modules focused.
-
-Frontend
-
-- Functional React components.
-- Custom hooks for complex logic.
-- Presentation and business logic separated.
-
-Backend
-
-- Thin routes.
-- Business logic in services.
-- Centralized error handling.
-- Schema validation at boundaries.
-
-⸻
-
-Testing Strategy
-
-Frontend
-
-- Vitest.
-- React Testing Library.
-- Tests live in `tests/frontend/unit`, `tests/frontend/component`, and `tests/frontend/support`.
-
-Backend
-
-- Vitest.
-- Integration tests for API endpoints.
-- Tests live in `tests/backend/unit` and `tests/backend/integration`.
-
-Shared Contracts
-
-- Vitest.
-- Contract tests live in `tests/shared/unit`.
-
-End-to-End
-
-- Playwright.
-- Browser-driven tests live in `tests/e2e`.
-
-Critical Scenarios
-
-- Session token generation.
-- WebRTC session establishment.
-- Translation stream handling.
-- Mode switching.
-- Recording/download.
-- Security enforcement.
-
-⸻
-
-Observability
-
-Phase 1 observability should be lightweight.
-
-Capture:
-
-- Session start/end.
-- Selected mode.
-- Languages used.
-- Time to first translated audio (TTFT).
-- Session duration.
-- Error rates.
-
-Do not capture:
-
-- Transcript content.
-- Audio content.
-
-⸻
-
-Environment Variables
-
-Backend
-
-```bash
-OPENAI_API_KEY=
-APP_ENV=development
-PORT=3000
-APP_URL=http://localhost:5173
-ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://simtalk.app
-SESSION_SECRET=
-VERCEL_PROTECTION_BYPASS_SECRET=
+|-- README.md
+|-- PRD.md
+|-- System_Architecture.md
+|-- package.json
+|-- pnpm-workspace.yaml
+|-- pnpm-lock.yaml
+|-- tsconfig.base.json
+|-- playwright.config.ts
+|-- .agentic/                    # Agentic OS project memory, codemap, subsystem notes
+|-- .cursor/                     # Cursor plans and project-local skills
+|-- backend/
+|   |-- .env.example
+|   |-- package.json
+|   |-- tsconfig.json
+|   |-- tsconfig.test.json
+|   |-- vitest.config.ts
+|   `-- src/
+|       |-- app.ts
+|       |-- config.ts
+|       |-- server.ts
+|       |-- middleware/
+|       |   |-- cors.ts
+|       |   |-- rateLimit.ts
+|       |   `-- securityHeaders.ts
+|       |-- routes/
+|       |   |-- health.ts
+|       |   `-- realtime.ts
+|       `-- services/
+|           `-- openAiRealtime.ts
+|-- frontend/
+|   |-- .env.example
+|   |-- index.html
+|   |-- package.json
+|   |-- tsconfig.json
+|   |-- tsconfig.app.json
+|   |-- tsconfig.node.json
+|   |-- tsconfig.test.json
+|   |-- vite.config.ts
+|   `-- src/
+|       |-- App.tsx
+|       |-- main.tsx
+|       |-- realtimeTokenClient.ts
+|       |-- realtimeTranslationSession.ts
+|       `-- styles.css
+|-- shared/
+|   `-- types/
+|       |-- package.json
+|       |-- tsconfig.json
+|       |-- tsconfig.test.json
+|       |-- vitest.config.ts
+|       `-- src/
+|           `-- index.ts
+|-- tests/
+|   |-- backend/
+|   |   |-- integration/
+|   |   `-- unit/
+|   |-- frontend/
+|   |   |-- component/
+|   |   |-- unit/
+|   |   `-- support/
+|   |-- shared/
+|   |   `-- unit/
+|   `-- e2e/
+|-- scripts/
+|   `-- agentic/
+`-- docs/
+    `-- _generated/              # docsync working artifacts
 ```
 
-Frontend
+## Local Development
 
-```bash
-VITE_API_BASE_URL=http://localhost:3000
-```
-
-⸻
-
-Local Development
-
-Prerequisites
+Prerequisites:
 
 - Node.js 22+
 - pnpm 10+
-- OpenAI API key
+- OpenAI API key for realtime token minting
 
-Setup
+Setup:
 
 ```bash
 git clone git@github.com:t8/simtalk.git
@@ -400,15 +234,22 @@ cd simtalk
 pnpm install
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
+```
+
+Set `OPENAI_API_KEY` in `backend/.env` before exercising `POST /realtime/token` against OpenAI.
+
+Run both app packages:
+
+```bash
 pnpm dev
 ```
 
-Services
+Services:
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3000`
 
-Useful commands:
+Root scripts:
 
 ```bash
 pnpm typecheck
@@ -417,91 +258,204 @@ pnpm test:e2e
 pnpm build
 ```
 
-⸻
+The root scripts build `@simtalk/shared-types` first where needed so frontend/backend package imports resolve consistently.
 
-Deployment
+## Environment Variables
 
-Phase 1 (Vercel)
+Backend variables in `backend/.env.example`:
 
-- Frontend and backend deployed to Vercel.
-- Protected with Vercel password access.
-- Environment variables configured in project settings.
-- Custom domain simtalk.app.
+```bash
+APP_ENV=development
+PORT=3000
+APP_URL=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+OPENAI_API_KEY=
+OPENAI_REALTIME_CLIENT_SECRET_URL=https://api.openai.com/v1/realtime/translations/client_secrets
+OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS=600
+REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS=60000
+REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS=5
+SESSION_SECRET=
+VERCEL_PROTECTION_BYPASS_SECRET=
+```
 
-Phase 2 (Google Cloud Run)
+Frontend variables in `frontend/.env.example`:
 
-- Containerized services.
-- HTTPS load balancer.
-- Managed secrets.
-- Autoscaling.
+```bash
+VITE_API_BASE_URL=http://localhost:3000
+```
 
-⸻
+Notes:
 
-Roadmap
+- `OPENAI_API_KEY` must never be exposed through a frontend `VITE_*` variable.
+- `SESSION_SECRET` and `VERCEL_PROTECTION_BYPASS_SECRET` are reserved for Phase 1 deployment/access-control integration and are not currently consumed by backend code.
+- `ALLOWED_ORIGINS` should include the production frontend origin in deployed environments.
 
-Phase 1
+## API Usage
 
-- Listener Mode.
-- Turn-about Mode.
-- Practice Mode.
-- Local recording.
-- Private deployment.
+Health check:
 
-Phase 2
+```bash
+curl http://localhost:3000/health
+```
 
-- User accounts.
-- Persistent preferences.
-- 2-user rooms.
-- 3–10 participant rooms.
+Realtime token request:
 
-Phase 3
+```bash
+curl -X POST http://localhost:3000/realtime/token \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"listener","targetLanguage":"es"}'
+```
+
+Turn-about and Practice requests include `sourceLanguage`:
+
+```bash
+curl -X POST http://localhost:3000/realtime/token \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"turnabout","sourceLanguage":"en","targetLanguage":"es"}'
+```
+
+The token route requires a configured backend `OPENAI_API_KEY`. It returns a short-lived browser credential and OpenAI translation calls URL, not the server API key.
+
+## Testing
+
+Current test locations:
+
+- `tests/shared/unit/` - shared Zod schemas, constants, and inferred contracts.
+- `tests/backend/unit/` - backend config and OpenAI realtime service behavior.
+- `tests/backend/integration/` - Hono app routes, CORS, headers, token validation, error mapping, and rate limiting.
+- `tests/frontend/unit/` - frontend token client and WebRTC service.
+- `tests/frontend/component/` - React UI/session flow tests.
+- `tests/frontend/support/` - Testing Library setup.
+- `tests/e2e/` - Playwright smoke tests.
+- `scripts/agentic/test_*.py` - Python unittest coverage for Agentic OS scripts.
+
+Run all package unit/component/integration tests:
+
+```bash
+pnpm test
+```
+
+Run browser smoke tests:
+
+```bash
+pnpm test:e2e
+```
+
+Current E2E coverage is intentionally small: it verifies the frontend shell and mode controls. It does not yet exercise a live OpenAI WebRTC session.
+
+## Deployment
+
+Phase 1 target:
+
+- Vercel for the frontend and thin Node/Hono backend.
+- Custom domain: `simtalk.app`.
+- Vercel Password Protection and a single-user allowlist for private access.
+- Environment variables configured in Vercel project settings.
+
+Current repo status:
+
+- No `.github/workflows/` directory exists.
+- No Vercel config file exists.
+- No Dockerfile or Cloud Run config exists.
+- Deployment settings are currently out-of-repo.
+
+Phase 2 target:
+
+- Google Cloud Run services.
+- Real authentication.
+- Persistent preferences/history where explicitly approved.
+- Multi-user room/media orchestration, likely through LiveKit or equivalent.
+- Managed secrets and HTTPS load balancing.
+
+## Development Standards
+
+General:
+
+- Keep TypeScript strict.
+- Validate runtime boundaries with Zod.
+- Prefer shared contracts from `@simtalk/shared-types` over duplicate request/response types.
+- Keep routes thin and move OpenAI/API behavior into service modules.
+- Avoid exposing secrets, upstream token payloads, audio, transcripts, or PII in client responses or logs.
+
+Frontend:
+
+- Use semantic HTML and native controls unless a custom component is justified.
+- Keep interactive elements keyboard-accessible with visible focus states.
+- Use semantic CSS variables for colors and maintain the existing 8px spacing scale.
+- Respect `prefers-reduced-motion`.
+- Do not rely on color alone to convey state.
+
+Backend:
+
+- Keep CORS strict; do not use `*`.
+- Validate token requests before calling OpenAI.
+- Keep OpenAI API key server-side only.
+- Sanitize upstream errors.
+- Treat in-memory rate limiting as a Phase 1 guardrail, not a durable abuse-prevention system.
+
+## AI Coding Assistant Notes
+
+This repository is optimized for AI-assisted development.
+
+Before making non-trivial changes:
+
+1. Read `README.md` and `.agentic/PROJECT_BRIEF.md`.
+2. Use Agentic OS routing through `scripts/agentic/route_task.py` when applicable.
+3. Check the relevant `.agentic/SUBSYSTEMS/*.md` file, but verify it against code because some subsystem notes still lag the current implementation.
+4. Add or update tests for non-trivial logic.
+5. Preserve Phase 1 privacy and security invariants.
+
+Important current doc drift outside README:
+
+- `.agentic/SUBSYSTEMS/api.md`, `web.md`, `shared.md`, and `tests.md` still contain planned/unknown status text even though implementation exists.
+- Refreshing Agentic memory should be done through the dedicated Agentic OS update flow, not by ad hoc edits during ordinary README work.
+
+## Roadmap
+
+Phase 1:
+
+- Complete Listener, Turn-about, and Practice mode behavior.
+- Add explicit browser-local recording and transcript/audio downloads.
+- Add broader E2E coverage with OpenAI mocked at the network boundary.
+- Add deployment/CI configuration.
+- Validate realtime behavior manually with a real OpenAI key and supported browser.
+
+Phase 2:
+
+- Add real user accounts.
+- Add persistent preferences.
+- Add 2-user rooms, then 3-10 participant rooms.
+- Introduce a room/media orchestration layer.
+
+Future:
 
 - Teach Me Mode.
 - Subscription billing.
-- Mobile apps.
+- Native mobile apps.
 
-⸻
+## Known Limitations
 
-Known Risks
+- Mode-specific flows are not complete yet.
+- Browser-local recording/download is not implemented yet.
+- Playwright currently covers only the frontend smoke path.
+- Realtime WebRTC behavior still requires manual browser validation.
+- Rate limiting is in-memory and can reset with process/serverless lifecycle.
+- Vercel access control and domain settings are out-of-repo.
+- No CI/CD pipeline is currently committed.
+- No database or persistent storage exists in Phase 1 by design.
 
-- Translation latency.
-- Browser audio quirks.
-- Bluetooth compatibility.
-- OpenAI API cost.
-- Overlapping speech.
+## Decision Log
 
-⸻
+- 2026-05-20: Build Phase 1 as a private single-device web app.
+- 2026-05-20: Use React/Vite + TypeScript for the frontend.
+- 2026-05-20: Use Node.js + Hono for the backend.
+- 2026-05-20: Use OpenAI `gpt-realtime-translate` over browser WebRTC.
+- 2026-05-20: No database in Phase 1.
+- 2026-05-20: No server-side transcript storage; recording remains browser-local only.
+- 2026-05-20: Deploy Phase 1 to Vercel and migrate backend services to Cloud Run in Phase 2.
 
-Decision Log
-
-Date Decision
-2026-05-20 Build Phase 1 as a private web app.
-2026-05-20 Use React/Vite + Node/Hono.
-2026-05-20 Use OpenAI gpt-realtime-translate.
-2026-05-20 No database in Phase 1.
-2026-05-20 No server-side transcript storage.
-2026-05-20 Deploy to Vercel.
-2026-05-20 Migrate to Cloud Run in Phase 2.
-
-⸻
-
-Contribution Philosophy
-
-The best code is:
-
-- Simple.
-- Secure.
-- Observable.
-- Well-tested.
-- Well-documented.
-- Easy for both humans and AI to understand.
-
-When in doubt, choose the simpler design.
-
-⸻
-
-License
+## License
 
 Proprietary.
 
-Copyright © Throwing Eights Pty Ltd (t8). All rights reserved.
+Copyright (c) Throwing Eights Pty Ltd (t8). All rights reserved.
