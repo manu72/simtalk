@@ -61,6 +61,24 @@ const languageOptions = [
   { code: 'zh-Hans', label: 'Chinese (Simplified)' }
 ] as const;
 
+const getAudioRecordingFileExtension = (mimeType: string) => {
+  const normalizedMimeType = mimeType.toLowerCase().split(';')[0]?.trim();
+
+  if (normalizedMimeType === 'audio/mp4') {
+    return '.mp4';
+  }
+
+  if (normalizedMimeType === 'audio/m4a') {
+    return '.m4a';
+  }
+
+  if (normalizedMimeType === 'audio/webm') {
+    return '.webm';
+  }
+
+  return '.webm';
+};
+
 type SessionStatus =
   | 'idle'
   | 'loading'
@@ -277,11 +295,13 @@ export const App = () => {
       return;
     }
 
+    const recordingMimeType = recordingSession.recorder.mimeType || 'audio/webm';
     const recordingBlob = new Blob(recordingSession.chunks, {
-      type: recordingSession.recorder.mimeType || 'audio/webm'
+      type: recordingMimeType
     });
     const recordingUrl = URL.createObjectURL(recordingBlob);
-    const recordingName = `simtalk-audio-${new Date().toISOString()}.webm`;
+    const recordingFileExtension = getAudioRecordingFileExtension(recordingMimeType);
+    const recordingName = `simtalk-audio-${new Date().toISOString()}${recordingFileExtension}`;
 
     revokeAudioRecordingUrl();
     audioRecordingUrlRef.current = recordingUrl;
