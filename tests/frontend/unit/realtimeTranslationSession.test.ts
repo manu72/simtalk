@@ -69,6 +69,22 @@ describe('createRealtimeTranslationSession', () => {
     });
   });
 
+  it('exposes the captured local microphone stream for browser-local recording', async () => {
+    const mediaStream = new FakeMediaStream();
+    const onLocalStream = vi.fn();
+
+    await createRealtimeTranslationSession({
+      token,
+      getUserMedia: vi.fn(async () => mediaStream as unknown as MediaStream),
+      createPeerConnection: () => new FakePeerConnection() as unknown as RTCPeerConnection,
+      createAudioElement: () => document.createElement('audio'),
+      fetchImpl: vi.fn(async () => new Response('answer-sdp')),
+      onLocalStream
+    });
+
+    expect(onLocalStream).toHaveBeenCalledWith(mediaStream);
+  });
+
   it('emits transcript deltas from the OpenAI data channel', async () => {
     const peerConnection = new FakePeerConnection();
     const onTranscriptDelta = vi.fn();

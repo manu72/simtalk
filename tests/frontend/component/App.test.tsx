@@ -18,6 +18,36 @@ const tokenResponse = {
   translationCallUrl: 'https://api.openai.com/v1/realtime/translations/calls'
 };
 const backendValidationErrorMessage = 'Backend rejected the requested language pair';
+const audioBlob = new Blob(['audio-data'], { type: 'audio/webm' });
+
+class MockMediaRecorder extends EventTarget {
+  static lastInstance: MockMediaRecorder | null = null;
+  readonly start = vi.fn();
+  readonly stop = vi.fn(() => {
+    this.dispatchEvent(new BlobEvent('dataavailable', { data: audioBlob }));
+    this.dispatchEvent(new Event('stop'));
+  });
+  readonly mimeType = 'audio/webm';
+
+  ondataavailable: ((event: BlobEvent) => void) | null = null;
+  onstop: (() => void) | null = null;
+
+  constructor(readonly stream: MediaStream) {
+    super();
+    MockMediaRecorder.lastInstance = this;
+  }
+
+  override dispatchEvent(event: Event): boolean {
+    const result = super.dispatchEvent(event);
+    if (event.type === 'dataavailable') {
+      this.ondataavailable?.(event as BlobEvent);
+    }
+    if (event.type === 'stop') {
+      this.onstop?.();
+    }
+    return result;
+  }
+}
 
 const mockFetch = (response: Response) => {
   const fetchMock = vi.fn(async () => response.clone());
@@ -27,6 +57,7 @@ const mockFetch = (response: Response) => {
 
 afterEach(() => {
   createRealtimeTranslationSessionMock.mockReset();
+  MockMediaRecorder.lastInstance = null;
   vi.unstubAllGlobals();
 });
 
@@ -50,6 +81,7 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: /Recording is off by default/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start local recording/i })).toBeDisabled();
   });
 
   it('requests a realtime token without displaying the client secret', async () => {
@@ -331,6 +363,52 @@ describe('App', () => {
 
     expect(screen.getByText('hello')).toBeInTheDocument();
     expect(screen.getByText('hola')).toBeInTheDocument();
+  });
+
+  it('records local microphone audio only after explicit opt-in and exposes a local download', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    const createObjectUrl = vi.fn(() => 'blob:simtalk-recording');
+    const revokeObjectUrl = vi.fn();
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: createObjectUrl,
+      revokeObjectURL: revokeObjectUrl
+    });
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop: vi.fn() };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
+
+    expect(MockMediaRecorder.lastInstance?.stream).toBe(localStream);
+    expect(MockMediaRecorder.lastInstance?.start).toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
+
+    await waitFor(() => {
+      expect(createObjectUrl).toHaveBeenCalledWith(audioBlob);
+      expect(screen.getByRole('link', { name: /Download audio recording/i })).toHaveAttribute(
+        'href',
+        'blob:simtalk-recording'
+      );
+    });
+    expect(screen.getByText(/Audio recording is stored as a local browser blob/i)).toBeInTheDocument();
   });
 
   it('lets Practice mode pause for review and start a new attempt', async () => {

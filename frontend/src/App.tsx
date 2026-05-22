@@ -82,6 +82,8 @@ type StatusDetails = {
   readonly badgeVariant: 'secondary' | 'success' | 'warning' | 'destructive';
 };
 
+type RecordingStatus = 'off' | 'recording' | 'ready' | 'unsupported' | 'error';
+
 const statusDetails: Record<SessionStatus, StatusDetails> = {
   idle: {
     label: 'Idle',
@@ -172,10 +174,19 @@ export const App = () => {
   const [preparedToken, setPreparedToken] = useState<RealtimeTokenResponse | null>(null);
   const [inputTranscript, setInputTranscript] = useState('');
   const [outputTranscript, setOutputTranscript] = useState('');
+  const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('off');
+  const [recordingError, setRecordingError] = useState<string | null>(null);
+  const [audioRecordingUrl, setAudioRecordingUrl] = useState<string | null>(null);
+  const [audioRecordingName, setAudioRecordingName] = useState('simtalk-recording.webm');
   const activeTokenRequestRef = useRef(0);
   const activeWebRtcRequestRef = useRef(0);
   const activeWebRtcAbortControllerRef = useRef<AbortController | null>(null);
   const translationSessionRef = useRef<RealtimeTranslationSession | null>(null);
+  const localMediaStreamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const discardRecordingOnStopRef = useRef(false);
+  const recordedAudioChunksRef = useRef<Blob[]>([]);
+  const audioRecordingUrlRef = useRef<string | null>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   const needsSourceLanguage = selectedMode === 'turnabout' || selectedMode === 'practice';
@@ -198,6 +209,8 @@ export const App = () => {
   const startWebRtcLabel = isPracticeMode ? 'Start practice attempt' : 'Start microphone and WebRTC';
   const stopWebRtcLabel = isPracticeMode ? 'Pause and review phrase' : 'Stop audio';
   const practiceReviewMessage = hasTranscript ? 'Review this attempt' : 'Ready for another phrase';
+  const canStartRecording =
+    isWebRtcSessionActive && localMediaStreamRef.current !== null && recordingStatus !== 'recording';
 
   const handleTranscriptDelta = (delta: TranscriptDelta) => {
     if (delta.kind === 'input') {
@@ -213,11 +226,51 @@ export const App = () => {
     translationSessionRef.current = null;
   };
 
+  const revokeAudioRecordingUrl = () => {
+    if (audioRecordingUrlRef.current) {
+      URL.revokeObjectURL(audioRecordingUrlRef.current);
+      audioRecordingUrlRef.current = null;
+    }
+  };
+
+  const clearAudioRecording = () => {
+    revokeAudioRecordingUrl();
+    recordedAudioChunksRef.current = [];
+    setAudioRecordingUrl(null);
+    setAudioRecordingName('simtalk-recording.webm');
+    setRecordingError(null);
+    setRecordingStatus('off');
+  };
+
+  const stopLocalRecording = ({ discard = false }: { readonly discard?: boolean } = {}) => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) {
+      return;
+    }
+
+    discardRecordingOnStopRef.current = discard;
+    mediaRecorderRef.current = null;
+
+    try {
+      if (recorder.state !== 'inactive') {
+        recorder.stop();
+        return;
+      }
+    } catch {
+      if (!discard) {
+        setRecordingError('Local audio recording could not be stopped.');
+        setRecordingStatus('error');
+      }
+    }
+  };
+
   const invalidateWebRtcSession = () => {
     activeWebRtcRequestRef.current += 1;
     activeWebRtcAbortControllerRef.current?.abort();
     activeWebRtcAbortControllerRef.current = null;
+    stopLocalRecording();
     stopTranslationSession();
+    localMediaStreamRef.current = null;
   };
 
   const resetPreparedSession = () => {
@@ -289,6 +342,64 @@ export const App = () => {
     }
   };
 
+  const handleStartLocalRecording = () => {
+    if (!localMediaStreamRef.current) {
+      setRecordingError('Start WebRTC before recording local audio.');
+      setRecordingStatus('error');
+      return;
+    }
+
+    if (typeof MediaRecorder === 'undefined') {
+      setRecordingError('This browser does not support local audio recording.');
+      setRecordingStatus('unsupported');
+      return;
+    }
+
+    clearAudioRecording();
+    recordedAudioChunksRef.current = [];
+
+    try {
+      const recorder = new MediaRecorder(localMediaStreamRef.current);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedAudioChunksRef.current = [...recordedAudioChunksRef.current, event.data];
+        }
+      };
+      recorder.onstop = () => {
+        const shouldDiscardRecording = discardRecordingOnStopRef.current;
+        discardRecordingOnStopRef.current = false;
+        mediaRecorderRef.current = null;
+
+        if (shouldDiscardRecording) {
+          recordedAudioChunksRef.current = [];
+          return;
+        }
+
+        const recordingBlob = new Blob(recordedAudioChunksRef.current, {
+          type: recorder.mimeType || 'audio/webm'
+        });
+        const recordingUrl = URL.createObjectURL(recordingBlob);
+        const recordingName = `simtalk-audio-${new Date().toISOString()}.webm`;
+
+        revokeAudioRecordingUrl();
+        audioRecordingUrlRef.current = recordingUrl;
+        setAudioRecordingUrl(recordingUrl);
+        setAudioRecordingName(recordingName);
+        setRecordingError(null);
+        setRecordingStatus('ready');
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecordingError(null);
+      setRecordingStatus('recording');
+    } catch {
+      mediaRecorderRef.current = null;
+      setRecordingError('Local audio recording could not be started.');
+      setRecordingStatus('error');
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const requestId = activeTokenRequestRef.current + 1;
@@ -350,6 +461,11 @@ export const App = () => {
             handleTranscriptDelta(delta);
           }
         },
+        onLocalStream: (stream) => {
+          if (activeWebRtcRequestRef.current === requestId) {
+            localMediaStreamRef.current = stream;
+          }
+        },
         onRemoteAudio: () => {
           if (activeWebRtcRequestRef.current === requestId) {
             setStatus('streaming');
@@ -396,7 +512,9 @@ export const App = () => {
 
   useEffect(
     () => () => {
+      stopLocalRecording({ discard: true });
       invalidateWebRtcSession();
+      revokeAudioRecordingUrl();
     },
     []
   );
@@ -632,6 +750,54 @@ export const App = () => {
                     </div>
                   </dl>
                 )}
+
+                <section className="grid gap-4 rounded-[1.5rem] border border-border bg-background/70 p-4" aria-labelledby="local-recording-title">
+                  <div className="grid gap-2">
+                    <h4 id="local-recording-title" className="text-base font-semibold text-foreground">
+                      Local recording
+                    </h4>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      Recording is opt-in and stays in this browser as a local blob until you download
+                      or refresh.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <Button
+                      disabled={!canStartRecording}
+                      onClick={handleStartLocalRecording}
+                      type="button"
+                      variant="outline"
+                    >
+                      <Mic className="size-4" />
+                      Start local recording
+                    </Button>
+                    <Button
+                      disabled={recordingStatus !== 'recording'}
+                      onClick={() => stopLocalRecording()}
+                      type="button"
+                      variant="secondary"
+                    >
+                      <Square className="size-4" />
+                      Stop local recording
+                    </Button>
+                    {audioRecordingUrl && (
+                      <Button asChild variant="outline">
+                        <a download={audioRecordingName} href={audioRecordingUrl}>
+                          <Download className="size-4" />
+                          Download audio recording
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {recordingStatus === 'recording' && 'Local microphone recording is active.'}
+                    {recordingStatus === 'ready' &&
+                      'Audio recording is stored as a local browser blob and has not been uploaded.'}
+                    {(recordingStatus === 'off' || recordingStatus === 'unsupported') &&
+                      'Audio recording is off by default.'}
+                    {recordingStatus === 'error' && recordingError}
+                  </p>
+                </section>
               </CardContent>
             </Card>
           </section>
