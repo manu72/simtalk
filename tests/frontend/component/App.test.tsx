@@ -486,8 +486,10 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
 
-    expect(screen.queryByText('Local audio recording could not be stopped.')).not.toBeInTheDocument();
-    expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Local audio recording could not be stopped.')).not.toBeInTheDocument();
+      expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
+    });
   });
 
   it('clears local recording downloads when preparing a new session', async () => {
