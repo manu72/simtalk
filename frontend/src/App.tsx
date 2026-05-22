@@ -217,7 +217,10 @@ export const App = () => {
   const stopWebRtcLabel = isPracticeMode ? 'Pause and review phrase' : 'Stop audio';
   const practiceReviewMessage = hasTranscript ? 'Review this attempt' : 'Ready for another phrase';
   const canStartRecording =
-    isWebRtcSessionActive && localMediaStreamRef.current !== null && recordingStatus !== 'recording';
+    isWebRtcSessionActive &&
+    localMediaStreamRef.current !== null &&
+    recordingStatus !== 'recording' &&
+    recordingStatus !== 'unsupported';
 
   const handleTranscriptDelta = (delta: TranscriptDelta) => {
     if (delta.kind === 'input') {
@@ -876,8 +879,9 @@ export const App = () => {
                     {recordingStatus === 'recording' && 'Local microphone recording is active.'}
                     {recordingStatus === 'ready' &&
                       'Audio recording is stored as a local browser blob and has not been uploaded.'}
-                    {(recordingStatus === 'off' || recordingStatus === 'unsupported') &&
-                      'Audio recording is off by default.'}
+                    {recordingStatus === 'off' && 'Audio recording is off by default.'}
+                    {recordingStatus === 'unsupported' &&
+                      'Local recording is unsupported in this browser.'}
                     {recordingStatus === 'error' && recordingError}
                   </p>
                 </section>
