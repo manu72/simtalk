@@ -89,6 +89,8 @@ type LocalRecordingSession = {
   chunks: Blob[];
   discardOnStop: boolean;
   isStopping: boolean;
+  resolveStopCompletion: (() => void) | null;
+  stopCompletion: Promise<void> | null;
 };
 
 const statusDetails: Record<SessionStatus, StatusDetails> = {
@@ -257,6 +259,12 @@ export const App = () => {
       return;
     }
 
+    if (recordingSession.chunks.length === 0) {
+      setRecordingError('No local audio data was captured.');
+      setRecordingStatus('error');
+      return;
+    }
+
     const recordingBlob = new Blob(recordingSession.chunks, {
       type: recordingSession.recorder.mimeType || 'audio/webm'
     });
@@ -271,50 +279,84 @@ export const App = () => {
     setRecordingStatus('ready');
   };
 
-  const stopLocalRecording = ({ discard = false }: { readonly discard?: boolean } = {}) => {
+  const completeLocalRecordingStop = (recordingSession: LocalRecordingSession) => {
+    const resolveStopCompletion = recordingSession.resolveStopCompletion;
+    recordingSession.resolveStopCompletion = null;
+
+    try {
+      finalizeLocalRecording(recordingSession);
+    } finally {
+      resolveStopCompletion?.();
+    }
+  };
+
+  const stopLocalRecording = ({
+    discard = false
+  }: { readonly discard?: boolean } = {}): Promise<void> => {
     const recordingSession = activeRecordingSessionRef.current;
     if (!recordingSession) {
-      return;
+      return Promise.resolve();
     }
 
     recordingSession.discardOnStop = recordingSession.discardOnStop || discard;
     if (recordingSession.isStopping) {
-      return;
+      return recordingSession.stopCompletion ?? Promise.resolve();
     }
     recordingSession.isStopping = true;
+    recordingSession.stopCompletion = new Promise<void>((resolve) => {
+      recordingSession.resolveStopCompletion = resolve;
+    });
 
     try {
       if (recordingSession.recorder.state === 'inactive') {
         recordingSession.recorder.onstop = null;
-        finalizeLocalRecording(recordingSession);
-        return;
+        completeLocalRecordingStop(recordingSession);
+        return recordingSession.stopCompletion;
       }
 
       recordingSession.recorder.stop();
     } catch {
+      recordingSession.recorder.onstop = null;
       if (activeRecordingSessionRef.current === recordingSession) {
         activeRecordingSessionRef.current = null;
       }
+      recordingSession.resolveStopCompletion?.();
+      recordingSession.resolveStopCompletion = null;
 
       if (!discard) {
         setRecordingError('Local audio recording could not be stopped.');
         setRecordingStatus('error');
       }
     }
+
+    return recordingSession.stopCompletion;
   };
 
-  const invalidateWebRtcSession = ({ discardRecording = false }: { readonly discardRecording?: boolean } = {}) => {
+  const invalidateWebRtcSession = ({
+    discardRecording = false
+  }: { readonly discardRecording?: boolean } = {}): Promise<void> => {
+    const translationSession = translationSessionRef.current;
+    const recordingSession = activeRecordingSessionRef.current;
     activeWebRtcRequestRef.current += 1;
     activeWebRtcAbortControllerRef.current?.abort();
     activeWebRtcAbortControllerRef.current = null;
-    stopLocalRecording({ discard: discardRecording });
-    stopTranslationSession();
+    translationSessionRef.current = null;
     localMediaStreamRef.current = null;
+
+    const recordingStopCompletion = stopLocalRecording({ discard: discardRecording });
+    if (!recordingSession) {
+      translationSession?.stop();
+      return Promise.resolve();
+    }
+
+    return recordingStopCompletion.finally(() => {
+      translationSession?.stop();
+    });
   };
 
   const resetPreparedSession = () => {
     activeTokenRequestRef.current += 1;
-    invalidateWebRtcSession({ discardRecording: true });
+    void invalidateWebRtcSession({ discardRecording: true });
     clearAudioRecording();
     setStatus('idle');
     setErrorMessage(null);
@@ -403,7 +445,9 @@ export const App = () => {
         recorder,
         chunks: [],
         discardOnStop: false,
-        isStopping: false
+        isStopping: false,
+        resolveStopCompletion: null,
+        stopCompletion: null
       };
 
       recorder.ondataavailable = (event) => {
@@ -411,7 +455,7 @@ export const App = () => {
           recordingSession.chunks = [...recordingSession.chunks, event.data];
         }
       };
-      recorder.onstop = () => finalizeLocalRecording(recordingSession);
+      recorder.onstop = () => completeLocalRecordingStop(recordingSession);
 
       activeRecordingSessionRef.current = recordingSession;
       recorder.start();
@@ -428,13 +472,17 @@ export const App = () => {
     event.preventDefault();
     const requestId = activeTokenRequestRef.current + 1;
     activeTokenRequestRef.current = requestId;
-    invalidateWebRtcSession({ discardRecording: true });
-    clearAudioRecording();
     setStatus('loading');
     setErrorMessage(null);
     setPreparedToken(null);
     setInputTranscript('');
     setOutputTranscript('');
+    clearAudioRecording();
+    await invalidateWebRtcSession({ discardRecording: true });
+
+    if (activeTokenRequestRef.current !== requestId) {
+      return;
+    }
 
     try {
       const token = await requestRealtimeToken({
@@ -522,8 +570,17 @@ export const App = () => {
   };
 
   const handleStopWebRtc = () => {
-    invalidateWebRtcSession();
-    setStatus(preparedToken ? 'ready' : 'idle');
+    const recordingSession = activeRecordingSessionRef.current;
+    const invalidationCompletion = invalidateWebRtcSession();
+
+    if (!recordingSession) {
+      setStatus(preparedToken ? 'ready' : 'idle');
+      return;
+    }
+
+    void invalidationCompletion.then(() => {
+      setStatus(preparedToken ? 'ready' : 'idle');
+    });
   };
 
   const browserSafeSession: PreparedSession | null = preparedToken
@@ -537,8 +594,7 @@ export const App = () => {
 
   useEffect(
     () => () => {
-      stopLocalRecording({ discard: true });
-      invalidateWebRtcSession();
+      void invalidateWebRtcSession({ discardRecording: true });
       revokeAudioRecordingUrl();
     },
     []
@@ -798,7 +854,9 @@ export const App = () => {
                     </Button>
                     <Button
                       disabled={recordingStatus !== 'recording'}
-                      onClick={() => stopLocalRecording()}
+                      onClick={() => {
+                        void stopLocalRecording();
+                      }}
                       type="button"
                       variant="secondary"
                     >
