@@ -242,6 +242,30 @@ export const App = () => {
     setRecordingStatus('off');
   };
 
+  const finalizeLocalRecording = (recorder: MediaRecorder) => {
+    const shouldDiscardRecording = discardRecordingOnStopRef.current;
+    discardRecordingOnStopRef.current = false;
+    mediaRecorderRef.current = null;
+
+    if (shouldDiscardRecording) {
+      recordedAudioChunksRef.current = [];
+      return;
+    }
+
+    const recordingBlob = new Blob(recordedAudioChunksRef.current, {
+      type: recorder.mimeType || 'audio/webm'
+    });
+    const recordingUrl = URL.createObjectURL(recordingBlob);
+    const recordingName = `simtalk-audio-${new Date().toISOString()}.webm`;
+
+    revokeAudioRecordingUrl();
+    audioRecordingUrlRef.current = recordingUrl;
+    setAudioRecordingUrl(recordingUrl);
+    setAudioRecordingName(recordingName);
+    setRecordingError(null);
+    setRecordingStatus('ready');
+  };
+
   const stopLocalRecording = ({ discard = false }: { readonly discard?: boolean } = {}) => {
     const recorder = mediaRecorderRef.current;
     if (!recorder) {
@@ -252,10 +276,13 @@ export const App = () => {
     mediaRecorderRef.current = null;
 
     try {
-      if (recorder.state !== 'inactive') {
-        recorder.stop();
+      if (recorder.state === 'inactive') {
+        recorder.onstop = null;
+        finalizeLocalRecording(recorder);
         return;
       }
+
+      recorder.stop();
     } catch {
       if (!discard) {
         setRecordingError('Local audio recording could not be stopped.');
@@ -365,29 +392,7 @@ export const App = () => {
           recordedAudioChunksRef.current = [...recordedAudioChunksRef.current, event.data];
         }
       };
-      recorder.onstop = () => {
-        const shouldDiscardRecording = discardRecordingOnStopRef.current;
-        discardRecordingOnStopRef.current = false;
-        mediaRecorderRef.current = null;
-
-        if (shouldDiscardRecording) {
-          recordedAudioChunksRef.current = [];
-          return;
-        }
-
-        const recordingBlob = new Blob(recordedAudioChunksRef.current, {
-          type: recorder.mimeType || 'audio/webm'
-        });
-        const recordingUrl = URL.createObjectURL(recordingBlob);
-        const recordingName = `simtalk-audio-${new Date().toISOString()}.webm`;
-
-        revokeAudioRecordingUrl();
-        audioRecordingUrlRef.current = recordingUrl;
-        setAudioRecordingUrl(recordingUrl);
-        setAudioRecordingName(recordingName);
-        setRecordingError(null);
-        setRecordingStatus('ready');
-      };
+      recorder.onstop = () => finalizeLocalRecording(recorder);
 
       mediaRecorderRef.current = recorder;
       recorder.start();
