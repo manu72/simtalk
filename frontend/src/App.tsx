@@ -449,6 +449,10 @@ export const App = () => {
       return;
     }
 
+    if (activeRecordingSessionRef.current) {
+      return;
+    }
+
     clearAudioRecording();
 
     try {

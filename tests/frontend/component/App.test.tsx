@@ -21,6 +21,7 @@ const backendValidationErrorMessage = 'Backend rejected the requested language p
 const audioBlob = new Blob(['audio-data'], { type: 'audio/webm' });
 
 class MockMediaRecorder extends EventTarget {
+  static instances: MockMediaRecorder[] = [];
   static lastInstance: MockMediaRecorder | null = null;
   readonly start = vi.fn();
   readonly stop = vi.fn(() => {
@@ -34,6 +35,7 @@ class MockMediaRecorder extends EventTarget {
 
   constructor(readonly stream: MediaStream) {
     super();
+    MockMediaRecorder.instances = [...MockMediaRecorder.instances, this];
     MockMediaRecorder.lastInstance = this;
   }
 
@@ -57,6 +59,7 @@ const mockFetch = (response: Response) => {
 
 afterEach(() => {
   createRealtimeTranslationSessionMock.mockReset();
+  MockMediaRecorder.instances = [];
   MockMediaRecorder.lastInstance = null;
   vi.unstubAllGlobals();
 });
@@ -409,6 +412,39 @@ describe('App', () => {
       );
     });
     expect(screen.getByText(/Audio recording is stored as a local browser blob/i)).toBeInTheDocument();
+  });
+
+  it('ignores duplicate local recording starts while already recording', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop: vi.fn() };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    const startRecordingButton = screen.getByRole('button', { name: /Start local recording/i });
+
+    act(() => {
+      fireEvent.click(startRecordingButton);
+      fireEvent.click(startRecordingButton);
+    });
+
+    expect(MockMediaRecorder.instances).toHaveLength(1);
+    expect(MockMediaRecorder.lastInstance?.start).toHaveBeenCalledOnce();
   });
 
   it('clears local recording downloads when preparing a new session', async () => {
