@@ -656,6 +656,43 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
   });
 
+  it('returns to the prepared status when WebRTC cleanup throws after recording teardown', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    const stop = vi.fn(() => {
+      throw new Error('Mock WebRTC cleanup failed');
+    });
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Stop audio/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Stop audio/i }));
+
+    await waitFor(() => {
+      expect(stop).toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Credential prepared. Start the microphone when you are ready to test audio.'
+    );
+  });
+
   it('stops stale WebRTC sessions that resolve after a mode switch', async () => {
     let resolveSession!: (session: { stop: () => void }) => void;
     let webRtcSignal!: AbortSignal;

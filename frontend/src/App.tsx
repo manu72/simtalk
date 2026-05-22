@@ -258,8 +258,16 @@ export const App = () => {
     setOutputTranscript((current) => `${current}${delta.text}`);
   };
 
+  const stopCapturedTranslationSession = (translationSession: RealtimeTranslationSession | null) => {
+    try {
+      translationSession?.stop();
+    } catch {
+      // Teardown is best-effort once refs are cleared; UI state must still recover.
+    }
+  };
+
   const stopTranslationSession = () => {
-    translationSessionRef.current?.stop();
+    stopCapturedTranslationSession(translationSessionRef.current);
     translationSessionRef.current = null;
   };
 
@@ -386,12 +394,12 @@ export const App = () => {
 
     const recordingStopCompletion = stopLocalRecording({ discard: discardRecording });
     if (!recordingSession) {
-      translationSession?.stop();
+      stopCapturedTranslationSession(translationSession);
       return Promise.resolve();
     }
 
     return recordingStopCompletion.finally(() => {
-      translationSession?.stop();
+      stopCapturedTranslationSession(translationSession);
     });
   };
 
@@ -602,7 +610,7 @@ export const App = () => {
         }
       });
       if (activeWebRtcRequestRef.current !== requestId) {
-        translationSession.stop();
+        stopCapturedTranslationSession(translationSession);
         return;
       }
 
