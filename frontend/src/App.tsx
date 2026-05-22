@@ -335,7 +335,7 @@ export const App = () => {
       recordingSession.resolveStopCompletion?.();
       recordingSession.resolveStopCompletion = null;
 
-      if (!discard) {
+      if (!recordingSession.discardOnStop) {
         setRecordingError('Local audio recording could not be stopped.');
         setRecordingStatus('error');
       }

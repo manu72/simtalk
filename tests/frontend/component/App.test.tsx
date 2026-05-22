@@ -21,10 +21,16 @@ const backendValidationErrorMessage = 'Backend rejected the requested language p
 const audioBlob = new Blob(['audio-data'], { type: 'audio/webm' });
 
 class MockMediaRecorder extends EventTarget {
+  static beforeStop: (() => void) | null = null;
   static instances: MockMediaRecorder[] = [];
   static lastInstance: MockMediaRecorder | null = null;
+  static throwOnStop = false;
   readonly start = vi.fn();
   readonly stop = vi.fn(() => {
+    MockMediaRecorder.beforeStop?.();
+    if (MockMediaRecorder.throwOnStop) {
+      throw new Error('Mock recorder stop failed');
+    }
     this.dispatchEvent(new BlobEvent('dataavailable', { data: audioBlob }));
     this.dispatchEvent(new Event('stop'));
   });
@@ -59,8 +65,10 @@ const mockFetch = (response: Response) => {
 
 afterEach(() => {
   createRealtimeTranslationSessionMock.mockReset();
+  MockMediaRecorder.beforeStop = null;
   MockMediaRecorder.instances = [];
   MockMediaRecorder.lastInstance = null;
+  MockMediaRecorder.throwOnStop = false;
   vi.unstubAllGlobals();
 });
 
@@ -445,6 +453,41 @@ describe('App', () => {
 
     expect(MockMediaRecorder.instances).toHaveLength(1);
     expect(MockMediaRecorder.lastInstance?.start).toHaveBeenCalledOnce();
+  });
+
+  it('does not show a local recording stop error after a concurrent discard reset', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop: vi.fn() };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
+
+    MockMediaRecorder.beforeStop = () => {
+      fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
+    };
+    MockMediaRecorder.throwOnStop = true;
+
+    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
+
+    expect(screen.queryByText('Local audio recording could not be stopped.')).not.toBeInTheDocument();
+    expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
   });
 
   it('clears local recording downloads when preparing a new session', async () => {
