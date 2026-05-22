@@ -16,6 +16,7 @@ type CreateRealtimeTranslationSessionOptions = {
   readonly createPeerConnection?: () => RTCPeerConnection;
   readonly createAudioElement?: () => HTMLAudioElement;
   readonly fetchImpl?: typeof fetch;
+  readonly onLocalStream?: (stream: MediaStream) => void;
   readonly onTranscriptDelta?: (delta: TranscriptDelta) => void;
   readonly onRemoteAudio?: () => void;
 };
@@ -103,6 +104,7 @@ export const createRealtimeTranslationSession = async ({
   createPeerConnection = () => new RTCPeerConnection(),
   createAudioElement = defaultCreateAudioElement,
   fetchImpl = fetch,
+  onLocalStream,
   onTranscriptDelta,
   onRemoteAudio
 }: CreateRealtimeTranslationSessionOptions): Promise<RealtimeTranslationSession> => {
@@ -147,6 +149,7 @@ export const createRealtimeTranslationSession = async ({
 
     localStream = await abortable(mediaStreamPromise, signal);
     throwIfAborted(signal);
+    onLocalStream?.(localStream);
 
     peerConnection = createPeerConnection();
     audioElement = createAudioElement();

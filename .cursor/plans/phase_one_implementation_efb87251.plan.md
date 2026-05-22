@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: local-recording
     content: Add explicit browser-local recording and download support with recording off by default.
-    status: pending
+    status: completed
   - id: verification
     content: Expand unit/component/E2E coverage and run typecheck, tests, build, plus manual realtime validation.
     status: pending
