@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: mode-flows
     content: Implement Listener, Turn-about, and Practice mode behavior without diarisation or multi-user room assumptions.
-    status: pending
+    status: completed
   - id: local-recording
     content: Add explicit browser-local recording and download support with recording off by default.
     status: pending
