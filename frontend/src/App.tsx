@@ -608,6 +608,7 @@ export const App = () => {
   const handleStopWebRtc = () => {
     const recordingSession = activeRecordingSessionRef.current;
     const invalidationCompletion = invalidateWebRtcSession();
+    const invalidationRequestId = activeWebRtcRequestRef.current;
 
     if (!recordingSession) {
       setStatus(getPreparedSessionStatus());
@@ -615,7 +616,9 @@ export const App = () => {
     }
 
     void invalidationCompletion.then(() => {
-      setStatus(getPreparedSessionStatus());
+      if (activeWebRtcRequestRef.current === invalidationRequestId) {
+        setStatus(getPreparedSessionStatus());
+      }
     });
   };
 
