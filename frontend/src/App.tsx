@@ -271,11 +271,15 @@ export const App = () => {
   };
 
   const clearAudioRecording = () => {
+    const hasActiveRecording = activeRecordingSessionRef.current !== null;
+
     revokeAudioRecordingUrl();
     setAudioRecordingUrl(null);
     setAudioRecordingName('simtalk-recording.webm');
     setRecordingError(null);
-    setRecordingStatus('off');
+    if (!hasActiveRecording) {
+      setRecordingStatus('off');
+    }
   };
 
   const finalizeLocalRecording = (recordingSession: LocalRecordingSession) => {
@@ -286,6 +290,8 @@ export const App = () => {
     activeRecordingSessionRef.current = null;
 
     if (recordingSession.discardOnStop) {
+      setRecordingError(null);
+      setRecordingStatus('off');
       return;
     }
 
@@ -358,6 +364,9 @@ export const App = () => {
       if (!recordingSession.discardOnStop) {
         setRecordingError('Local audio recording could not be stopped.');
         setRecordingStatus('error');
+      } else {
+        setRecordingError(null);
+        setRecordingStatus('off');
       }
     }
 
