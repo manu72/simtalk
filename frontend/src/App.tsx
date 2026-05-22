@@ -395,10 +395,21 @@ export const App = () => {
     });
   };
 
-  const resetPreparedSession = () => {
-    activeTokenRequestRef.current += 1;
-    void invalidateWebRtcSession({ discardRecording: true });
+  const resetPreparedSession = async () => {
+    const resetRequestId = activeTokenRequestRef.current + 1;
+    const hasRecordingSession = activeRecordingSessionRef.current !== null;
+    activeTokenRequestRef.current = resetRequestId;
+    const invalidationCompletion = invalidateWebRtcSession({ discardRecording: true });
     clearAudioRecording();
+
+    if (hasRecordingSession) {
+      await invalidationCompletion;
+    }
+
+    if (activeTokenRequestRef.current !== resetRequestId) {
+      return;
+    }
+
     setStatus('idle');
     setErrorMessage(null);
     updatePreparedToken(null);
@@ -412,27 +423,27 @@ export const App = () => {
     }
 
     setSelectedMode(mode);
-    resetPreparedSession();
+    void resetPreparedSession();
   };
 
   const handleSourceLanguageChange = (languageCode: string) => {
     setSourceLanguage(languageCode);
-    resetPreparedSession();
+    void resetPreparedSession();
   };
 
   const handleTargetLanguageChange = (languageCode: string) => {
     setTargetLanguage(languageCode);
-    resetPreparedSession();
+    void resetPreparedSession();
   };
 
   const handleFlipLanguages = () => {
     setSourceLanguage(targetLanguage);
     setTargetLanguage(sourceLanguage);
-    resetPreparedSession();
+    void resetPreparedSession();
   };
 
   const handleNewPracticeAttempt = () => {
-    resetPreparedSession();
+    void resetPreparedSession();
   };
 
   const handleDownloadTranscript = () => {

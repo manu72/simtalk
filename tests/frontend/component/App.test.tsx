@@ -22,6 +22,7 @@ const audioBlob = new Blob(['audio-data'], { type: 'audio/webm' });
 
 class MockMediaRecorder extends EventTarget {
   static beforeStop: (() => void) | null = null;
+  static deferStop = false;
   static instances: MockMediaRecorder[] = [];
   static lastInstance: MockMediaRecorder | null = null;
   static throwOnStop = false;
@@ -31,8 +32,10 @@ class MockMediaRecorder extends EventTarget {
     if (MockMediaRecorder.throwOnStop) {
       throw new Error('Mock recorder stop failed');
     }
-    this.dispatchEvent(new BlobEvent('dataavailable', { data: audioBlob }));
-    this.dispatchEvent(new Event('stop'));
+    if (MockMediaRecorder.deferStop) {
+      return;
+    }
+    this.completeStop();
   });
   readonly mimeType = 'audio/webm';
 
@@ -43,6 +46,11 @@ class MockMediaRecorder extends EventTarget {
     super();
     MockMediaRecorder.instances = [...MockMediaRecorder.instances, this];
     MockMediaRecorder.lastInstance = this;
+  }
+
+  completeStop() {
+    this.dispatchEvent(new BlobEvent('dataavailable', { data: audioBlob }));
+    this.dispatchEvent(new Event('stop'));
   }
 
   override dispatchEvent(event: Event): boolean {
@@ -66,6 +74,7 @@ const mockFetch = (response: Response) => {
 afterEach(() => {
   createRealtimeTranslationSessionMock.mockReset();
   MockMediaRecorder.beforeStop = null;
+  MockMediaRecorder.deferStop = false;
   MockMediaRecorder.instances = [];
   MockMediaRecorder.lastInstance = null;
   MockMediaRecorder.throwOnStop = false;
@@ -490,6 +499,52 @@ describe('App', () => {
       expect(screen.queryByText('Local audio recording could not be stopped.')).not.toBeInTheDocument();
       expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
     });
+  });
+
+  it('keeps the active WebRTC session visible until recording teardown finishes during reset', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    const stop = vi.fn();
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    MockMediaRecorder.deferStop = true;
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Stop audio/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
+
+    expect(stop).not.toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'WebRTC is connected. Speak naturally while SimTalk waits for translated audio.'
+    );
+    expect(screen.getByText('sess_test')).toBeInTheDocument();
+
+    act(() => {
+      MockMediaRecorder.lastInstance?.completeStop();
+    });
+
+    await waitFor(() => {
+      expect(stop).toHaveBeenCalled();
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'No translation session has been prepared yet. Audio capture will remain inactive.'
+      );
+    });
+    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
   });
 
   it('clears local recording downloads when preparing a new session', async () => {
