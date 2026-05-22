@@ -25,6 +25,7 @@ class MockMediaRecorder extends EventTarget {
   static deferStop = false;
   static instances: MockMediaRecorder[] = [];
   static lastInstance: MockMediaRecorder | null = null;
+  static mimeType = 'audio/webm';
   static throwOnStop = false;
   readonly start = vi.fn();
   readonly stop = vi.fn(() => {
@@ -37,7 +38,7 @@ class MockMediaRecorder extends EventTarget {
     }
     this.completeStop();
   });
-  readonly mimeType = 'audio/webm';
+  readonly mimeType = MockMediaRecorder.mimeType;
 
   ondataavailable: ((event: BlobEvent) => void) | null = null;
   onstop: (() => void) | null = null;
@@ -77,6 +78,7 @@ afterEach(() => {
   MockMediaRecorder.deferStop = false;
   MockMediaRecorder.instances = [];
   MockMediaRecorder.lastInstance = null;
+  MockMediaRecorder.mimeType = 'audio/webm';
   MockMediaRecorder.throwOnStop = false;
   vi.unstubAllGlobals();
 });
@@ -429,6 +431,45 @@ describe('App', () => {
       );
     });
     expect(screen.getByText(/Audio recording is stored as a local browser blob/i)).toBeInTheDocument();
+  });
+
+  it('uses an ogg download extension for Firefox-style local recordings', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    MockMediaRecorder.mimeType = 'audio/ogg;codecs=opus';
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => 'blob:simtalk-ogg-recording'),
+      revokeObjectURL: vi.fn()
+    });
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop: vi.fn() };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /Download audio recording/i })).toHaveAttribute(
+        'download',
+        expect.stringMatching(/\.ogg$/)
+      );
+    });
   });
 
   it('ignores duplicate local recording starts while already recording', async () => {

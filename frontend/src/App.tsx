@@ -72,6 +72,10 @@ const getAudioRecordingFileExtension = (mimeType: string) => {
     return '.m4a';
   }
 
+  if (normalizedMimeType === 'audio/ogg') {
+    return '.ogg';
+  }
+
   if (normalizedMimeType === 'audio/webm') {
     return '.webm';
   }
