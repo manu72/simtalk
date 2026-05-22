@@ -84,6 +84,13 @@ type StatusDetails = {
 
 type RecordingStatus = 'off' | 'recording' | 'ready' | 'unsupported' | 'error';
 
+type LocalRecordingSession = {
+  readonly recorder: MediaRecorder;
+  chunks: Blob[];
+  discardOnStop: boolean;
+  isStopping: boolean;
+};
+
 const statusDetails: Record<SessionStatus, StatusDetails> = {
   idle: {
     label: 'Idle',
@@ -183,9 +190,7 @@ export const App = () => {
   const activeWebRtcAbortControllerRef = useRef<AbortController | null>(null);
   const translationSessionRef = useRef<RealtimeTranslationSession | null>(null);
   const localMediaStreamRef = useRef<MediaStream | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const discardRecordingOnStopRef = useRef(false);
-  const recordedAudioChunksRef = useRef<Blob[]>([]);
+  const activeRecordingSessionRef = useRef<LocalRecordingSession | null>(null);
   const audioRecordingUrlRef = useRef<string | null>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
@@ -235,25 +240,25 @@ export const App = () => {
 
   const clearAudioRecording = () => {
     revokeAudioRecordingUrl();
-    recordedAudioChunksRef.current = [];
     setAudioRecordingUrl(null);
     setAudioRecordingName('simtalk-recording.webm');
     setRecordingError(null);
     setRecordingStatus('off');
   };
 
-  const finalizeLocalRecording = (recorder: MediaRecorder) => {
-    const shouldDiscardRecording = discardRecordingOnStopRef.current;
-    discardRecordingOnStopRef.current = false;
-    mediaRecorderRef.current = null;
-
-    if (shouldDiscardRecording) {
-      recordedAudioChunksRef.current = [];
+  const finalizeLocalRecording = (recordingSession: LocalRecordingSession) => {
+    if (activeRecordingSessionRef.current !== recordingSession) {
       return;
     }
 
-    const recordingBlob = new Blob(recordedAudioChunksRef.current, {
-      type: recorder.mimeType || 'audio/webm'
+    activeRecordingSessionRef.current = null;
+
+    if (recordingSession.discardOnStop) {
+      return;
+    }
+
+    const recordingBlob = new Blob(recordingSession.chunks, {
+      type: recordingSession.recorder.mimeType || 'audio/webm'
     });
     const recordingUrl = URL.createObjectURL(recordingBlob);
     const recordingName = `simtalk-audio-${new Date().toISOString()}.webm`;
@@ -267,23 +272,30 @@ export const App = () => {
   };
 
   const stopLocalRecording = ({ discard = false }: { readonly discard?: boolean } = {}) => {
-    const recorder = mediaRecorderRef.current;
-    if (!recorder) {
+    const recordingSession = activeRecordingSessionRef.current;
+    if (!recordingSession) {
       return;
     }
 
-    discardRecordingOnStopRef.current = discard;
-    mediaRecorderRef.current = null;
+    recordingSession.discardOnStop = recordingSession.discardOnStop || discard;
+    if (recordingSession.isStopping) {
+      return;
+    }
+    recordingSession.isStopping = true;
 
     try {
-      if (recorder.state === 'inactive') {
-        recorder.onstop = null;
-        finalizeLocalRecording(recorder);
+      if (recordingSession.recorder.state === 'inactive') {
+        recordingSession.recorder.onstop = null;
+        finalizeLocalRecording(recordingSession);
         return;
       }
 
-      recorder.stop();
+      recordingSession.recorder.stop();
     } catch {
+      if (activeRecordingSessionRef.current === recordingSession) {
+        activeRecordingSessionRef.current = null;
+      }
+
       if (!discard) {
         setRecordingError('Local audio recording could not be stopped.');
         setRecordingStatus('error');
@@ -383,23 +395,29 @@ export const App = () => {
     }
 
     clearAudioRecording();
-    recordedAudioChunksRef.current = [];
 
     try {
       const recorder = new MediaRecorder(localMediaStreamRef.current);
+      const recordingSession: LocalRecordingSession = {
+        recorder,
+        chunks: [],
+        discardOnStop: false,
+        isStopping: false
+      };
+
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          recordedAudioChunksRef.current = [...recordedAudioChunksRef.current, event.data];
+          recordingSession.chunks = [...recordingSession.chunks, event.data];
         }
       };
-      recorder.onstop = () => finalizeLocalRecording(recorder);
+      recorder.onstop = () => finalizeLocalRecording(recordingSession);
 
-      mediaRecorderRef.current = recorder;
+      activeRecordingSessionRef.current = recordingSession;
       recorder.start();
       setRecordingError(null);
       setRecordingStatus('recording');
     } catch {
-      mediaRecorderRef.current = null;
+      activeRecordingSessionRef.current = null;
       setRecordingError('Local audio recording could not be started.');
       setRecordingStatus('error');
     }
