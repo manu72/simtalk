@@ -303,18 +303,19 @@ export const App = () => {
     }
   };
 
-  const invalidateWebRtcSession = () => {
+  const invalidateWebRtcSession = ({ discardRecording = false }: { readonly discardRecording?: boolean } = {}) => {
     activeWebRtcRequestRef.current += 1;
     activeWebRtcAbortControllerRef.current?.abort();
     activeWebRtcAbortControllerRef.current = null;
-    stopLocalRecording();
+    stopLocalRecording({ discard: discardRecording });
     stopTranslationSession();
     localMediaStreamRef.current = null;
   };
 
   const resetPreparedSession = () => {
     activeTokenRequestRef.current += 1;
-    invalidateWebRtcSession();
+    invalidateWebRtcSession({ discardRecording: true });
+    clearAudioRecording();
     setStatus('idle');
     setErrorMessage(null);
     setPreparedToken(null);
@@ -427,7 +428,8 @@ export const App = () => {
     event.preventDefault();
     const requestId = activeTokenRequestRef.current + 1;
     activeTokenRequestRef.current = requestId;
-    invalidateWebRtcSession();
+    invalidateWebRtcSession({ discardRecording: true });
+    clearAudioRecording();
     setStatus('loading');
     setErrorMessage(null);
     setPreparedToken(null);
@@ -780,8 +782,8 @@ export const App = () => {
                       Local recording
                     </h4>
                     <p className="text-sm leading-6 text-muted-foreground">
-                      Recording is opt-in and stays in this browser as a local blob until you download
-                      or refresh.
+                      Recording is opt-in and stays in this browser as a local blob until you
+                      download it, refresh, or reset the session.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-4">

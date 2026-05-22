@@ -411,6 +411,49 @@ describe('App', () => {
     expect(screen.getByText(/Audio recording is stored as a local browser blob/i)).toBeInTheDocument();
   });
 
+  it('clears local recording downloads when preparing a new session', async () => {
+    const localStream = { getTracks: () => [] } as unknown as MediaStream;
+    const createObjectUrl = vi.fn(() => 'blob:simtalk-recording');
+    const revokeObjectUrl = vi.fn();
+    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: createObjectUrl,
+      revokeObjectURL: revokeObjectUrl
+    });
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream(localStream);
+      return { stop: vi.fn() };
+    });
+    mockFetch(Response.json(tokenResponse));
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /Download audio recording/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+
+    expect(screen.queryByRole('link', { name: /Download audio recording/i })).not.toBeInTheDocument();
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:simtalk-recording');
+    expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
+  });
+
   it('lets Practice mode pause for review and start a new attempt', async () => {
     let onTranscriptDelta!: (delta: { kind: 'input' | 'output'; text: string }) => void;
     const stop = vi.fn();
