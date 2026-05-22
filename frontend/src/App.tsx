@@ -193,6 +193,7 @@ export const App = () => {
   const translationSessionRef = useRef<RealtimeTranslationSession | null>(null);
   const localMediaStreamRef = useRef<MediaStream | null>(null);
   const activeRecordingSessionRef = useRef<LocalRecordingSession | null>(null);
+  const preparedTokenRef = useRef<RealtimeTokenResponse | null>(null);
   const audioRecordingUrlRef = useRef<string | null>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
@@ -221,6 +222,14 @@ export const App = () => {
     localMediaStreamRef.current !== null &&
     recordingStatus !== 'recording' &&
     recordingStatus !== 'unsupported';
+
+  const updatePreparedToken = (token: RealtimeTokenResponse | null) => {
+    preparedTokenRef.current = token;
+    setPreparedToken(token);
+  };
+
+  const getPreparedSessionStatus = (): SessionStatus =>
+    preparedTokenRef.current ? 'ready' : 'idle';
 
   const handleTranscriptDelta = (delta: TranscriptDelta) => {
     if (delta.kind === 'input') {
@@ -363,7 +372,7 @@ export const App = () => {
     clearAudioRecording();
     setStatus('idle');
     setErrorMessage(null);
-    setPreparedToken(null);
+    updatePreparedToken(null);
     setInputTranscript('');
     setOutputTranscript('');
   };
@@ -477,7 +486,7 @@ export const App = () => {
     activeTokenRequestRef.current = requestId;
     setStatus('loading');
     setErrorMessage(null);
-    setPreparedToken(null);
+    updatePreparedToken(null);
     setInputTranscript('');
     setOutputTranscript('');
     clearAudioRecording();
@@ -498,7 +507,7 @@ export const App = () => {
         return;
       }
 
-      setPreparedToken(token);
+      updatePreparedToken(token);
       setStatus('ready');
     } catch (error) {
       if (activeTokenRequestRef.current !== requestId) {
@@ -577,12 +586,12 @@ export const App = () => {
     const invalidationCompletion = invalidateWebRtcSession();
 
     if (!recordingSession) {
-      setStatus(preparedToken ? 'ready' : 'idle');
+      setStatus(getPreparedSessionStatus());
       return;
     }
 
     void invalidationCompletion.then(() => {
-      setStatus(preparedToken ? 'ready' : 'idle');
+      setStatus(getPreparedSessionStatus());
     });
   };
 
