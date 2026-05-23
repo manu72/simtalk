@@ -8,16 +8,17 @@ This index covers important source, config, script, test, and documentation file
 
 | Path | Status | Purpose / relationships |
 | --- | --- | --- |
-| `README.md` | Active; partially stale before this docsync | Primary maintainer/contributor docs. Updated after this audit. |
+| `README.md` | Active; accurate with minor gaps before this docsync | Primary maintainer/contributor docs. Receives targeted updates after this audit. |
 | `PRD.md` | Active source context | Product modes, non-goals, success criteria. |
-| `System_Architecture.md` | Active source context | Phase 1/2 architecture and security constraints. |
+| `System_Architecture.md` | Active source context; modified before this pass | Phase 1/2 architecture and security constraints. Existing local diff was not created by docsync. |
 | `package.json` | Active | Root workspace scripts; builds `@simtalk/shared-types` before cross-package checks. |
 | `pnpm-workspace.yaml` | Active | Declares `frontend`, `backend`, and `shared/types`. |
 | `pnpm-lock.yaml` | Active generated lockfile | Dependency lockfile. |
 | `tsconfig.base.json` | Active | Strict compiler defaults shared by packages. |
 | `playwright.config.ts` | Active | E2E config; launches frontend at `127.0.0.1:5173`. |
 | `.gitignore` | Active | Excludes env files, build/test output, caches, and Agentic transient context. |
-| `components.json` | Stale/unused | shadcn CLI config pointing at removed `frontend/src/styles.css`. |
+| `components.json` | Stale/unused | shadcn CLI config pointing at removed `frontend/src/styles.css`; active packages do not install shadcn/Tailwind runtime dependencies. |
+| `CLAUDE.md` | Active agent guidance; stale before this pass | Repo guidance for coding agents. Frontend notes needed correction because package manifests do not include Tailwind/shadcn dependencies. |
 
 ## Backend
 
@@ -93,7 +94,8 @@ This index covers important source, config, script, test, and documentation file
 | Path | Status | Purpose / relationships |
 | --- | --- | --- |
 | `scripts/agentic/` | Active support tooling | Python routing/memory scripts and tests. Do not modify during ordinary docs work. |
-| `.agentic/PROJECT_BRIEF.md` | Useful but stale in places | Project memory; still lists Tailwind/shadcn as current. |
+| `.agentic/PROJECT_BRIEF.md` | Useful but stale in places | Project memory; still lists Tailwind/shadcn as current and has some init-time source-of-truth notes. |
 | `.agentic/MEMORY_INDEX.md` | Useful but stale in places | Routing hints and high-risk areas. |
-| `.agentic/SUBSYSTEMS/*.md` | Stale | README already warns these lag implementation. |
+| `.agentic/SUBSYSTEMS/*.md` | Stale | Several subsystem files still say packages/code are planned or unknown even though implementation exists. |
+| `.agentic/LESSONS/decisions.md` | Useful but stale in places | Decision seed still says Tailwind/shadcn were chosen as active frontend tech. |
 | `docs/ux-redesign-plan.md` | Stale after implementation | Describes UX redesign as a proposal even though much of it is now implemented. |
