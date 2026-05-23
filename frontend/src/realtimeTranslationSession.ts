@@ -7,6 +7,7 @@ export type TranscriptDelta = {
 
 export type RealtimeTranslationSession = {
   readonly stop: () => void;
+  readonly setLocalAudioEnabled: (enabled: boolean) => void;
 };
 
 type CreateRealtimeTranslationSessionOptions = {
@@ -16,6 +17,7 @@ type CreateRealtimeTranslationSessionOptions = {
   readonly createPeerConnection?: () => RTCPeerConnection;
   readonly createAudioElement?: () => HTMLAudioElement;
   readonly fetchImpl?: typeof fetch;
+  readonly startLocalAudioEnabled?: boolean;
   readonly onLocalStream?: (stream: MediaStream) => void;
   readonly onTranscriptDelta?: (delta: TranscriptDelta) => void;
   readonly onRemoteAudio?: () => void;
@@ -104,6 +106,7 @@ export const createRealtimeTranslationSession = async ({
   createPeerConnection = () => new RTCPeerConnection(),
   createAudioElement = defaultCreateAudioElement,
   fetchImpl = fetch,
+  startLocalAudioEnabled = true,
   onLocalStream,
   onTranscriptDelta,
   onRemoteAudio
@@ -113,6 +116,18 @@ export const createRealtimeTranslationSession = async ({
   let audioElement: HTMLAudioElement | null = null;
   let dataChannel: RTCDataChannel | null = null;
   let isStopped = false;
+
+  const setLocalAudioEnabled = (enabled: boolean) => {
+    if (isStopped) {
+      return;
+    }
+
+    for (const track of localStream?.getTracks() ?? []) {
+      if (track.kind === 'audio') {
+        track.enabled = enabled;
+      }
+    }
+  };
 
   const cleanup = () => {
     if (isStopped) {
@@ -149,6 +164,7 @@ export const createRealtimeTranslationSession = async ({
 
     localStream = await abortable(mediaStreamPromise, signal);
     throwIfAborted(signal);
+    setLocalAudioEnabled(startLocalAudioEnabled);
     onLocalStream?.(localStream);
 
     peerConnection = createPeerConnection();
@@ -201,7 +217,7 @@ export const createRealtimeTranslationSession = async ({
       sdp: answerSdp
     }), signal);
 
-    return { stop: cleanup };
+    return { stop: cleanup, setLocalAudioEnabled };
   } catch (error) {
     cleanup();
     throw error;

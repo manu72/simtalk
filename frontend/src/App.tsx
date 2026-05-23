@@ -235,7 +235,7 @@ export const App = () => {
   const startSessionWithRequest = useCallback(
     async (
       request: RealtimeTokenRequest,
-      opts: { startSessionRecorder: boolean }
+      opts: { startSessionRecorder: boolean; startLocalAudioEnabled?: boolean }
     ): Promise<'ok' | 'superseded'> => {
       const launchId = launchIdRef.current + 1;
       launchIdRef.current = launchId;
@@ -251,6 +251,7 @@ export const App = () => {
       const session = await createRealtimeTranslationSession({
         token: tokenResponse,
         signal: abort.signal,
+        startLocalAudioEnabled: opts.startLocalAudioEnabled,
         onLocalStream: (stream) => {
           if (launchIdRef.current !== launchId) return;
           localStreamRef.current = stream;
@@ -298,7 +299,7 @@ export const App = () => {
           sourceLanguage: isAutoLanguage(source) ? undefined : source.bcp47,
           targetLanguage: target.bcp47
         },
-        { startSessionRecorder: mode === 'listener' }
+        { startSessionRecorder: mode === 'listener', startLocalAudioEnabled: mode !== 'practice' }
       );
       if (result === 'superseded') return;
       if (mode === 'practice') setPracticeStage('idle');
@@ -390,7 +391,7 @@ export const App = () => {
           sourceLanguage: speaker.bcp47,
           targetLanguage: listener.bcp47
         },
-        { startSessionRecorder: false }
+        { startSessionRecorder: false, startLocalAudioEnabled: true }
       );
       if (result === 'superseded') return;
     } catch (error) {
@@ -461,6 +462,7 @@ export const App = () => {
     setOutputTranscript('');
     setPracticeAttempt('');
     setPracticeStage('recording');
+    sessionRef.current?.setLocalAudioEnabled(true);
     const existing = recorderRef.current;
     if (existing && existing.state !== 'inactive') {
       existing.onstop = null;
@@ -472,7 +474,10 @@ export const App = () => {
       }
     }
     recorderRef.current = null;
-    if (!localStreamRef.current) return;
+    if (!localStreamRef.current) {
+      sessionRef.current?.setLocalAudioEnabled(false);
+      return;
+    }
     try {
       const recorder = new MediaRecorder(localStreamRef.current);
       const chunks: Blob[] = [];
@@ -481,6 +486,7 @@ export const App = () => {
       };
       recorder.onstop = () => {
         if (recorderRef.current !== recorder) return;
+        recorderRef.current = null;
         if (chunks.length === 0) return;
         const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
         const url = URL.createObjectURL(blob);
@@ -491,18 +497,23 @@ export const App = () => {
       recorderRef.current = recorder;
     } catch {
       recorderRef.current = null;
+      sessionRef.current?.setLocalAudioEnabled(false);
     }
   }, [revokePracticeAudio]);
 
   const stopPracticeRecording = useCallback(() => {
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== 'inactive') {
       try {
-        recorderRef.current.stop();
+        recorder.stop();
       } catch {
+        recorderRef.current = null;
         // best effort
       }
+    } else {
+      recorderRef.current = null;
     }
-    recorderRef.current = null;
+    sessionRef.current?.setLocalAudioEnabled(false);
     setPracticeStage('reviewing');
   }, []);
 
@@ -520,6 +531,7 @@ export const App = () => {
     setPracticeAttempt('');
     setInputTranscript('');
     setOutputTranscript('');
+    sessionRef.current?.setLocalAudioEnabled(false);
     setPracticeStage('idle');
   }, [revokePracticeAudio]);
 

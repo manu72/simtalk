@@ -31,7 +31,7 @@ const tokenJsonResponse = () =>
   });
 
 beforeEach(() => {
-  createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn() });
+  createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
 });
 
 afterEach(() => {
@@ -217,6 +217,60 @@ describe('Session controls', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /tap to record/i })).toBeInTheDocument();
     });
+  });
+
+  it('keeps the Practice microphone muted except during active recording', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    const localStream = { getTracks: vi.fn(() => []) };
+    class FakeMediaRecorder {
+      state: RecordingState = 'inactive';
+      mimeType = 'audio/webm';
+      ondataavailable: ((event: BlobEvent) => void) | null = null;
+      onstop: (() => void) | null = null;
+
+      start() {
+        this.state = 'recording';
+      }
+
+      stop() {
+        this.state = 'inactive';
+        queueMicrotask(() => {
+          this.ondataavailable?.({ data: new Blob(['practice-audio'], { type: this.mimeType }) } as BlobEvent);
+          this.onstop?.();
+        });
+      }
+    }
+    const createObjectURL = vi.fn(() => 'blob:practice-audio');
+
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream?.(localStream as unknown as MediaStream);
+      return session;
+    });
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorder);
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL,
+      revokeObjectURL: vi.fn()
+    });
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    await waitFor(() => screen.getByRole('button', { name: /tap to record/i }));
+
+    const sessionOptions = createRealtimeTranslationSessionMock.mock.calls[0]?.[0];
+    expect(sessionOptions.startLocalAudioEnabled).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: /tap to record/i }));
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(true);
+
+    fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
+    expect(screen.getByRole('button', { name: /type your guess/i })).toBeInTheDocument();
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
   });
 });
 
