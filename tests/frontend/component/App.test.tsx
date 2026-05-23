@@ -202,8 +202,10 @@ describe('Session controls', () => {
       fireEvent.pointerUp(micButton, { pointerId: 1 });
     });
 
-    expect(screen.getByText('hello there')).toBeInTheDocument();
-    expect(screen.getByText('hola alli')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('hello there')).toBeInTheDocument();
+      expect(screen.getByText('hola alli')).toBeInTheDocument();
+    });
   });
 
   it('Turn-about FLIP re-mints a token with swapped source and target', async () => {
@@ -302,6 +304,55 @@ describe('Session controls', () => {
     expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
     expect(screen.getByRole('button', { name: /type your guess/i })).toBeInTheDocument();
     await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
+  });
+
+  it('keeps Practice idle when recording starts without a local stream', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    createRealtimeTranslationSessionMock.mockResolvedValue(session);
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    await waitFor(() => screen.getByRole('button', { name: /tap to record/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /tap to record/i }));
+
+    expect(screen.getByRole('button', { name: /tap to record/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /stop recording/i })).not.toBeInTheDocument();
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
+  });
+
+  it('keeps Practice idle when MediaRecorder cannot start', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    const localStream = { getTracks: vi.fn(() => []) };
+    class FailingMediaRecorder {
+      constructor() {
+        throw new Error('recorder unavailable');
+      }
+    }
+
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      options.onLocalStream?.(localStream as unknown as MediaStream);
+      return session;
+    });
+    vi.stubGlobal('MediaRecorder', FailingMediaRecorder);
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    await waitFor(() => screen.getByRole('button', { name: /tap to record/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /tap to record/i }));
+
+    expect(screen.getByRole('button', { name: /tap to record/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /stop recording/i })).not.toBeInTheDocument();
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
   });
 });
 

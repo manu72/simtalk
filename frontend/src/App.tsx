@@ -460,15 +460,6 @@ export const App = () => {
   }, [outputTranscript]);
 
   const startPracticeRecording = useCallback(() => {
-    revokePracticeAudio();
-    setPracticeAudioUrl(null);
-    inputTranscriptRef.current = '';
-    outputTranscriptRef.current = '';
-    setInputTranscript('');
-    setOutputTranscript('');
-    setPracticeAttempt('');
-    setPracticeStage('recording');
-    sessionRef.current?.setLocalAudioEnabled(true);
     const existing = recorderRef.current;
     if (existing && existing.state !== 'inactive') {
       existing.onstop = null;
@@ -480,12 +471,13 @@ export const App = () => {
       }
     }
     recorderRef.current = null;
-    if (!localStreamRef.current) {
+    const localStream = localStreamRef.current;
+    if (!localStream) {
       sessionRef.current?.setLocalAudioEnabled(false);
       return;
     }
     try {
-      const recorder = new MediaRecorder(localStreamRef.current);
+      const recorder = new MediaRecorder(localStream);
       const chunks: Blob[] = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunks.push(event.data);
@@ -499,8 +491,17 @@ export const App = () => {
         practiceAudioUrlRef.current = url;
         setPracticeAudioUrl(url);
       };
+      sessionRef.current?.setLocalAudioEnabled(true);
       recorder.start();
       recorderRef.current = recorder;
+      revokePracticeAudio();
+      setPracticeAudioUrl(null);
+      inputTranscriptRef.current = '';
+      outputTranscriptRef.current = '';
+      setInputTranscript('');
+      setOutputTranscript('');
+      setPracticeAttempt('');
+      setPracticeStage('recording');
     } catch {
       recorderRef.current = null;
       sessionRef.current?.setLocalAudioEnabled(false);

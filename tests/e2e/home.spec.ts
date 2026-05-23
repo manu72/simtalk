@@ -61,7 +61,7 @@ test('lobby surfaces Listener by default with a single LAUNCH CTA', async ({ pag
   await expect(page.getByRole('radio', { name: /talk/i })).toBeVisible();
   await expect(page.getByRole('radio', { name: /practice/i })).toBeVisible();
 
-  await expect(page.getByText(/any spoken language\. we'll detect it/i)).toBeVisible();
+  await expect(page.getByText(/we'll detect any of 70\+ languages/i)).toBeVisible();
 });
 
 test('Turn-about lobby shows Person A and Person B pickers, and sends pair on launch', async ({ page }) => {
