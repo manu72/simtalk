@@ -17,4 +17,3 @@ __pycache__/
 # *.json
 *.pnpm-store/
 .agentic/CONTEXT/last_context.json
-.prettierignore
