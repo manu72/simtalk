@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } from '@simtalk/shared-types';
 
-import { findLanguage, LANGUAGES, type Language } from './components/brand/languages';
+import { AUTO_LANGUAGE, findLanguage, LANGUAGES, isAutoLanguage, type Language } from './components/brand/languages';
 import { Lobby } from './components/screens/Lobby';
 import { ListenerSurface } from './components/screens/ListenerSurface';
 import { TurnaboutSurface, type ConversationTurn } from './components/screens/TurnaboutSurface';
@@ -43,7 +43,7 @@ const isDevModeFromUrl = (): boolean =>
 export const App = () => {
   // Lobby state
   const [mode, setMode] = useState<ConversationMode>('listener');
-  const [source, setSource] = useState<Language>(findLanguage('en'));
+  const [source, setSource] = useState<Language>(AUTO_LANGUAGE);
   const [target, setTarget] = useState<Language>(findLanguage('es'));
 
   // App flow
@@ -295,7 +295,7 @@ export const App = () => {
       const result = await startSessionWithRequest(
         {
           mode,
-          sourceLanguage: mode === 'listener' ? undefined : source.bcp47,
+          sourceLanguage: isAutoLanguage(source) ? undefined : source.bcp47,
           targetLanguage: target.bcp47
         },
         { startSessionRecorder: mode === 'listener' }
@@ -543,7 +543,7 @@ export const App = () => {
       });
       return lines.join('\n').trimEnd();
     }
-    const sourceLabel = mode === 'listener' ? 'Auto-detected' : source.name;
+    const sourceLabel = isAutoLanguage(source) ? 'Auto-detected' : source.name;
     return [
       'SimTalk transcript',
       `Mode: ${mode}`,
@@ -586,6 +586,7 @@ export const App = () => {
 
   // Suppress noise: prevent same source/target conflicting per Zod refinement
   useEffect(() => {
+    if (isAutoLanguage(source)) return;
     if (source.bcp47 === target.bcp47) {
       const other = LANGUAGES.find((lang) => lang.bcp47 !== source.bcp47);
       if (other) setTarget(other);
@@ -610,6 +611,10 @@ export const App = () => {
           isLaunching={status === 'launching' || status === 'connecting'}
           errorMessage={errorMessage}
           onChangeMode={(next) => {
+            if (next !== 'listener' && isAutoLanguage(source)) {
+              const fallback = findLanguage('en');
+              setSource(fallback.bcp47 === target.bcp47 ? findLanguage('es') : fallback);
+            }
             setMode(next);
             setErrorMessage(null);
           }}
@@ -624,7 +629,7 @@ export const App = () => {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <SessionHeader
             mode={mode}
-            source={mode === 'listener' ? null : source}
+            source={mode === 'listener' && isAutoLanguage(source) ? null : source}
             target={target}
             activeSide={mode === 'turnabout' ? activeSide : undefined}
             status={headerStatus}
@@ -682,7 +687,7 @@ export const App = () => {
       {view === 'summary' ? (
         <Summary
           mode={mode}
-          source={mode === 'listener' ? null : source}
+          source={mode === 'listener' && isAutoLanguage(source) ? null : source}
           target={target}
           inputTranscript={inputTranscript}
           outputTranscript={outputTranscript}

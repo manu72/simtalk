@@ -6,7 +6,7 @@ import { STIcon } from "../brand/Icons";
 import { FONT_DISPLAY, ST, STButton, STTitle } from "../brand/primitives";
 import { LangCard, LanguagePickerSheet } from "../brand/LanguagePicker";
 import { ModeSegmented } from "../brand/ModeSegmented";
-import type { Language } from "../brand/languages";
+import { AUTO_LANGUAGE, LANGUAGES, isAutoLanguage, type Language } from "../brand/languages";
 
 type LobbyProps = {
   readonly mode: ConversationMode;
@@ -89,65 +89,66 @@ export const Lobby = ({
       </div>
 
       <div style={{ marginTop: 22 }}>
+        <div style={{ position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "stretch", gap: 10 }}>
+            <LangCard
+              label={mode === "turnabout" ? "Person A" : mode === "practice" ? "You speak" : "Detect"}
+              lang={source}
+              onPick={() => setPicker("source")}
+            />
+            <LangCard
+              label={mode === "turnabout" ? "Person B" : mode === "practice" ? "Translate to" : "Translate into"}
+              lang={target}
+              onPick={() => setPicker("target")}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={onSwap}
+            disabled={isAutoLanguage(source)}
+            aria-label={mode === "turnabout" ? "Swap A and B" : "Reverse source and target"}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 44,
+              height: 44,
+              borderRadius: 999,
+              background: ST.navy,
+              border: `3px solid ${ST.white}`,
+              boxShadow: `0 0 0 3px ${ST.navy}`,
+              color: ST.white,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: isAutoLanguage(source) ? 0.4 : 1,
+              cursor: isAutoLanguage(source) ? "not-allowed" : "pointer"
+            }}
+          >
+            <STIcon name={mode === "turnabout" ? "swap" : "arrow-right"} size={20} color={ST.white} />
+          </button>
+        </div>
         {mode === "listener" ? (
-          <div>
-            <LangCard label="Translate into" lang={target} onPick={() => setPicker("target")} />
-            <p
-              style={{
-                marginTop: 10,
-                fontSize: 12,
-                fontWeight: 700,
-                opacity: 0.75,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <STIcon name="headphones" size={14} color={ST.white} />
-              Universal translator for any human language.
-            </p>
-          </div>
-        ) : (
-          <div style={{ position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "stretch", gap: 10 }}>
-              <LangCard
-                label={mode === "turnabout" ? "Person A" : "You speak"}
-                lang={source}
-                onPick={() => setPicker("source")}
-              />
-              <LangCard
-                label={mode === "turnabout" ? "Person B" : "Translate to"}
-                lang={target}
-                onPick={() => setPicker("target")}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={onSwap}
-              aria-label={mode === "turnabout" ? "Swap A and B" : "Reverse source and target"}
-              style={{
-                position: "absolute",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%)",
-                width: 44,
-                height: 44,
-                borderRadius: 999,
-                background: ST.navy,
-                border: `3px solid ${ST.white}`,
-                boxShadow: `0 0 0 3px ${ST.navy}`,
-                color: ST.white,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <STIcon name={mode === "turnabout" ? "swap" : "arrow-right"} size={20} color={ST.white} />
-            </button>
-          </div>
-        )}
+          <p
+            style={{
+              marginTop: 12,
+              fontSize: 12,
+              fontWeight: 700,
+              opacity: 0.75,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <STIcon name="headphones" size={14} color={ST.white} />
+            {isAutoLanguage(source)
+              ? "We'll detect any of 70+ languages."
+              : `Locked to ${source.name} input.`}
+          </p>
+        ) : null}
       </div>
 
       <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -196,7 +197,10 @@ export const Lobby = ({
           setPicker(null);
         }}
         onClose={() => setPicker(null)}
-        title={mode === "turnabout" ? "PICK PERSON A" : "PICK YOUR LANGUAGE"}
+        title={
+          mode === "turnabout" ? "PICK PERSON A" : mode === "listener" ? "DETECT FROM" : "PICK YOUR LANGUAGE"
+        }
+        languages={mode === "listener" ? [AUTO_LANGUAGE, ...LANGUAGES] : LANGUAGES}
       />
       <LanguagePickerSheet
         open={picker === "target"}

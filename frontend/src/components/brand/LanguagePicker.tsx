@@ -81,6 +81,7 @@ type LanguagePickerSheetProps = {
   readonly onPick: (lang: Language) => void;
   readonly onClose: () => void;
   readonly title?: string;
+  readonly languages?: ReadonlyArray<Language>;
 };
 
 export const LanguagePickerSheet = ({
@@ -88,7 +89,8 @@ export const LanguagePickerSheet = ({
   value,
   onPick,
   onClose,
-  title = 'PICK LANGUAGE'
+  title = 'PICK LANGUAGE',
+  languages = LANGUAGES
 }: LanguagePickerSheetProps) => {
   useEffect(() => {
     if (!open) return;
@@ -157,11 +159,11 @@ export const LanguagePickerSheet = ({
           </button>
         </div>
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {LANGUAGES.map((lang) => {
-            const active = lang.bcp47 === value.bcp47;
+          {languages.map((lang) => {
+            const active = lang.code === value.code;
             return (
               <button
-                key={lang.bcp47}
+                key={lang.code}
                 type="button"
                 onClick={() => onPick(lang)}
                 style={{

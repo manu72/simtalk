@@ -55,9 +55,11 @@ describe('Lobby', () => {
     expect(screen.getByRole('button', { name: /launch/i })).toBeInTheDocument();
   });
 
-  it('Listener mode shows a single target language picker (no source picker)', () => {
+  it('Listener mode shows two language cards: a Detect (Automatic) source and a Translate-into target', () => {
     render(<App />);
-    expect(screen.getByText(/translate into/i)).toBeInTheDocument();
+    expect(screen.getByText(/^detect$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^translate into$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^automatic$/i)).toBeInTheDocument();
     expect(screen.queryByText(/you speak/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/person a/i)).not.toBeInTheDocument();
   });
