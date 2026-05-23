@@ -255,7 +255,7 @@ export const App = () => {
         onLocalStream: (stream) => {
           if (launchIdRef.current !== launchId) return;
           localStreamRef.current = stream;
-          if (mode !== 'turnabout') {
+          if (mode === 'listener') {
             startMediaRecorder(stream);
           }
         },
@@ -378,25 +378,36 @@ export const App = () => {
     setOutputTranscript('');
     setPracticeAttempt('');
     setPracticeStage('recording');
-    if (localStreamRef.current) {
+    const existing = recorderRef.current;
+    if (existing && existing.state !== 'inactive') {
+      existing.onstop = null;
+      existing.ondataavailable = null;
       try {
-        const recorder = new MediaRecorder(localStreamRef.current);
-        const chunks: Blob[] = [];
-        recorder.ondataavailable = (event) => {
-          if (event.data.size > 0) chunks.push(event.data);
-        };
-        recorder.onstop = () => {
-          if (chunks.length === 0) return;
-          const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
-          const url = URL.createObjectURL(blob);
-          practiceAudioUrlRef.current = url;
-          setPracticeAudioUrl(url);
-        };
-        recorder.start();
-        recorderRef.current = recorder;
+        existing.stop();
       } catch {
-        recorderRef.current = null;
+        // best effort
       }
+    }
+    recorderRef.current = null;
+    if (!localStreamRef.current) return;
+    try {
+      const recorder = new MediaRecorder(localStreamRef.current);
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+      recorder.onstop = () => {
+        if (recorderRef.current !== recorder) return;
+        if (chunks.length === 0) return;
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        practiceAudioUrlRef.current = url;
+        setPracticeAudioUrl(url);
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+    } catch {
+      recorderRef.current = null;
     }
   }, [revokePracticeAudio]);
 
