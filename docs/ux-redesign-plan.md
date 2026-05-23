@@ -467,7 +467,7 @@ Eight PRs, each independently mergeable and reversible. No big-bang rewrite. The
 4. **`lucide-react`:** removed. In-house `STIcon` set only.
 5. **Practice scoring:** soft word-level diff (cyan match / pink mismatch). No verdicts, no scoring.
 6. **Listener auto-detect badge:** `🎧` headphone glyph in place of source flag.
-7. **Turn-about flip:** no token re-mint. Token assumed bidirectional for the issued pair.
+7. **Turn-about flip:** ~~no token re-mint~~ **REVERSED 2026-05-23.** Empirically `gpt-realtime-translate` tokens are directional — output stayed locked in the originally-selected target language regardless of UI flip. FLIP now tears down the WebRTC session and re-mints with swapped `sourceLanguage`/`targetLanguage`. Adds ~1s latency on flip; surfaced as a `SWITCHING…` state in the composer.
 
 ## Open Questions Before PR 1
 

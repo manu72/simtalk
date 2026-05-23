@@ -173,6 +173,36 @@ describe('Session controls', () => {
     expect(screen.getByRole('button', { name: /hold to talk/i })).toBeInTheDocument();
   });
 
+  it('Turn-about FLIP re-mints a token with swapped source and target', async () => {
+    const fetchMock = mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    await waitFor(() => screen.getByRole('button', { name: /flip speaker sides/i }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /flip speaker sides/i }));
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const first = fetchMock.mock.calls[0] as unknown as [string, RequestInit] | undefined;
+    const second = fetchMock.mock.calls[1] as unknown as [string, RequestInit] | undefined;
+    expect(JSON.parse((first?.[1]?.body as string) ?? '{}')).toMatchObject({
+      mode: 'turnabout',
+      sourceLanguage: 'en',
+      targetLanguage: 'es'
+    });
+    expect(JSON.parse((second?.[1]?.body as string) ?? '{}')).toMatchObject({
+      mode: 'turnabout',
+      sourceLanguage: 'es',
+      targetLanguage: 'en'
+    });
+  });
+
   it('Practice session starts in IDLE with Tap to Record', async () => {
     mockFetch(tokenJsonResponse());
     render(<App />);

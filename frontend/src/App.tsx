@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ConversationMode, RealtimeTokenResponse } from '@simtalk/shared-types';
+import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } from '@simtalk/shared-types';
 
 import { findLanguage, LANGUAGES, type Language } from './components/brand/languages';
 import { Lobby } from './components/screens/Lobby';
@@ -232,28 +232,18 @@ export const App = () => {
     }
   }, [mode, holdingMic, activeSide]);
 
-  const launch = useCallback(async () => {
-    if (status === 'launching' || status === 'connecting') return;
-    setErrorMessage(null);
-    teardownSession();
-    resetTranscriptBuffers();
-    revokeRecordingUrl();
-    setRecordingBlobUrl(null);
-
-    const launchId = launchIdRef.current + 1;
-    launchIdRef.current = launchId;
-    setStatus('launching');
-
-    try {
-      const tokenResponse = await requestRealtimeToken({
-        mode,
-        sourceLanguage: mode === 'listener' ? undefined : source.bcp47,
-        targetLanguage: target.bcp47
-      });
-      if (launchIdRef.current !== launchId) return;
-      setToken(tokenResponse);
+  const startSessionWithRequest = useCallback(
+    async (
+      request: RealtimeTokenRequest,
+      opts: { startSessionRecorder: boolean }
+    ): Promise<'ok' | 'superseded'> => {
+      const launchId = launchIdRef.current + 1;
+      launchIdRef.current = launchId;
       setStatus('connecting');
-      setView('session');
+
+      const tokenResponse = await requestRealtimeToken(request);
+      if (launchIdRef.current !== launchId) return 'superseded';
+      setToken(tokenResponse);
 
       const abort = new AbortController();
       abortRef.current = abort;
@@ -264,9 +254,7 @@ export const App = () => {
         onLocalStream: (stream) => {
           if (launchIdRef.current !== launchId) return;
           localStreamRef.current = stream;
-          if (mode === 'listener') {
-            startMediaRecorder(stream);
-          }
+          if (opts.startSessionRecorder) startMediaRecorder(stream);
         },
         onTranscriptDelta: (delta) => {
           if (launchIdRef.current === launchId) handleTranscriptDelta(delta);
@@ -277,23 +265,46 @@ export const App = () => {
       });
       if (launchIdRef.current !== launchId) {
         session.stop();
-        return;
+        return 'superseded';
       }
       sessionRef.current = session;
       setStatus('live');
-      if (mode === 'practice') {
-        setPracticeStage('idle');
-      }
+      return 'ok';
+    },
+    [handleTranscriptDelta, startMediaRecorder]
+  );
+
+  const errorMessageFor = (error: unknown, fallback: string): string => {
+    if (error instanceof RealtimeTokenClientError) return error.message;
+    if (error instanceof RealtimeTranslationSessionError) return error.message;
+    return fallback;
+  };
+
+  const launch = useCallback(async () => {
+    if (status === 'launching' || status === 'connecting') return;
+    setErrorMessage(null);
+    teardownSession();
+    resetTranscriptBuffers();
+    revokeRecordingUrl();
+    setRecordingBlobUrl(null);
+    setActiveSide('source');
+    setStatus('launching');
+    setView('session');
+
+    try {
+      const result = await startSessionWithRequest(
+        {
+          mode,
+          sourceLanguage: mode === 'listener' ? undefined : source.bcp47,
+          targetLanguage: target.bcp47
+        },
+        { startSessionRecorder: mode === 'listener' }
+      );
+      if (result === 'superseded') return;
+      if (mode === 'practice') setPracticeStage('idle');
     } catch (error) {
-      if (launchIdRef.current !== launchId) return;
       teardownSession();
-      const message =
-        error instanceof RealtimeTokenClientError
-          ? error.message
-          : error instanceof RealtimeTranslationSessionError
-            ? error.message
-            : 'Could not launch translation. Please try again.';
-      setErrorMessage(message);
+      setErrorMessage(errorMessageFor(error, 'Could not launch translation. Please try again.'));
       setStatus('error');
       setView('lobby');
     }
@@ -304,9 +315,8 @@ export const App = () => {
     status,
     teardownSession,
     resetTranscriptBuffers,
-    handleTranscriptDelta,
     revokeRecordingUrl,
-    startMediaRecorder
+    startSessionWithRequest
   ]);
 
   const endSession = useCallback(() => {
@@ -337,9 +347,59 @@ export const App = () => {
     setTarget(source);
   }, [source, target]);
 
-  const flipTurnaboutSides = useCallback(() => {
-    setActiveSide((side) => (side === 'source' ? 'target' : 'source'));
-  }, []);
+  const flipTurnaboutSides = useCallback(async () => {
+    if (mode !== 'turnabout') return;
+    if (holdingMicRef.current) return;
+    if (status === 'launching' || status === 'connecting') return;
+
+    const previousSide = activeSide;
+    const nextSide: 'source' | 'target' = previousSide === 'source' ? 'target' : 'source';
+    const speaker = nextSide === 'source' ? source : target;
+    const listener = nextSide === 'source' ? target : source;
+
+    const pendingId = pendingTurnIdRef.current;
+    if (pendingId) {
+      setTurns((prev) => prev.map((t) => (t.id === pendingId ? { ...t, status: 'done' } : t)));
+      pendingTurnIdRef.current = null;
+    }
+
+    abortRef.current?.abort();
+    abortRef.current = null;
+    try {
+      sessionRef.current?.stop();
+    } catch {
+      // best effort
+    }
+    sessionRef.current = null;
+    localStreamRef.current = null;
+
+    setInputTranscript('');
+    setOutputTranscript('');
+    setLiveBaseInputLen(0);
+    setLiveBaseOutputLen(0);
+    lastOutputLenRef.current = 0;
+    inputBaselineRef.current = 0;
+
+    setActiveSide(nextSide);
+    setErrorMessage(null);
+
+    try {
+      const result = await startSessionWithRequest(
+        {
+          mode: 'turnabout',
+          sourceLanguage: speaker.bcp47,
+          targetLanguage: listener.bcp47
+        },
+        { startSessionRecorder: false }
+      );
+      if (result === 'superseded') return;
+    } catch (error) {
+      setActiveSide(previousSide);
+      teardownSession();
+      setErrorMessage(errorMessageFor(error, 'Could not switch sides. Try again.'));
+      setStatus('error');
+    }
+  }, [activeSide, mode, source, target, status, startSessionWithRequest, teardownSession]);
 
   const onMicDown = useCallback(() => {
     if (holdingMicRef.current) return;
@@ -589,7 +649,10 @@ export const App = () => {
               recording={holdingMic}
               liveSrc={holdingMic ? inputTranscript.slice(liveBaseInputLen) : ''}
               liveDst={holdingMic ? outputTranscript.slice(liveBaseOutputLen) : ''}
-              onFlip={flipTurnaboutSides}
+              busy={status === 'connecting' || status === 'launching'}
+              onFlip={() => {
+                void flipTurnaboutSides();
+              }}
               onMicDown={onMicDown}
               onMicUp={onMicUp}
             />

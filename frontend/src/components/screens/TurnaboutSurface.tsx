@@ -22,6 +22,7 @@ type TurnaboutSurfaceProps = {
   readonly recording: boolean;
   readonly liveSrc: string;
   readonly liveDst: string;
+  readonly busy?: boolean;
   readonly onFlip: () => void;
   readonly onMicDown: () => void;
   readonly onMicUp: () => void;
@@ -140,6 +141,7 @@ export const TurnaboutSurface = ({
   recording,
   liveSrc,
   liveDst,
+  busy = false,
   onFlip,
   onMicDown,
   onMicUp
@@ -221,28 +223,31 @@ export const TurnaboutSurface = ({
           type="button"
           onClick={onFlip}
           aria-label="Flip speaker sides"
+          disabled={busy || recording}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
             padding: '10px 14px',
-            background: ST.cyan,
+            background: busy || recording ? 'rgba(43,230,242,0.4)' : ST.cyan,
             color: ST.navy,
             border: `3px solid ${ST.navy}`,
             borderRadius: 16,
             boxShadow: `0 4px 0 0 ${ST.navy}`,
             fontFamily: FONT_DISPLAY,
             fontSize: 14,
-            letterSpacing: '0.06em'
+            letterSpacing: '0.06em',
+            opacity: busy || recording ? 0.65 : 1,
+            cursor: busy || recording ? 'not-allowed' : 'pointer'
           }}
         >
           <STIcon name="flip" size={16} color={ST.navy} />
-          FLIP
+          {busy ? 'SWITCHING…' : 'FLIP'}
         </button>
 
         <div style={{ flex: 1, textAlign: 'right' }}>
           <div style={{ fontFamily: FONT_DISPLAY, fontSize: 13, letterSpacing: '0.06em' }}>
-            {recording ? 'LISTENING…' : 'HOLD TO TALK'}
+            {busy ? 'SWITCHING…' : recording ? 'LISTENING…' : 'HOLD TO TALK'}
           </div>
           <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
             Speaker: {speakerLang.code} {speakerLang.flag}
@@ -252,7 +257,9 @@ export const TurnaboutSurface = ({
         <button
           type="button"
           aria-label="Hold to talk"
+          disabled={busy}
           onPointerDown={(event) => {
+            if (busy) return;
             event.preventDefault();
             event.currentTarget.setPointerCapture(event.pointerId);
             onMicDown();
@@ -269,7 +276,7 @@ export const TurnaboutSurface = ({
             width: 72,
             height: 72,
             borderRadius: 999,
-            background: recording ? ST.pinkDeep : ST.pink,
+            background: busy ? 'rgba(255,62,158,0.4)' : recording ? ST.pinkDeep : ST.pink,
             border: `3px solid ${ST.navy}`,
             boxShadow: recording ? `0 2px 0 0 ${ST.navy}` : `0 6px 0 0 ${ST.navy}`,
             transform: recording ? 'translateY(4px)' : undefined,
@@ -282,7 +289,9 @@ export const TurnaboutSurface = ({
             touchAction: 'none',
             WebkitUserSelect: 'none',
             WebkitTouchCallout: 'none',
-            userSelect: 'none'
+            userSelect: 'none',
+            opacity: busy ? 0.6 : 1,
+            cursor: busy ? 'not-allowed' : 'pointer'
           }}
         >
           <STIcon name="mic" size={28} color={ST.white} />
