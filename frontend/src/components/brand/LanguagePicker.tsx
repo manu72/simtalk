@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { STIcon } from './Icons';
 import { FONT_BODY, FONT_DISPLAY, ST } from './primitives';
@@ -92,6 +92,9 @@ export const LanguagePickerSheet = ({
   title = 'PICK LANGUAGE',
   languages = LANGUAGES
 }: LanguagePickerSheetProps) => {
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     if (!open) return;
     const handler = (event: KeyboardEvent) => {
@@ -100,6 +103,25 @@ export const LanguagePickerSheet = ({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) {
+      setQuery('');
+      return;
+    }
+    const id = window.setTimeout(() => searchRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
+  }, [open]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return languages;
+    return languages.filter((lang) => {
+      const code = lang.code.toLowerCase();
+      const name = lang.name.toLowerCase();
+      return code.startsWith(q) || name.startsWith(q);
+    });
+  }, [languages, query]);
 
   if (!open) return null;
 
@@ -158,8 +180,42 @@ export const LanguagePickerSheet = ({
             <STIcon name="x" size={16} color={ST.navy} />
           </button>
         </div>
+        <input
+          ref={searchRef}
+          type="text"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Filter by code or name"
+          aria-label="Filter languages"
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            border: `2px solid ${ST.navy}`,
+            borderRadius: 12,
+            fontFamily: FONT_BODY,
+            fontSize: 14,
+            color: ST.navy,
+            background: ST.white,
+            outline: 'none',
+            boxSizing: 'border-box'
+          }}
+        />
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {languages.map((lang) => {
+          {filtered.length === 0 ? (
+            <div
+              style={{
+                padding: '12px',
+                fontFamily: FONT_BODY,
+                fontSize: 13,
+                color: ST.navy,
+                opacity: 0.6,
+                textAlign: 'center'
+              }}
+            >
+              No languages match "{query}"
+            </div>
+          ) : null}
+          {filtered.map((lang) => {
             const active = lang.code === value.code;
             return (
               <button
