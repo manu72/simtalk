@@ -13,6 +13,8 @@ const token = {
 } satisfies RealtimeTokenResponse;
 
 class FakeTrack {
+  readonly kind = 'audio';
+  enabled = true;
   stop = vi.fn();
 }
 
@@ -83,6 +85,27 @@ describe('createRealtimeTranslationSession', () => {
     });
 
     expect(onLocalStream).toHaveBeenCalledWith(mediaStream);
+  });
+
+  it('can start with local microphone audio muted while keeping the session alive', async () => {
+    const mediaStream = new FakeMediaStream();
+
+    const session = await createRealtimeTranslationSession({
+      token,
+      startLocalAudioEnabled: false,
+      getUserMedia: vi.fn(async () => mediaStream as unknown as MediaStream),
+      createPeerConnection: () => new FakePeerConnection() as unknown as RTCPeerConnection,
+      createAudioElement: () => document.createElement('audio'),
+      fetchImpl: vi.fn(async () => new Response('answer-sdp'))
+    });
+
+    expect(mediaStream.tracks[0]?.enabled).toBe(false);
+
+    session.setLocalAudioEnabled(true);
+    expect(mediaStream.tracks[0]?.enabled).toBe(true);
+
+    session.setLocalAudioEnabled(false);
+    expect(mediaStream.tracks[0]?.enabled).toBe(false);
   });
 
   it('emits transcript deltas from the OpenAI data channel', async () => {

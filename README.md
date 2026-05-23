@@ -4,6 +4,8 @@ Speak naturally. Hear instantly.
 
 SimTalk is a realtime speech-to-speech translation web app built around OpenAI `gpt-realtime-translate`. It is designed to let people who do not share a spoken language hold a low-latency conversation with live translated audio and transcripts.
 
+OpenAI describes `gpt-realtime-translate` as using dynamic voice adaptation for translated speech. In practice, translated audio is intended to follow the source speaker's general tone, pitch, and speaking style, so the rendered voice can adapt as different speakers talk and may align with perceived speaker characteristics such as gender. This is adaptive translated voice rendering, not exact voice cloning or a guaranteed speaker-identity match.
+
 Phase 1 is a private, single-device prototype for validating three conversation workflows:
 
 - Listener Mode (UN Mode): listen to any supported spoken language and hear translation in a selected target language.
@@ -21,24 +23,25 @@ For source product and architecture context, see:
 
 Status: pre-MVP Phase 1 prototype.
 
-The current codebase is past the initial scaffold. It includes the shared API contract, backend realtime-token boundary, frontend session preparation flow, and browser-native WebRTC startup path.
+The current codebase is past the initial scaffold. It includes the shared API contract, backend realtime-token boundary, frontend session flows, browser-native WebRTC startup path, and browser-local recording/download paths.
 
 Implemented now:
 
 - pnpm workspace with `frontend`, `backend`, and `shared/types` packages.
-- React 19 + Vite 7 frontend with accessible mode/language/session controls.
+- React 19 + Vite 7 frontend with accessible mode/language/session controls and UX-redesigned Lobby, Listener, Turn-about, Practice, transcript, dev drawer, and Summary surfaces.
 - Hono backend with `GET /health` and `POST /realtime/token`.
 - Shared Zod schemas and inferred TypeScript types for modes, language tags, token requests/responses, API errors, and health responses.
 - Server-side OpenAI realtime translation client-secret minting.
 - Configured-origin CORS, baseline security headers, and in-memory rate limiting for token issuance.
 - Browser token request client with schema validation and timeout handling.
 - Browser-native WebRTC setup using microphone capture, `RTCPeerConnection`, SDP exchange with OpenAI, remote translated audio playback, transcript delta handling, and cleanup.
-- Vitest coverage for shared contracts, backend config/routes/services, frontend components/clients/WebRTC service, plus a Playwright frontend smoke test.
+- Browser-local listener recording, practice recording, transcript copy/download, and audio download when a recording exists.
+- Vitest coverage for shared contracts, backend config/routes/services, frontend components/clients/WebRTC service, plus Playwright browser flows with mocked token/OpenAI network boundaries.
 
 Still pending:
 
-- Full mode-specific behavior for Listener, Turn-about, and Practice beyond the current controls and token request shape.
-- Explicit browser-local recording and transcript/audio download.
+- Polishing and broader validation of the implemented Listener, Turn-about, and Practice flows.
+- Broader recording coverage and UX hardening beyond the current browser-local implementation.
 - In-repo CI/deploy configuration.
 - Manual realtime validation with a real OpenAI key and browser microphone permissions.
 
@@ -49,7 +52,7 @@ Phase 1:
 | Layer | Current technology |
 | --- | --- |
 | Frontend | React 19, Vite 7, TypeScript |
-| UI styling | Custom CSS variables and plain CSS |
+| UI styling | CSS variables, brand primitives, and component styles |
 | Backend | Node.js 22+, Hono |
 | Shared contracts | TypeScript, Zod |
 | Realtime translation | OpenAI `gpt-realtime-translate` |
@@ -62,7 +65,7 @@ Phase 1:
 | Database | None in Phase 1 |
 | Server-side audio/transcript storage | None |
 
-Tailwind CSS and shadcn/ui are architecture options from earlier planning, but they are not installed in the current codebase.
+Tailwind CSS and shadcn/ui are architecture options from earlier planning, but they are not installed in the active frontend package. `components.json`, `frontend/src/components/ui/`, and `frontend/src/lib/utils.ts` remain as scaffold remnants and are not part of the current UI path.
 
 Phase 2 target stack:
 
@@ -100,6 +103,7 @@ The Phase 1 runtime has three boundaries:
    - Issues realtime translation client secrets through the server-side API call.
    - Accepts the browser's SDP offer at the translation calls endpoint.
    - Handles speech recognition, translation, synthesized audio output, and transcript deltas.
+   - Dynamically adapts translated audio toward the source speaker's general tone, pitch, and style; this may include speaker-presentation cues such as gender, but should not be treated as exact voice cloning or a guaranteed identity match.
 
 Current token/WebRTC flow:
 
@@ -138,7 +142,7 @@ Phase 1 privacy invariants:
 - No server-side transcript storage.
 - No server-side audio storage.
 - No backend audio proxy.
-- Optional recording must stay browser-local and explicit when implemented.
+- Optional recording stays browser-local and explicit.
 - Refreshing the page should clear unsaved session data.
 
 Important limitation: Vercel Password Protection and the single-user allowlist are Phase 1 deployment controls configured outside this repo. They are not implemented as in-repo backend auth.
@@ -157,6 +161,7 @@ simtalk/
 |-- pnpm-lock.yaml
 |-- tsconfig.base.json
 |-- playwright.config.ts
+|-- components.json               # stale shadcn scaffold config
 |-- .agentic/                    # Agentic OS project memory, codemap, subsystem notes
 |-- .cursor/                     # Cursor plans and project-local skills
 |-- backend/
@@ -192,7 +197,15 @@ simtalk/
 |       |-- main.tsx
 |       |-- realtimeTokenClient.ts
 |       |-- realtimeTranslationSession.ts
-|       `-- styles.css
+|       |-- styles/
+|       |   `-- tokens.css
+|       |-- components/
+|       |   |-- brand/            # brand primitives, icons, language and mode controls
+|       |   |-- screens/          # Lobby, mode surfaces, transcript sheet, summary
+|       |   |-- session/          # SessionHeader and DevDrawer
+|       |   `-- ui/               # unused shadcn-style scaffold remnants
+|       `-- lib/
+|           `-- utils.ts          # unused shadcn-style scaffold remnant
 |-- shared/
 |   `-- types/
 |       |-- package.json
@@ -246,7 +259,7 @@ pnpm dev
 
 Services:
 
-- Frontend: `http://localhost:5173`
+- Frontend: `http://127.0.0.1:5173` (`localhost:5173` is also accepted by local CORS config)
 - Backend: `http://localhost:3000`
 
 Root scripts:
@@ -272,6 +285,7 @@ ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 OPENAI_API_KEY=
 OPENAI_REALTIME_CLIENT_SECRET_URL=https://api.openai.com/v1/realtime/translations/client_secrets
 OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS=600
+OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL=gpt-realtime-whisper
 REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS=60000
 REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS=5
 SESSION_SECRET=
@@ -287,7 +301,8 @@ VITE_API_BASE_URL=http://localhost:3000
 Notes:
 
 - `OPENAI_API_KEY` must never be exposed through a frontend `VITE_*` variable.
-- `SESSION_SECRET` and `VERCEL_PROTECTION_BYPASS_SECRET` are reserved for Phase 1 deployment/access-control integration and are not currently consumed by backend code.
+- `OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL` controls the input transcription model sent to OpenAI when minting a realtime translation client secret.
+- `APP_URL`, `SESSION_SECRET`, and `VERCEL_PROTECTION_BYPASS_SECRET` are reserved for Phase 1 deployment/access-control integration and are not currently consumed by backend code.
 - `ALLOWED_ORIGINS` should include the production frontend origin in deployed environments.
 
 ## API Usage
@@ -326,7 +341,7 @@ Current test locations:
 - `tests/frontend/unit/` - frontend token client and WebRTC service.
 - `tests/frontend/component/` - React UI/session flow tests.
 - `tests/frontend/support/` - Testing Library setup.
-- `tests/e2e/` - Playwright smoke tests.
+- `tests/e2e/` - Playwright browser tests with mocked token/OpenAI network boundaries.
 - `scripts/agentic/test_*.py` - Python unittest coverage for Agentic OS scripts.
 
 Run all package unit/component/integration tests:
@@ -335,13 +350,13 @@ Run all package unit/component/integration tests:
 pnpm test
 ```
 
-Run browser smoke tests:
+Run browser E2E tests:
 
 ```bash
 pnpm test:e2e
 ```
 
-Current E2E coverage is intentionally small: it verifies the frontend shell and mode controls. It does not yet exercise a live OpenAI WebRTC session.
+Current E2E coverage is intentionally small: it verifies the frontend shell plus mocked launch/session/summary flows. It does not yet exercise a live OpenAI WebRTC session.
 
 ## Deployment
 
@@ -408,15 +423,16 @@ Before making non-trivial changes:
 Important current doc drift outside README:
 
 - `.agentic/SUBSYSTEMS/api.md`, `web.md`, `shared.md`, and `tests.md` still contain planned/unknown status text even though implementation exists.
+- `docs/ux-redesign-plan.md` still reads like a proposal even though much of the UX redesign has landed.
 - Refreshing Agentic memory should be done through the dedicated Agentic OS update flow, not by ad hoc edits during ordinary README work.
 
 ## Roadmap
 
 Phase 1:
 
-- Complete Listener, Turn-about, and Practice mode behavior.
-- Add explicit browser-local recording and transcript/audio downloads.
-- Add broader E2E coverage with OpenAI mocked at the network boundary.
+- Polish and validate Listener, Turn-about, and Practice mode behavior.
+- Harden browser-local recording and transcript/audio downloads.
+- Broaden E2E coverage with OpenAI mocked at the network boundary.
 - Add deployment/CI configuration.
 - Validate realtime behavior manually with a real OpenAI key and supported browser.
 
@@ -435,9 +451,9 @@ Future:
 
 ## Known Limitations
 
-- Mode-specific flows are not complete yet.
-- Browser-local recording/download is not implemented yet.
-- Playwright currently covers only the frontend smoke path.
+- Mode-specific flows are implemented but still need live validation and product polish.
+- Browser-local recording/download is implemented for current session artifacts but still needs broader browser/device validation.
+- Playwright currently covers only mocked frontend launch/session paths.
 - Realtime WebRTC behavior still requires manual browser validation.
 - Rate limiting is in-memory and can reset with process/serverless lifecycle.
 - Vercel access control and domain settings are out-of-repo.

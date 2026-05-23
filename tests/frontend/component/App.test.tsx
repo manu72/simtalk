@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createRealtimeTranslationSessionMock = vi.hoisted(() => vi.fn());
 
@@ -17,54 +17,6 @@ const tokenResponse = {
   sessionExpiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
   translationCallUrl: 'https://api.openai.com/v1/realtime/translations/calls'
 };
-const backendValidationErrorMessage = 'Backend rejected the requested language pair';
-const audioBlob = new Blob(['audio-data'], { type: 'audio/webm' });
-
-class MockMediaRecorder extends EventTarget {
-  static beforeStop: (() => void) | null = null;
-  static deferStop = false;
-  static instances: MockMediaRecorder[] = [];
-  static lastInstance: MockMediaRecorder | null = null;
-  static mimeType = 'audio/webm';
-  static throwOnStop = false;
-  readonly start = vi.fn();
-  readonly stop = vi.fn(() => {
-    MockMediaRecorder.beforeStop?.();
-    if (MockMediaRecorder.throwOnStop) {
-      throw new Error('Mock recorder stop failed');
-    }
-    if (MockMediaRecorder.deferStop) {
-      return;
-    }
-    this.completeStop();
-  });
-  readonly mimeType = MockMediaRecorder.mimeType;
-
-  ondataavailable: ((event: BlobEvent) => void) | null = null;
-  onstop: (() => void) | null = null;
-
-  constructor(readonly stream: MediaStream) {
-    super();
-    MockMediaRecorder.instances = [...MockMediaRecorder.instances, this];
-    MockMediaRecorder.lastInstance = this;
-  }
-
-  completeStop() {
-    this.dispatchEvent(new BlobEvent('dataavailable', { data: audioBlob }));
-    this.dispatchEvent(new Event('stop'));
-  }
-
-  override dispatchEvent(event: Event): boolean {
-    const result = super.dispatchEvent(event);
-    if (event.type === 'dataavailable') {
-      this.ondataavailable?.(event as BlobEvent);
-    }
-    if (event.type === 'stop') {
-      this.onstop?.();
-    }
-    return result;
-  }
-}
 
 const mockFetch = (response: Response) => {
   const fetchMock = vi.fn(async () => response.clone());
@@ -72,740 +24,353 @@ const mockFetch = (response: Response) => {
   return fetchMock;
 };
 
-afterEach(() => {
-  createRealtimeTranslationSessionMock.mockReset();
-  MockMediaRecorder.beforeStop = null;
-  MockMediaRecorder.deferStop = false;
-  MockMediaRecorder.instances = [];
-  MockMediaRecorder.lastInstance = null;
-  MockMediaRecorder.mimeType = 'audio/webm';
-  MockMediaRecorder.throwOnStop = false;
-  vi.unstubAllGlobals();
+const tokenJsonResponse = () =>
+  new Response(JSON.stringify(tokenResponse), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+beforeEach(() => {
+  createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
 });
 
-describe('App', () => {
-  it('renders the Phase 1 product shell', () => {
-    render(<App />);
+afterEach(() => {
+  vi.unstubAllGlobals();
+  createRealtimeTranslationSessionMock.mockReset();
+});
 
-    expect(screen.getByRole('heading', { name: 'SimTalk' })).toBeInTheDocument();
-    expect(screen.getByText(/Speak naturally. Hear instantly./i)).toBeInTheDocument();
+describe('Lobby', () => {
+  it('renders three mode pills with Listener selected by default', () => {
+    render(<App />);
+    const listener = screen.getByRole('radio', { name: /listen/i });
+    const turnabout = screen.getByRole('radio', { name: /talk/i });
+    const practice = screen.getByRole('radio', { name: /practice/i });
+    expect(listener).toHaveAttribute('aria-checked', 'true');
+    expect(turnabout).toHaveAttribute('aria-checked', 'false');
+    expect(practice).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('exposes all conversation modes as keyboard-accessible radio controls', () => {
+  it('shows the LAUNCH primary CTA', () => {
     render(<App />);
-
-    expect(screen.getByRole('radio', { name: /Listener Mode/i })).toBeChecked();
-    expect(screen.getByRole('radio', { name: /Turn-about Mode/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /Practice Mode/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /launch/i })).toBeInTheDocument();
   });
 
-  it('communicates that recording starts disabled', () => {
+  it('Listener mode shows two language cards: a Detect (Automatic) source and a Translate-into target', () => {
     render(<App />);
-
-    expect(screen.getByRole('heading', { name: /Recording is off by default/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Start local recording/i })).toBeDisabled();
+    expect(screen.getByText(/^detect$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^translate into$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^automatic$/i)).toBeInTheDocument();
+    expect(screen.queryByText(/you speak/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/person a/i)).not.toBeInTheDocument();
   });
 
-  it('requests a realtime token without displaying the client secret', async () => {
-    const fetchMock = mockFetch(Response.json(tokenResponse));
+  it('Turn-about mode shows Person A and Person B pickers with a swap chip', () => {
     render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('sess_test')).toBeInTheDocument();
-    });
-
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/realtime/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'listener',
-        targetLanguage: 'es'
-      }),
-      signal: expect.any(AbortSignal)
-    });
-    expect(screen.queryByText('ek_test_client_secret')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
+    expect(screen.getByText(/person a/i)).toBeInTheDocument();
+    expect(screen.getByText(/person b/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /swap a and b/i })).toBeInTheDocument();
   });
 
-  it('includes source language when preparing turn-about mode', async () => {
-    const fetchMock = mockFetch(Response.json(tokenResponse));
+  it('Practice mode shows directional You-speak / Translate-to pair', () => {
     render(<App />);
-
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalled();
-    });
-
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/realtime/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'turnabout',
-        sourceLanguage: 'en',
-        targetLanguage: 'es'
-      }),
-      signal: expect.any(AbortSignal)
-    });
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
+    expect(screen.getByText(/you speak/i)).toBeInTheDocument();
+    expect(screen.getByText(/translate to/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /reverse source and target/i })).toBeInTheDocument();
   });
 
-  it('switches turn-about speaker direction and clears stale prepared sessions', async () => {
-    const fetchMock = mockFetch(Response.json(tokenResponse));
+  it('omits sourceLanguage in token request when launching Listener mode', async () => {
+    const fetchMock = mockFetch(tokenJsonResponse());
     render(<App />);
-
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('sess_test')).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Switch speaker direction/i }));
-
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
-    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
-    await waitFor(() => {
-      expect(screen.getByText('sess_test')).toBeInTheDocument();
-    });
-
-    expect(fetchMock).toHaveBeenLastCalledWith('http://localhost:3000/realtime/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'turnabout',
-        sourceLanguage: 'es',
-        targetLanguage: 'en'
-      }),
-      signal: expect.any(AbortSignal)
-    });
-  });
-
-  it('surfaces backend validation errors accessibly', async () => {
-    const fetchMock = mockFetch(
-      Response.json(
-        {
-          error: {
-            code: 'validation_error',
-            message: backendValidationErrorMessage
-          }
-        },
-        { status: 400 }
-      )
-    );
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(backendValidationErrorMessage)).toBeInTheDocument();
-    });
-    expect(fetchMock).toHaveBeenCalled();
-  });
-
-  it('returns to the idle status when switching modes after preparing a session', async () => {
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveClass('status-card--ready');
-    });
-
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
-    expect(screen.getByRole('status')).not.toHaveClass('status-card--ready');
-  });
-
-  it('ignores stale token responses after switching modes while loading', async () => {
-    let resolveTokenRequest!: (response: Response) => void;
-    const fetchMock = vi.fn(
-      () =>
-        new Promise<Response>((resolve) => {
-          resolveTokenRequest = resolve;
-        })
-    );
-    vi.stubGlobal('fetch', fetchMock);
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalled();
-    });
-
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
 
     await act(async () => {
-      resolveTokenRequest(Response.json(tokenResponse));
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
-    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).not.toHaveClass('status-card--ready');
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const call = fetchMock.mock.calls[0] as unknown as [string, RequestInit] | undefined;
+    const body = JSON.parse((call?.[1]?.body as string) ?? '{}');
+    expect(body).toEqual({ mode: 'listener', targetLanguage: 'es' });
+    expect(body.sourceLanguage).toBeUndefined();
   });
 
-  it('ignores stale token responses after starting a new practice attempt while loading', async () => {
-    let resolveTokenRequest!: (response: Response) => void;
-    const fetchMock = vi.fn(
-      () =>
-        new Promise<Response>((resolve) => {
-          resolveTokenRequest = resolve;
-        })
-    );
-    vi.stubGlobal('fetch', fetchMock);
+  it('includes sourceLanguage in token request when launching Turn-about', async () => {
+    const fetchMock = mockFetch(tokenJsonResponse());
     render(<App />);
-
-    fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /New practice attempt/i }));
-
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
 
     await act(async () => {
-      resolveTokenRequest(Response.json(tokenResponse));
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
-    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).not.toHaveClass('status-card--ready');
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const call = fetchMock.mock.calls[0] as unknown as [string, RequestInit] | undefined;
+    const body = JSON.parse((call?.[1]?.body as string) ?? '{}');
+    expect(body).toMatchObject({ mode: 'turnabout', sourceLanguage: 'en', targetLanguage: 'es' });
   });
+});
 
-  it('returns to the idle status when switching modes after a request error', async () => {
-    const fetchMock = mockFetch(
-      Response.json(
-        {
-          error: {
-            code: 'validation_error',
-            message: backendValidationErrorMessage
-          }
-        },
-        { status: 400 }
-      )
-    );
+describe('Launch flow', () => {
+  it('transitions from lobby to session header after a successful launch', async () => {
+    mockFetch(tokenJsonResponse());
     render(<App />);
 
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveClass('status-card--error');
-      expect(screen.getByText(backendValidationErrorMessage)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /end session/i })).toBeInTheDocument();
     });
-    expect(fetchMock).toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
-
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
-    expect(screen.getByRole('status')).not.toHaveClass('status-card--error');
+    expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('starts WebRTC only after an explicit user action', async () => {
-    const stop = vi.fn();
-    createRealtimeTranslationSessionMock.mockResolvedValue({ stop });
-    mockFetch(Response.json(tokenResponse));
+  it('surfaces an error in the lobby when the token request fails', async () => {
+    const failedResponse = new Response(
+      JSON.stringify({ error: { code: 'rate_limited', message: 'Too many launches' } }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    );
+    mockFetch(failedResponse);
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
 
-    expect(createRealtimeTranslationSessionMock).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
     await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          token: tokenResponse,
-          signal: expect.any(AbortSignal),
-          onTranscriptDelta: expect.any(Function),
-          onRemoteAudio: expect.any(Function)
-        })
-      );
+      expect(screen.getByRole('alert')).toHaveTextContent(/too many launches/i);
     });
+    expect(screen.getByRole('button', { name: /launch/i })).toBeInTheDocument();
+  });
+});
 
-    expect(screen.queryByText('ek_test_client_secret')).not.toBeInTheDocument();
+describe('Session controls', () => {
+  it('Listener session shows Pause Listening and ending it routes to Summary', async () => {
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    await waitFor(() => screen.getByRole('button', { name: /pause listening/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+
+    expect(screen.getByRole('button', { name: /new session/i })).toBeInTheDocument();
   });
 
-  it('renders transcript deltas emitted by the WebRTC session', async () => {
-    let onTranscriptDelta!: (delta: { kind: 'input' | 'output'; text: string }) => void;
+  it('Turn-about session renders the flip and hold-to-talk controls', async () => {
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /flip speaker sides/i })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /hold to talk/i })).toBeInTheDocument();
+  });
+
+  it('captures Turn-about transcript deltas that arrive before mic release renders', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    let onTranscriptDelta: ((delta: { readonly kind: 'input' | 'output'; readonly text: string }) => void) | undefined;
+
     createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
       onTranscriptDelta = options.onTranscriptDelta;
-      return { stop: vi.fn() };
+      return session;
     });
-    mockFetch(Response.json(tokenResponse));
+    mockFetch(tokenJsonResponse());
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    const micButton = await screen.findByRole('button', { name: /hold to talk/i });
+    micButton.setPointerCapture = vi.fn();
+    micButton.hasPointerCapture = vi.fn(() => true);
+    micButton.releasePointerCapture = vi.fn();
+
+    await act(async () => {
+      fireEvent.pointerDown(micButton, { pointerId: 1 });
+      onTranscriptDelta?.({ kind: 'input', text: 'hello there' });
+      onTranscriptDelta?.({ kind: 'output', text: 'hola alli' });
+      fireEvent.pointerUp(micButton, { pointerId: 1 });
+    });
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+      expect(screen.getByText('hello there')).toBeInTheDocument();
+      expect(screen.getByText('hola alli')).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    act(() => {
-      onTranscriptDelta({ kind: 'input', text: 'hello' });
-      onTranscriptDelta({ kind: 'output', text: 'hola' });
-    });
-
-    expect(screen.getByText('hello')).toBeInTheDocument();
-    expect(screen.getByText('hola')).toBeInTheDocument();
   });
 
-  it('records local microphone audio only after explicit opt-in and exposes a local download', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    const createObjectUrl = vi.fn(() => 'blob:simtalk-recording');
-    const revokeObjectUrl = vi.fn();
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-    vi.stubGlobal('URL', {
-      ...URL,
-      createObjectURL: createObjectUrl,
-      revokeObjectURL: revokeObjectUrl
+  it('Turn-about FLIP re-mints a token with swapped source and target', async () => {
+    const fetchMock = mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
+    await waitFor(() => screen.getByRole('button', { name: /flip speaker sides/i }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /flip speaker sides/i }));
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const first = fetchMock.mock.calls[0] as unknown as [string, RequestInit] | undefined;
+    const second = fetchMock.mock.calls[1] as unknown as [string, RequestInit] | undefined;
+    expect(JSON.parse((first?.[1]?.body as string) ?? '{}')).toMatchObject({
+      mode: 'turnabout',
+      sourceLanguage: 'en',
+      targetLanguage: 'es'
+    });
+    expect(JSON.parse((second?.[1]?.body as string) ?? '{}')).toMatchObject({
+      mode: 'turnabout',
+      sourceLanguage: 'es',
+      targetLanguage: 'en'
+    });
+  });
+
+  it('Practice session starts in IDLE with Tap to Record', async () => {
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /tap to record/i })).toBeInTheDocument();
+    });
+  });
+
+  it('keeps the Practice microphone muted except during active recording', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    const localStream = { getTracks: vi.fn(() => []) };
+    class FakeMediaRecorder {
+      state: RecordingState = 'inactive';
+      mimeType = 'audio/webm';
+      ondataavailable: ((event: BlobEvent) => void) | null = null;
+      onstop: (() => void) | null = null;
+
+      start() {
+        this.state = 'recording';
+      }
+
+      stop() {
+        this.state = 'inactive';
+        queueMicrotask(() => {
+          this.ondataavailable?.({ data: new Blob(['practice-audio'], { type: this.mimeType }) } as BlobEvent);
+          this.onstop?.();
+        });
+      }
+    }
+    const createObjectURL = vi.fn(() => 'blob:practice-audio');
+
     createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop: vi.fn() };
+      options.onLocalStream?.(localStream as unknown as MediaStream);
+      return session;
     });
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
-
-    expect(MockMediaRecorder.lastInstance?.stream).toBe(localStream);
-    expect(MockMediaRecorder.lastInstance?.start).toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
-
-    await waitFor(() => {
-      expect(createObjectUrl).toHaveBeenCalledWith(audioBlob);
-      expect(screen.getByRole('link', { name: /Download audio recording/i })).toHaveAttribute(
-        'href',
-        'blob:simtalk-recording'
-      );
-    });
-    expect(screen.getByText(/Audio recording is stored as a local browser blob/i)).toBeInTheDocument();
-  });
-
-  it('uses an ogg download extension for Firefox-style local recordings', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-    MockMediaRecorder.mimeType = 'audio/ogg;codecs=opus';
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorder);
     vi.stubGlobal('URL', {
       ...URL,
-      createObjectURL: vi.fn(() => 'blob:simtalk-ogg-recording'),
+      createObjectURL,
       revokeObjectURL: vi.fn()
     });
-    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop: vi.fn() };
-    });
-    mockFetch(Response.json(tokenResponse));
+    mockFetch(tokenJsonResponse());
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
+    await waitFor(() => screen.getByRole('button', { name: /tap to record/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+    const sessionOptions = createRealtimeTranslationSessionMock.mock.calls[0]?.[0];
+    expect(sessionOptions.startLocalAudioEnabled).toBe(false);
 
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
+    fireEvent.click(screen.getByRole('button', { name: /tap to record/i }));
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(true);
 
-    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('link', { name: /Download audio recording/i })).toHaveAttribute(
-        'download',
-        expect.stringMatching(/\.ogg$/)
-      );
-    });
+    fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
+    expect(screen.getByRole('button', { name: /type your guess/i })).toBeInTheDocument();
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
   });
 
-  it('ignores duplicate local recording starts while already recording', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop: vi.fn() };
-    });
-    mockFetch(Response.json(tokenResponse));
+  it('keeps Practice idle when recording starts without a local stream', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    createRealtimeTranslationSessionMock.mockResolvedValue(session);
+    mockFetch(tokenJsonResponse());
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
+    await waitFor(() => screen.getByRole('button', { name: /tap to record/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+    fireEvent.click(screen.getByRole('button', { name: /tap to record/i }));
 
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    const startRecordingButton = screen.getByRole('button', { name: /Start local recording/i });
-
-    act(() => {
-      fireEvent.click(startRecordingButton);
-      fireEvent.click(startRecordingButton);
-    });
-
-    expect(MockMediaRecorder.instances).toHaveLength(1);
-    expect(MockMediaRecorder.lastInstance?.start).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: /tap to record/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /stop recording/i })).not.toBeInTheDocument();
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
   });
 
-  it('does not show a local recording stop error after a concurrent discard reset', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
+  it('keeps Practice idle when MediaRecorder cannot start', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    const localStream = { getTracks: vi.fn(() => []) };
+    class FailingMediaRecorder {
+      constructor() {
+        throw new Error('recorder unavailable');
+      }
+    }
+
     createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop: vi.fn() };
+      options.onLocalStream?.(localStream as unknown as MediaStream);
+      return session;
     });
-    mockFetch(Response.json(tokenResponse));
+    vi.stubGlobal('MediaRecorder', FailingMediaRecorder);
+    mockFetch(tokenJsonResponse());
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /practice/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
     });
+    await waitFor(() => screen.getByRole('button', { name: /tap to record/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
+    fireEvent.click(screen.getByRole('button', { name: /tap to record/i }));
 
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
-
-    MockMediaRecorder.beforeStop = () => {
-      fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-    };
-    MockMediaRecorder.throwOnStop = true;
-
-    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
-
-    await waitFor(() => {
-      expect(screen.queryByText('Local audio recording could not be stopped.')).not.toBeInTheDocument();
-      expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
-    });
+    expect(screen.getByRole('button', { name: /tap to record/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /stop recording/i })).not.toBeInTheDocument();
+    expect(session.setLocalAudioEnabled).toHaveBeenLastCalledWith(false);
   });
+});
 
-  it('keeps the active WebRTC session visible until recording teardown finishes during reset', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    const stop = vi.fn();
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-    MockMediaRecorder.deferStop = true;
-    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop };
-    });
-    mockFetch(Response.json(tokenResponse));
+describe('Dev drawer', () => {
+  it('opens with Alt+D and surfaces sessionId after a launch', async () => {
+    mockFetch(tokenJsonResponse());
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    await waitFor(() => screen.getByRole('button', { name: /end session/i }));
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
+    await act(async () => {
+      fireEvent.keyDown(window, { key: 'd', altKey: true });
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Stop audio/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-
-    expect(stop).not.toHaveBeenCalled();
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'WebRTC is connected. Speak naturally while SimTalk waits for translated audio.'
-    );
+    expect(screen.getByText(/dev drawer/i)).toBeInTheDocument();
     expect(screen.getByText('sess_test')).toBeInTheDocument();
-
-    act(() => {
-      MockMediaRecorder.lastInstance?.completeStop();
-    });
-
-    await waitFor(() => {
-      expect(stop).toHaveBeenCalled();
-      expect(screen.getByRole('status')).toHaveTextContent(
-        'No translation session has been prepared yet. Audio capture will remain inactive.'
-      );
-    });
-    expect(screen.queryByText('sess_test')).not.toBeInTheDocument();
-  });
-
-  it('clears local recording downloads when preparing a new session', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    const createObjectUrl = vi.fn(() => 'blob:simtalk-recording');
-    const revokeObjectUrl = vi.fn();
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-    vi.stubGlobal('URL', {
-      ...URL,
-      createObjectURL: createObjectUrl,
-      revokeObjectURL: revokeObjectUrl
-    });
-    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop: vi.fn() };
-    });
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Stop local recording/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('link', { name: /Download audio recording/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    expect(screen.queryByRole('link', { name: /Download audio recording/i })).not.toBeInTheDocument();
-    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:simtalk-recording');
-    expect(screen.getByText(/Audio recording is off by default/i)).toBeInTheDocument();
-  });
-
-  it('lets Practice mode pause for review and start a new attempt', async () => {
-    let onTranscriptDelta!: (delta: { kind: 'input' | 'output'; text: string }) => void;
-    const stop = vi.fn();
-    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      onTranscriptDelta = options.onTranscriptDelta;
-      return { stop };
-    });
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('radio', { name: /Practice Mode/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start practice attempt/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start practice attempt/i }));
-
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    act(() => {
-      onTranscriptDelta({ kind: 'input', text: 'hello' });
-      onTranscriptDelta({ kind: 'output', text: 'hola' });
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Pause and review phrase/i }));
-
-    expect(stop).toHaveBeenCalled();
-    expect(screen.getByText(/Review this attempt/i)).toBeInTheDocument();
-    expect(screen.getByText('hello')).toBeInTheDocument();
-    expect(screen.getByText('hola')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /New practice attempt/i }));
-
-    expect(screen.queryByText('hello')).not.toBeInTheDocument();
-    expect(screen.queryByText('hola')).not.toBeInTheDocument();
-    expect(screen.getByText(/Ready for another phrase/i)).toBeInTheDocument();
-  });
-
-  it('stops the active WebRTC session', async () => {
-    const stop = vi.fn();
-    createRealtimeTranslationSessionMock.mockResolvedValue({ stop });
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Stop audio/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Stop audio/i }));
-
-    expect(stop).toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-  });
-
-  it('returns to the prepared status when WebRTC cleanup throws after recording teardown', async () => {
-    const localStream = { getTracks: () => [] } as unknown as MediaStream;
-    const stop = vi.fn(() => {
-      throw new Error('Mock WebRTC cleanup failed');
-    });
-    vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
-      options.onLocalStream(localStream);
-      return { stop };
-    });
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Stop audio/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start local recording/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Stop audio/i }));
-
-    await waitFor(() => {
-      expect(stop).toHaveBeenCalled();
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Credential prepared. Start the microphone when you are ready to test audio.'
-    );
-  });
-
-  it('stops stale WebRTC sessions that resolve after a mode switch', async () => {
-    let resolveSession!: (session: { stop: () => void }) => void;
-    let webRtcSignal!: AbortSignal;
-    const staleStop = vi.fn();
-    createRealtimeTranslationSessionMock.mockImplementation((options) => {
-      webRtcSignal = options.signal;
-      return new Promise((resolve) => {
-        resolveSession = resolve;
-      });
-    });
-    mockFetch(Response.json(tokenResponse));
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    fireEvent.click(screen.getByRole('radio', { name: /Turn-about Mode/i }));
-
-    expect(webRtcSignal.aborted).toBe(true);
-
-    await act(async () => {
-      resolveSession({ stop: staleStop });
-    });
-
-    expect(staleStop).toHaveBeenCalled();
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No translation session has been prepared yet. Audio capture will remain inactive.'
-    );
-  });
-
-  it('aborts and stops pending WebRTC startup when the app unmounts', async () => {
-    let resolveSession!: (session: { stop: () => void }) => void;
-    let webRtcSignal!: AbortSignal;
-    const staleStop = vi.fn();
-    createRealtimeTranslationSessionMock.mockImplementation((options) => {
-      webRtcSignal = options.signal;
-      return new Promise((resolve) => {
-        resolveSession = resolve;
-      });
-    });
-    mockFetch(Response.json(tokenResponse));
-    const { unmount } = render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Prepare translation session/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start microphone and WebRTC/i })).toBeEnabled();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /Start microphone and WebRTC/i }));
-
-    await waitFor(() => {
-      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
-    });
-
-    unmount();
-
-    expect(webRtcSignal.aborted).toBe(true);
-
-    await act(async () => {
-      resolveSession({ stop: staleStop });
-    });
-
-    expect(staleStop).toHaveBeenCalled();
   });
 });

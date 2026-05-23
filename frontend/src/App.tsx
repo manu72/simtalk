@@ -1,28 +1,16 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  ArrowLeftRight,
-  Bot,
-  CheckCircle2,
-  CircleAlert,
-  Download,
-  GraduationCap,
-  Languages,
-  Mic,
-  MicOff,
-  Radio,
-  RotateCcw,
-  Sparkles,
-  Square,
-  type LucideIcon
-} from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { conversationModes, type ConversationMode, type RealtimeTokenResponse } from '@simtalk/shared-types';
+import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } from '@simtalk/shared-types';
 
-import { Badge } from './components/ui/badge';
-import { Button } from './components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
-import { cn } from './lib/utils';
+import { AUTO_LANGUAGE, findLanguage, LANGUAGES, isAutoLanguage, type Language } from './components/brand/languages';
+import { Lobby } from './components/screens/Lobby';
+import { ListenerSurface } from './components/screens/ListenerSurface';
+import { TurnaboutSurface, type ConversationTurn } from './components/screens/TurnaboutSurface';
+import { PracticeSurface, type PracticeStage } from './components/screens/PracticeSurface';
+import { Summary } from './components/screens/Summary';
+import { TranscriptSheet } from './components/screens/TranscriptSheet';
+import { SessionHeader } from './components/session/SessionHeader';
+import { DevDrawer } from './components/session/DevDrawer';
 import { RealtimeTokenClientError, requestRealtimeToken } from './realtimeTokenClient';
 import {
   createRealtimeTranslationSession,
@@ -31,1040 +19,724 @@ import {
   type TranscriptDelta
 } from './realtimeTranslationSession';
 
-const modeLabels: Record<ConversationMode, string> = {
-  listener: 'Listener Mode',
-  turnabout: 'Turn-about Mode',
-  practice: 'Practice Mode'
-};
+type View = 'lobby' | 'session' | 'summary';
 
-const modeDescriptions: Record<ConversationMode, string> = {
-  listener: 'Let OpenAI detect incoming speech and return live translated audio.',
-  turnabout: 'Share one device and flip speaker roles during a conversation.',
-  practice: 'Speak, pause, listen back, and review translations for learning.'
-};
+type SessionStatus = 'idle' | 'launching' | 'connecting' | 'live' | 'paused' | 'error';
 
-const modeMeta: Record<ConversationMode, { readonly icon: LucideIcon; readonly eyebrow: string }> = {
-  listener: { icon: Radio, eyebrow: 'hands-free listening' },
-  turnabout: { icon: ArrowLeftRight, eyebrow: 'shared device' },
-  practice: { icon: GraduationCap, eyebrow: 'guided repetition' }
-};
-
-const languageOptions = [
-  { code: 'en', label: 'English' },
-  { code: 'es', label: 'Spanish' },
-  { code: 'fr', label: 'French' },
-  { code: 'de', label: 'German' },
-  { code: 'it', label: 'Italian' },
-  { code: 'pt', label: 'Portuguese' },
-  { code: 'ja', label: 'Japanese' },
-  { code: 'ko', label: 'Korean' },
-  { code: 'zh-Hans', label: 'Chinese (Simplified)' }
-] as const;
-
-const getAudioRecordingFileExtension = (mimeType: string) => {
-  const normalizedMimeType = mimeType.toLowerCase().split(';')[0]?.trim();
-
-  if (normalizedMimeType === 'audio/mp4') {
-    return '.mp4';
-  }
-
-  if (normalizedMimeType === 'audio/m4a') {
-    return '.m4a';
-  }
-
-  if (normalizedMimeType === 'audio/ogg') {
-    return '.ogg';
-  }
-
-  if (normalizedMimeType === 'audio/webm') {
-    return '.webm';
-  }
-
+const getRecordingExtension = (mimeType: string): string => {
+  const normalized = mimeType.toLowerCase().split(';')[0]?.trim();
+  if (normalized === 'audio/mp4') return '.mp4';
+  if (normalized === 'audio/m4a') return '.m4a';
+  if (normalized === 'audio/ogg') return '.ogg';
   return '.webm';
 };
 
-type SessionStatus =
-  | 'idle'
-  | 'loading'
-  | 'ready'
-  | 'connecting'
-  | 'connected'
-  | 'streaming'
-  | 'error';
+const splitSentences = (text: string): string[] =>
+  text
+    .split(/(?<=[.!?…])\s+/g)
+    .map((line) => line.trim())
+    .filter(Boolean);
 
-type PreparedSession = Pick<
-  RealtimeTokenResponse,
-  'expiresAt' | 'sessionExpiresAt' | 'sessionId' | 'translationCallUrl'
->;
-
-type StatusDetails = {
-  readonly label: string;
-  readonly message: string;
-  readonly icon: LucideIcon;
-  readonly badgeVariant: 'secondary' | 'success' | 'warning' | 'destructive';
-};
-
-type RecordingStatus = 'off' | 'recording' | 'ready' | 'unsupported' | 'error';
-
-type LocalRecordingSession = {
-  readonly recorder: MediaRecorder;
-  chunks: Blob[];
-  discardOnStop: boolean;
-  isStopping: boolean;
-  resolveStopCompletion: (() => void) | null;
-  stopCompletion: Promise<void> | null;
-};
-
-const statusDetails: Record<SessionStatus, StatusDetails> = {
-  idle: {
-    label: 'Idle',
-    message: 'No translation session has been prepared yet. Audio capture will remain inactive.',
-    icon: MicOff,
-    badgeVariant: 'secondary'
-  },
-  loading: {
-    label: 'Preparing',
-    message: 'Requesting a short-lived translation credential from the SimTalk backend.',
-    icon: Bot,
-    badgeVariant: 'warning'
-  },
-  ready: {
-    label: 'Ready',
-    message: 'Credential prepared. Start the microphone when you are ready to test audio.',
-    icon: CheckCircle2,
-    badgeVariant: 'success'
-  },
-  connecting: {
-    label: 'Connecting',
-    message: 'Requesting microphone access and connecting the WebRTC session.',
-    icon: Mic,
-    badgeVariant: 'warning'
-  },
-  connected: {
-    label: 'Listening',
-    message: 'WebRTC is connected. Speak naturally while SimTalk waits for translated audio.',
-    icon: Mic,
-    badgeVariant: 'success'
-  },
-  streaming: {
-    label: 'Translating',
-    message: 'Translated audio and transcript deltas are streaming back to this browser.',
-    icon: Languages,
-    badgeVariant: 'success'
-  },
-  error: {
-    label: 'Needs attention',
-    message: 'Realtime translation could not be prepared.',
-    icon: CircleAlert,
-    badgeVariant: 'destructive'
-  }
-};
-
-const fallbackErrorMessage = 'Realtime translation could not be prepared.';
-const fallbackWebRtcErrorMessage = 'Realtime audio could not be started.';
-
-const getLanguageLabel = (languageCode: string) =>
-  languageOptions.find((language) => language.code === languageCode)?.label ?? languageCode;
-
-const selectClassName =
-  'h-16 w-full rounded-2xl border border-border bg-background/80 px-4 text-lg font-semibold text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-55';
-
-type ListeningOrbProps = {
-  readonly isActive: boolean;
-  readonly prefersReducedMotion: boolean;
-};
-
-const ListeningOrb = ({ isActive, prefersReducedMotion }: ListeningOrbProps) => (
-  <div className="relative grid size-24 place-items-center sm:size-28" aria-hidden="true">
-    {isActive && !prefersReducedMotion && (
-      <motion.span
-        animate={{ opacity: [0.42, 0.08, 0.42], scale: [1, 1.18, 1] }}
-        className="absolute inset-0 rounded-full border border-primary/50 bg-primary/10"
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-    )}
-    <span
-      className={cn(
-        'relative grid size-20 place-items-center rounded-full border shadow-[0_20px_70px_var(--shadow-primary)] sm:size-24',
-        isActive
-          ? 'border-primary/60 bg-primary text-primary-foreground'
-          : 'border-border bg-secondary text-muted-foreground'
-      )}
-    >
-      {isActive ? <Mic className="size-8" /> : <MicOff className="size-8" />}
-    </span>
-  </div>
-);
+const isDevModeFromUrl = (): boolean =>
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev');
 
 export const App = () => {
-  const [selectedMode, setSelectedMode] = useState<ConversationMode>('listener');
-  const [sourceLanguage, setSourceLanguage] = useState('en');
-  const [targetLanguage, setTargetLanguage] = useState('es');
+  // Lobby state
+  const [mode, setMode] = useState<ConversationMode>('listener');
+  const [source, setSource] = useState<Language>(AUTO_LANGUAGE);
+  const [target, setTarget] = useState<Language>(findLanguage('es'));
+
+  // App flow
+  const [view, setView] = useState<View>('lobby');
   const [status, setStatus] = useState<SessionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [preparedToken, setPreparedToken] = useState<RealtimeTokenResponse | null>(null);
+  const [token, setToken] = useState<RealtimeTokenResponse | null>(null);
+
+  // Transcripts (raw streaming buffers)
   const [inputTranscript, setInputTranscript] = useState('');
   const [outputTranscript, setOutputTranscript] = useState('');
-  const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('off');
-  const [recordingError, setRecordingError] = useState<string | null>(null);
-  const [audioRecordingUrl, setAudioRecordingUrl] = useState<string | null>(null);
-  const [audioRecordingName, setAudioRecordingName] = useState('simtalk-recording.webm');
-  const activeTokenRequestRef = useRef(0);
-  const activeWebRtcRequestRef = useRef(0);
-  const activeWebRtcAbortControllerRef = useRef<AbortController | null>(null);
-  const translationSessionRef = useRef<RealtimeTranslationSession | null>(null);
-  const localMediaStreamRef = useRef<MediaStream | null>(null);
-  const activeRecordingSessionRef = useRef<LocalRecordingSession | null>(null);
-  const preparedTokenRef = useRef<RealtimeTokenResponse | null>(null);
-  const audioRecordingUrlRef = useRef<string | null>(null);
-  const prefersReducedMotion = useReducedMotion() ?? false;
+  const inputTranscriptRef = useRef('');
+  const outputTranscriptRef = useRef('');
+  const [deltaLog, setDeltaLog] = useState<string[]>([]);
 
-  const needsSourceLanguage = selectedMode === 'turnabout' || selectedMode === 'practice';
-  const isTurnaboutMode = selectedMode === 'turnabout';
-  const isPracticeMode = selectedMode === 'practice';
-  const sourceHelpText = useMemo(
-    () =>
-      selectedMode === 'listener'
-        ? 'Listener Mode keeps spoken language on automatic detection.'
-        : 'Choose the language spoken into this device before requesting a session.',
-    [selectedMode]
-  );
+  // Turn-about
+  const [activeSide, setActiveSide] = useState<'source' | 'target'>('source');
+  const [turns, setTurns] = useState<ConversationTurn[]>([]);
+  const [holdingMic, setHoldingMic] = useState(false);
+  const turnBuilderRef = useRef<{ src: string; dst: string; side: 'source' | 'target' } | null>(null);
+  const holdingMicRef = useRef(false);
+  const inputBaselineRef = useRef(0);
+  const [liveBaseInputLen, setLiveBaseInputLen] = useState(0);
+  const [liveBaseOutputLen, setLiveBaseOutputLen] = useState(0);
+  const pendingTurnIdRef = useRef<string | null>(null);
+  const pendingBaseOutputLenRef = useRef(0);
 
-  const isWebRtcSessionActive = status === 'connected' || status === 'streaming';
-  const isListening = status === 'connecting' || isWebRtcSessionActive;
-  const canShowPreparedSession = status === 'ready' || status === 'connecting' || isWebRtcSessionActive;
-  const hasTranscript = inputTranscript.length > 0 || outputTranscript.length > 0;
-  const activeStatusDetails = statusDetails[status];
-  const StatusIcon = activeStatusDetails.icon;
-  const startWebRtcLabel = isPracticeMode ? 'Start practice attempt' : 'Start microphone and WebRTC';
-  const stopWebRtcLabel = isPracticeMode ? 'Pause and review phrase' : 'Stop audio';
-  const practiceReviewMessage = hasTranscript ? 'Review this attempt' : 'Ready for another phrase';
-  const canStartRecording =
-    isWebRtcSessionActive &&
-    localMediaStreamRef.current !== null &&
-    recordingStatus !== 'recording' &&
-    recordingStatus !== 'unsupported';
+  // Practice
+  const [practiceStage, setPracticeStage] = useState<PracticeStage>('idle');
+  const [practiceAttempt, setPracticeAttempt] = useState('');
+  const [practiceAudioUrl, setPracticeAudioUrl] = useState<string | null>(null);
+  const practiceAudioUrlRef = useRef<string | null>(null);
 
-  const updatePreparedToken = (token: RealtimeTokenResponse | null) => {
-    preparedTokenRef.current = token;
-    setPreparedToken(token);
-  };
+  // Listener
+  const [listenerHistory, setListenerHistory] = useState<string[]>([]);
+  const lastOutputLenRef = useRef(0);
+  const [transcriptSheetOpen, setTranscriptSheetOpen] = useState(false);
 
-  const getPreparedSessionStatus = (): SessionStatus =>
-    preparedTokenRef.current ? 'ready' : 'idle';
+  // Recording
+  const [recordingMimeType, setRecordingMimeType] = useState<string>('audio/webm');
+  const [recordingBlobUrl, setRecordingBlobUrl] = useState<string | null>(null);
+  const recordingBlobUrlRef = useRef<string | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
+  const recordingNameRef = useRef<string>('simtalk-recording.webm');
 
-  const handleTranscriptDelta = (delta: TranscriptDelta) => {
-    if (delta.kind === 'input') {
-      setInputTranscript((current) => `${current}${delta.text}`);
-      return;
+  // Dev drawer
+  const [devOpen, setDevOpen] = useState(false);
+
+  // Refs to session lifecycle
+  const sessionRef = useRef<RealtimeTranslationSession | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const launchIdRef = useRef(0);
+
+  const revokeRecordingUrl = useCallback(() => {
+    if (recordingBlobUrlRef.current) {
+      URL.revokeObjectURL(recordingBlobUrlRef.current);
+      recordingBlobUrlRef.current = null;
     }
+  }, []);
 
-    setOutputTranscript((current) => `${current}${delta.text}`);
-  };
+  const revokePracticeAudio = useCallback(() => {
+    if (practiceAudioUrlRef.current) {
+      URL.revokeObjectURL(practiceAudioUrlRef.current);
+      practiceAudioUrlRef.current = null;
+    }
+  }, []);
 
-  const stopCapturedTranslationSession = (translationSession: RealtimeTranslationSession | null) => {
+  const teardownSession = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
     try {
-      translationSession?.stop();
+      sessionRef.current?.stop();
     } catch {
-      // Teardown is best-effort once refs are cleared; UI state must still recover.
+      // best effort
     }
-  };
-
-  const stopTranslationSession = () => {
-    stopCapturedTranslationSession(translationSessionRef.current);
-    translationSessionRef.current = null;
-  };
-
-  const revokeAudioRecordingUrl = () => {
-    if (audioRecordingUrlRef.current) {
-      URL.revokeObjectURL(audioRecordingUrlRef.current);
-      audioRecordingUrlRef.current = null;
-    }
-  };
-
-  const clearAudioRecording = () => {
-    const hasActiveRecording = activeRecordingSessionRef.current !== null;
-
-    revokeAudioRecordingUrl();
-    setAudioRecordingUrl(null);
-    setAudioRecordingName('simtalk-recording.webm');
-    setRecordingError(null);
-    if (!hasActiveRecording) {
-      setRecordingStatus('off');
-    }
-  };
-
-  const finalizeLocalRecording = (recordingSession: LocalRecordingSession) => {
-    if (activeRecordingSessionRef.current !== recordingSession) {
-      return;
-    }
-
-    activeRecordingSessionRef.current = null;
-
-    if (recordingSession.discardOnStop) {
-      setRecordingError(null);
-      setRecordingStatus('off');
-      return;
-    }
-
-    if (recordingSession.chunks.length === 0) {
-      setRecordingError('No local audio data was captured.');
-      setRecordingStatus('error');
-      return;
-    }
-
-    const recordingMimeType = recordingSession.recorder.mimeType || 'audio/webm';
-    const recordingBlob = new Blob(recordingSession.chunks, {
-      type: recordingMimeType
-    });
-    const recordingUrl = URL.createObjectURL(recordingBlob);
-    const recordingFileExtension = getAudioRecordingFileExtension(recordingMimeType);
-    const recordingName = `simtalk-audio-${new Date().toISOString()}${recordingFileExtension}`;
-
-    revokeAudioRecordingUrl();
-    audioRecordingUrlRef.current = recordingUrl;
-    setAudioRecordingUrl(recordingUrl);
-    setAudioRecordingName(recordingName);
-    setRecordingError(null);
-    setRecordingStatus('ready');
-  };
-
-  const completeLocalRecordingStop = (recordingSession: LocalRecordingSession) => {
-    const resolveStopCompletion = recordingSession.resolveStopCompletion;
-    recordingSession.resolveStopCompletion = null;
-
-    try {
-      finalizeLocalRecording(recordingSession);
-    } finally {
-      resolveStopCompletion?.();
-    }
-  };
-
-  const stopLocalRecording = ({
-    discard = false
-  }: { readonly discard?: boolean } = {}): Promise<void> => {
-    const recordingSession = activeRecordingSessionRef.current;
-    if (!recordingSession) {
-      return Promise.resolve();
-    }
-
-    recordingSession.discardOnStop = recordingSession.discardOnStop || discard;
-    if (recordingSession.isStopping) {
-      return recordingSession.stopCompletion ?? Promise.resolve();
-    }
-    recordingSession.isStopping = true;
-    recordingSession.stopCompletion = new Promise<void>((resolve) => {
-      recordingSession.resolveStopCompletion = resolve;
-    });
-
-    try {
-      if (recordingSession.recorder.state === 'inactive') {
-        recordingSession.recorder.onstop = null;
-        completeLocalRecordingStop(recordingSession);
-        return recordingSession.stopCompletion;
-      }
-
-      recordingSession.recorder.stop();
-    } catch {
-      recordingSession.recorder.onstop = null;
-      if (activeRecordingSessionRef.current === recordingSession) {
-        activeRecordingSessionRef.current = null;
-      }
-      recordingSession.resolveStopCompletion?.();
-      recordingSession.resolveStopCompletion = null;
-
-      if (!recordingSession.discardOnStop) {
-        setRecordingError('Local audio recording could not be stopped.');
-        setRecordingStatus('error');
-      } else {
-        setRecordingError(null);
-        setRecordingStatus('off');
+    sessionRef.current = null;
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      try {
+        recorderRef.current.stop();
+      } catch {
+        // best effort
       }
     }
-
-    return recordingSession.stopCompletion;
-  };
-
-  const invalidateWebRtcSession = ({
-    discardRecording = false
-  }: { readonly discardRecording?: boolean } = {}): Promise<void> => {
-    const translationSession = translationSessionRef.current;
-    const recordingSession = activeRecordingSessionRef.current;
-    activeWebRtcRequestRef.current += 1;
-    activeWebRtcAbortControllerRef.current?.abort();
-    activeWebRtcAbortControllerRef.current = null;
-    translationSessionRef.current = null;
-    localMediaStreamRef.current = null;
-
-    const recordingStopCompletion = stopLocalRecording({ discard: discardRecording });
-    if (!recordingSession) {
-      stopCapturedTranslationSession(translationSession);
-      return Promise.resolve();
+    recorderRef.current = null;
+    localStreamRef.current = null;
+    const pendingId = pendingTurnIdRef.current;
+    if (pendingId) {
+      setTurns((prev) => prev.map((t) => (t.id === pendingId ? { ...t, status: 'done' } : t)));
+      pendingTurnIdRef.current = null;
     }
+  }, []);
 
-    return recordingStopCompletion.finally(() => {
-      stopCapturedTranslationSession(translationSession);
-    });
-  };
-
-  const resetPreparedSession = async () => {
-    const resetRequestId = activeTokenRequestRef.current + 1;
-    const hasRecordingSession = activeRecordingSessionRef.current !== null;
-    activeTokenRequestRef.current = resetRequestId;
-    const invalidationCompletion = invalidateWebRtcSession({ discardRecording: true });
-    clearAudioRecording();
-
-    if (hasRecordingSession) {
-      await invalidationCompletion;
-    }
-
-    if (activeTokenRequestRef.current !== resetRequestId) {
-      return;
-    }
-
-    setStatus('idle');
-    setErrorMessage(null);
-    updatePreparedToken(null);
-    setInputTranscript('');
-    setOutputTranscript('');
-  };
-
-  const handleModeSelect = (mode: ConversationMode) => {
-    if (mode === selectedMode) {
-      return;
-    }
-
-    setSelectedMode(mode);
-    void resetPreparedSession();
-  };
-
-  const handleSourceLanguageChange = (languageCode: string) => {
-    setSourceLanguage(languageCode);
-    void resetPreparedSession();
-  };
-
-  const handleTargetLanguageChange = (languageCode: string) => {
-    setTargetLanguage(languageCode);
-    void resetPreparedSession();
-  };
-
-  const handleFlipLanguages = () => {
-    setSourceLanguage(targetLanguage);
-    setTargetLanguage(sourceLanguage);
-    void resetPreparedSession();
-  };
-
-  const handleNewPracticeAttempt = () => {
-    void resetPreparedSession();
-  };
-
-  const handleDownloadTranscript = () => {
-    const sourceLabel = needsSourceLanguage ? getLanguageLabel(sourceLanguage) : 'Auto-detected source';
-    const transcript = [
-      'SimTalk transcript',
-      `Mode: ${modeLabels[selectedMode]}`,
-      `Source: ${sourceLabel}`,
-      `Target: ${getLanguageLabel(targetLanguage)}`,
-      '',
-      'Input transcript:',
-      inputTranscript || 'No input transcript captured.',
-      '',
-      'Translated transcript:',
-      outputTranscript || 'No translated transcript captured.'
-    ].join('\n');
-    const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `simtalk-transcript-${new Date().toISOString()}.txt`;
-    document.body.append(link);
-
-    try {
-      link.click();
-    } finally {
-      link.remove();
-      URL.revokeObjectURL(url);
-    }
-  };
-
-  const handleStartLocalRecording = () => {
-    if (!localMediaStreamRef.current) {
-      setRecordingError('Start WebRTC before recording local audio.');
-      setRecordingStatus('error');
-      return;
-    }
-
-    if (typeof MediaRecorder === 'undefined') {
-      setRecordingError('This browser does not support local audio recording.');
-      setRecordingStatus('unsupported');
-      return;
-    }
-
-    if (activeRecordingSessionRef.current) {
-      return;
-    }
-
-    clearAudioRecording();
-
-    try {
-      const recorder = new MediaRecorder(localMediaStreamRef.current);
-      const recordingSession: LocalRecordingSession = {
-        recorder,
-        chunks: [],
-        discardOnStop: false,
-        isStopping: false,
-        resolveStopCompletion: null,
-        stopCompletion: null
-      };
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recordingSession.chunks = [...recordingSession.chunks, event.data];
-        }
-      };
-      recorder.onstop = () => completeLocalRecordingStop(recordingSession);
-
-      activeRecordingSessionRef.current = recordingSession;
-      recorder.start();
-      setRecordingError(null);
-      setRecordingStatus('recording');
-    } catch {
-      activeRecordingSessionRef.current = null;
-      setRecordingError('Local audio recording could not be started.');
-      setRecordingStatus('error');
-    }
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const requestId = activeTokenRequestRef.current + 1;
-    activeTokenRequestRef.current = requestId;
-    setStatus('loading');
-    setErrorMessage(null);
-    updatePreparedToken(null);
-    setInputTranscript('');
-    setOutputTranscript('');
-    clearAudioRecording();
-    await invalidateWebRtcSession({ discardRecording: true });
-
-    if (activeTokenRequestRef.current !== requestId) {
-      return;
-    }
-
-    try {
-      const token = await requestRealtimeToken({
-        mode: selectedMode,
-        sourceLanguage: needsSourceLanguage ? sourceLanguage : undefined,
-        targetLanguage
-      });
-
-      if (activeTokenRequestRef.current !== requestId) {
-        return;
+  useEffect(() => {
+    if (isDevModeFromUrl()) setDevOpen(true);
+    const handler = (event: KeyboardEvent) => {
+      if (event.altKey && (event.key === 'd' || event.key === 'D')) {
+        event.preventDefault();
+        setDevOpen((prev) => !prev);
       }
-
-      updatePreparedToken(token);
-      setStatus('ready');
-    } catch (error) {
-      if (activeTokenRequestRef.current !== requestId) {
-        return;
-      }
-
-      const message =
-        error instanceof RealtimeTokenClientError ? error.message : fallbackErrorMessage;
-      setErrorMessage(message);
-      setStatus('error');
-    }
-  };
-
-  const handleStartWebRtc = async () => {
-    if (!preparedToken) {
-      setErrorMessage('Prepare a translation session before starting WebRTC.');
-      setStatus('error');
-      return;
-    }
-
-    const requestId = activeWebRtcRequestRef.current + 1;
-    activeWebRtcRequestRef.current = requestId;
-    const abortController = new AbortController();
-    activeWebRtcAbortControllerRef.current = abortController;
-    setStatus('connecting');
-    setErrorMessage(null);
-    setInputTranscript('');
-    setOutputTranscript('');
-
-    try {
-      const translationSession = await createRealtimeTranslationSession({
-        token: preparedToken,
-        signal: abortController.signal,
-        onTranscriptDelta: (delta) => {
-          if (activeWebRtcRequestRef.current === requestId) {
-            handleTranscriptDelta(delta);
-          }
-        },
-        onLocalStream: (stream) => {
-          if (activeWebRtcRequestRef.current === requestId) {
-            localMediaStreamRef.current = stream;
-          }
-        },
-        onRemoteAudio: () => {
-          if (activeWebRtcRequestRef.current === requestId) {
-            setStatus('streaming');
-          }
-        }
-      });
-      if (activeWebRtcRequestRef.current !== requestId) {
-        stopCapturedTranslationSession(translationSession);
-        return;
-      }
-
-      activeWebRtcAbortControllerRef.current = null;
-      translationSessionRef.current = translationSession;
-      setStatus('connected');
-    } catch (error) {
-      if (activeWebRtcRequestRef.current !== requestId) {
-        return;
-      }
-
-      activeWebRtcAbortControllerRef.current = null;
-      stopTranslationSession();
-      setErrorMessage(
-        error instanceof RealtimeTranslationSessionError
-          ? error.message
-          : fallbackWebRtcErrorMessage
-      );
-      setStatus('error');
-    }
-  };
-
-  const handleStopWebRtc = () => {
-    const recordingSession = activeRecordingSessionRef.current;
-    const invalidationCompletion = invalidateWebRtcSession();
-    const invalidationRequestId = activeWebRtcRequestRef.current;
-
-    if (!recordingSession) {
-      setStatus(getPreparedSessionStatus());
-      return;
-    }
-
-    void invalidationCompletion.then(() => {
-      if (activeWebRtcRequestRef.current === invalidationRequestId) {
-        setStatus(getPreparedSessionStatus());
-      }
-    });
-  };
-
-  const browserSafeSession: PreparedSession | null = preparedToken
-    ? {
-        expiresAt: preparedToken.expiresAt,
-        sessionExpiresAt: preparedToken.sessionExpiresAt,
-        sessionId: preparedToken.sessionId,
-        translationCallUrl: preparedToken.translationCallUrl
-      }
-    : null;
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   useEffect(
     () => () => {
-      void invalidateWebRtcSession({ discardRecording: true });
-      revokeAudioRecordingUrl();
+      teardownSession();
+      revokeRecordingUrl();
+      revokePracticeAudio();
+    },
+    [teardownSession, revokeRecordingUrl, revokePracticeAudio]
+  );
+
+  const resetTranscriptBuffers = useCallback(() => {
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
+    setInputTranscript('');
+    setOutputTranscript('');
+    setDeltaLog([]);
+    setListenerHistory([]);
+    lastOutputLenRef.current = 0;
+    setTurns([]);
+    turnBuilderRef.current = null;
+    setPracticeStage('idle');
+    setPracticeAttempt('');
+    revokePracticeAudio();
+    setPracticeAudioUrl(null);
+  }, [revokePracticeAudio]);
+
+  const startMediaRecorder = useCallback((stream: MediaStream) => {
+    if (typeof MediaRecorder === 'undefined') return;
+    try {
+      const recorder = new MediaRecorder(stream);
+      recordingChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordingChunksRef.current = [...recordingChunksRef.current, event.data];
+        }
+      };
+      recorder.onstop = () => {
+        if (recordingChunksRef.current.length === 0) return;
+        const mimeType = recorder.mimeType || 'audio/webm';
+        const blob = new Blob(recordingChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        revokeRecordingUrl();
+        recordingBlobUrlRef.current = url;
+        setRecordingBlobUrl(url);
+        setRecordingMimeType(mimeType);
+        recordingNameRef.current = `simtalk-audio-${new Date().toISOString()}${getRecordingExtension(mimeType)}`;
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+    } catch {
+      recorderRef.current = null;
+    }
+  }, [revokeRecordingUrl]);
+
+  const handleTranscriptDelta = useCallback(
+    (delta: TranscriptDelta) => {
+      setDeltaLog((prev) => {
+        const next = [...prev, `[${delta.kind}] ${delta.text}`];
+        return next.slice(-50);
+      });
+      if (delta.kind === 'input') {
+        const next = inputTranscriptRef.current + delta.text;
+        inputTranscriptRef.current = next;
+        setInputTranscript(next);
+      } else {
+        const next = outputTranscriptRef.current + delta.text;
+        outputTranscriptRef.current = next;
+        setOutputTranscript(next);
+      }
     },
     []
   );
 
+  useEffect(() => {
+    if (mode !== 'listener') return;
+    const sentences = splitSentences(outputTranscript);
+    if (sentences.length === 0) return;
+    setListenerHistory(sentences);
+  }, [outputTranscript, mode]);
+
+  const startSessionWithRequest = useCallback(
+    async (
+      request: RealtimeTokenRequest,
+      opts: { startSessionRecorder: boolean; startLocalAudioEnabled?: boolean }
+    ): Promise<'ok' | 'superseded'> => {
+      const launchId = launchIdRef.current + 1;
+      launchIdRef.current = launchId;
+      setStatus('connecting');
+
+      const tokenResponse = await requestRealtimeToken(request);
+      if (launchIdRef.current !== launchId) return 'superseded';
+      setToken(tokenResponse);
+
+      const abort = new AbortController();
+      abortRef.current = abort;
+
+      const session = await createRealtimeTranslationSession({
+        token: tokenResponse,
+        signal: abort.signal,
+        startLocalAudioEnabled: opts.startLocalAudioEnabled,
+        onLocalStream: (stream) => {
+          if (launchIdRef.current !== launchId) return;
+          localStreamRef.current = stream;
+          if (opts.startSessionRecorder) startMediaRecorder(stream);
+        },
+        onTranscriptDelta: (delta) => {
+          if (launchIdRef.current === launchId) handleTranscriptDelta(delta);
+        },
+        onRemoteAudio: () => {
+          if (launchIdRef.current === launchId) setStatus('live');
+        }
+      });
+      if (launchIdRef.current !== launchId) {
+        session.stop();
+        return 'superseded';
+      }
+      sessionRef.current = session;
+      setStatus('live');
+      return 'ok';
+    },
+    [handleTranscriptDelta, startMediaRecorder]
+  );
+
+  const errorMessageFor = (error: unknown, fallback: string): string => {
+    if (error instanceof RealtimeTokenClientError) return error.message;
+    if (error instanceof RealtimeTranslationSessionError) return error.message;
+    return fallback;
+  };
+
+  const launch = useCallback(async () => {
+    if (status === 'launching' || status === 'connecting') return;
+    setErrorMessage(null);
+    teardownSession();
+    resetTranscriptBuffers();
+    revokeRecordingUrl();
+    setRecordingBlobUrl(null);
+    setActiveSide('source');
+    setStatus('launching');
+    setView('session');
+
+    try {
+      const result = await startSessionWithRequest(
+        {
+          mode,
+          sourceLanguage: isAutoLanguage(source) ? undefined : source.bcp47,
+          targetLanguage: target.bcp47
+        },
+        { startSessionRecorder: mode === 'listener', startLocalAudioEnabled: mode !== 'practice' }
+      );
+      if (result === 'superseded') return;
+      if (mode === 'practice') setPracticeStage('idle');
+    } catch (error) {
+      teardownSession();
+      setErrorMessage(errorMessageFor(error, 'Could not launch translation. Please try again.'));
+      setStatus('error');
+      setView('lobby');
+    }
+  }, [
+    mode,
+    source,
+    target,
+    status,
+    teardownSession,
+    resetTranscriptBuffers,
+    revokeRecordingUrl,
+    startSessionWithRequest
+  ]);
+
+  const endSession = useCallback(() => {
+    teardownSession();
+    setStatus('idle');
+    setView('summary');
+  }, [teardownSession]);
+
+  const newSession = useCallback(() => {
+    teardownSession();
+    resetTranscriptBuffers();
+    revokeRecordingUrl();
+    setRecordingBlobUrl(null);
+    setToken(null);
+    setStatus('idle');
+    setErrorMessage(null);
+    setView('lobby');
+  }, [teardownSession, resetTranscriptBuffers, revokeRecordingUrl]);
+
+  const pauseListener = useCallback(() => {
+    teardownSession();
+    setStatus('paused');
+    setView('summary');
+  }, [teardownSession]);
+
+  const swapLanguages = useCallback(() => {
+    setSource(target);
+    setTarget(source);
+  }, [source, target]);
+
+  const flipTurnaboutSides = useCallback(async () => {
+    if (mode !== 'turnabout') return;
+    if (holdingMicRef.current) return;
+    if (status === 'launching' || status === 'connecting') return;
+
+    const previousSide = activeSide;
+    const nextSide: 'source' | 'target' = previousSide === 'source' ? 'target' : 'source';
+    const speaker = nextSide === 'source' ? source : target;
+    const listener = nextSide === 'source' ? target : source;
+
+    const pendingId = pendingTurnIdRef.current;
+    if (pendingId) {
+      setTurns((prev) => prev.map((t) => (t.id === pendingId ? { ...t, status: 'done' } : t)));
+      pendingTurnIdRef.current = null;
+    }
+
+    abortRef.current?.abort();
+    abortRef.current = null;
+    try {
+      sessionRef.current?.stop();
+    } catch {
+      // best effort
+    }
+    sessionRef.current = null;
+    localStreamRef.current = null;
+
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
+    setInputTranscript('');
+    setOutputTranscript('');
+    setLiveBaseInputLen(0);
+    setLiveBaseOutputLen(0);
+    lastOutputLenRef.current = 0;
+    inputBaselineRef.current = 0;
+
+    setActiveSide(nextSide);
+    setErrorMessage(null);
+
+    try {
+      const result = await startSessionWithRequest(
+        {
+          mode: 'turnabout',
+          sourceLanguage: speaker.bcp47,
+          targetLanguage: listener.bcp47
+        },
+        { startSessionRecorder: false, startLocalAudioEnabled: true }
+      );
+      if (result === 'superseded') return;
+    } catch (error) {
+      setActiveSide(previousSide);
+      teardownSession();
+      setErrorMessage(errorMessageFor(error, 'Could not switch sides. Try again.'));
+      setStatus('error');
+    }
+  }, [activeSide, mode, source, target, status, startSessionWithRequest, teardownSession]);
+
+  const onMicDown = useCallback(() => {
+    if (holdingMicRef.current) return;
+    holdingMicRef.current = true;
+    setHoldingMic(true);
+    turnBuilderRef.current = {
+      src: '',
+      dst: '',
+      side: activeSide
+    };
+    const priorPendingId = pendingTurnIdRef.current;
+    if (priorPendingId) {
+      setTurns((prev) => prev.map((t) => (t.id === priorPendingId ? { ...t, status: 'done' } : t)));
+      pendingTurnIdRef.current = null;
+    }
+    lastOutputLenRef.current = outputTranscriptRef.current.length;
+    inputBaselineRef.current = inputTranscriptRef.current.length;
+    setLiveBaseInputLen(inputTranscriptRef.current.length);
+    setLiveBaseOutputLen(outputTranscriptRef.current.length);
+  }, [activeSide]);
+
+  const onMicUp = useCallback(() => {
+    if (!holdingMicRef.current) return;
+    holdingMicRef.current = false;
+    setHoldingMic(false);
+    const builder = turnBuilderRef.current;
+    turnBuilderRef.current = null;
+    if (!builder) return;
+    const newDst = outputTranscriptRef.current.slice(lastOutputLenRef.current).trim();
+    const newSrc = inputTranscriptRef.current.slice(inputBaselineRef.current).trim();
+    if (!newSrc && !newDst) return;
+    const speakerSide = builder.side;
+    const srcLang = speakerSide === 'source' ? source : target;
+    const dstLang = speakerSide === 'source' ? target : source;
+    const turnId = `turn_${Date.now()}`;
+    setTurns((prev) => [
+      ...prev,
+      {
+        id: turnId,
+        side: speakerSide,
+        srcLang,
+        dstLang,
+        src: newSrc,
+        dst: newDst,
+        status: 'translating'
+      }
+    ]);
+    pendingTurnIdRef.current = turnId;
+    pendingBaseOutputLenRef.current = lastOutputLenRef.current;
+  }, [source, target]);
+
+  useEffect(() => {
+    const id = pendingTurnIdRef.current;
+    if (!id) return;
+    const newDst = outputTranscript.slice(pendingBaseOutputLenRef.current).trim();
+    if (!newDst) return;
+    setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, dst: newDst } : t)));
+  }, [outputTranscript]);
+
+  const startPracticeRecording = useCallback(() => {
+    const existing = recorderRef.current;
+    if (existing && existing.state !== 'inactive') {
+      existing.onstop = null;
+      existing.ondataavailable = null;
+      try {
+        existing.stop();
+      } catch {
+        // best effort
+      }
+    }
+    recorderRef.current = null;
+    const localStream = localStreamRef.current;
+    if (!localStream) {
+      sessionRef.current?.setLocalAudioEnabled(false);
+      return;
+    }
+    try {
+      const recorder = new MediaRecorder(localStream);
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+      recorder.onstop = () => {
+        if (recorderRef.current !== recorder) return;
+        recorderRef.current = null;
+        if (chunks.length === 0) return;
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        practiceAudioUrlRef.current = url;
+        setPracticeAudioUrl(url);
+      };
+      sessionRef.current?.setLocalAudioEnabled(true);
+      recorder.start();
+      recorderRef.current = recorder;
+      revokePracticeAudio();
+      setPracticeAudioUrl(null);
+      inputTranscriptRef.current = '';
+      outputTranscriptRef.current = '';
+      setInputTranscript('');
+      setOutputTranscript('');
+      setPracticeAttempt('');
+      setPracticeStage('recording');
+    } catch {
+      recorderRef.current = null;
+      sessionRef.current?.setLocalAudioEnabled(false);
+    }
+  }, [revokePracticeAudio]);
+
+  const stopPracticeRecording = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== 'inactive') {
+      try {
+        recorder.stop();
+      } catch {
+        recorderRef.current = null;
+        // best effort
+      }
+    } else {
+      recorderRef.current = null;
+    }
+    sessionRef.current?.setLocalAudioEnabled(false);
+    setPracticeStage('reviewing');
+  }, []);
+
+  const submitPracticeAttempt = useCallback(() => {
+    setPracticeStage('attempting');
+  }, []);
+
+  const revealPractice = useCallback(() => {
+    setPracticeStage('revealed');
+  }, []);
+
+  const tryPracticeAgain = useCallback(() => {
+    revokePracticeAudio();
+    setPracticeAudioUrl(null);
+    setPracticeAttempt('');
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
+    setInputTranscript('');
+    setOutputTranscript('');
+    sessionRef.current?.setLocalAudioEnabled(false);
+    setPracticeStage('idle');
+  }, [revokePracticeAudio]);
+
+  const nextPracticePhrase = useCallback(() => {
+    tryPracticeAgain();
+  }, [tryPracticeAgain]);
+
+  const buildTranscriptText = useCallback((): string => {
+    if (mode === 'turnabout' && turns.length > 0) {
+      const lines = [
+        'SimTalk transcript',
+        'Mode: turnabout',
+        `Languages: ${source.name} ↔ ${target.name}`,
+        ''
+      ];
+      turns.forEach((turn, i) => {
+        lines.push(`[Turn ${i + 1}] ${turn.srcLang.code} → ${turn.dstLang.code}`);
+        if (turn.src) lines.push(turn.src);
+        if (turn.dst) lines.push(`→ ${turn.dst}`);
+        lines.push('');
+      });
+      return lines.join('\n').trimEnd();
+    }
+    const sourceLabel = isAutoLanguage(source) ? 'Auto-detected' : source.name;
+    return [
+      'SimTalk transcript',
+      `Mode: ${mode}`,
+      `Source: ${sourceLabel}`,
+      `Target: ${target.name}`,
+      '',
+      'Source transcript:',
+      inputTranscript || '(none)',
+      '',
+      'Translated transcript:',
+      outputTranscript || '(none)'
+    ].join('\n');
+  }, [mode, turns, source, target, inputTranscript, outputTranscript]);
+
+  const copyTranscript = useCallback(() => {
+    void navigator.clipboard?.writeText(buildTranscriptText());
+  }, [buildTranscriptText]);
+
+  const downloadTranscript = useCallback(() => {
+    const blob = new Blob([buildTranscriptText()], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `simtalk-transcript-${new Date().toISOString()}.txt`;
+    document.body.append(a);
+    try {
+      a.click();
+    } finally {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  }, [buildTranscriptText]);
+
+  const headerStatus: 'connecting' | 'live' | 'paused' | 'idle' = useMemo(() => {
+    if (status === 'launching' || status === 'connecting') return 'connecting';
+    if (status === 'live') return 'live';
+    if (status === 'paused') return 'paused';
+    return 'idle';
+  }, [status]);
+
+  // Suppress noise: prevent same source/target conflicting per Zod refinement
+  useEffect(() => {
+    if (isAutoLanguage(source)) return;
+    if (source.bcp47 === target.bcp47) {
+      const other = LANGUAGES.find((lang) => lang.bcp47 !== source.bcp47);
+      if (other) setTarget(other);
+    }
+  }, [source, target]);
+
   return (
-    <main className="min-h-dvh overflow-hidden bg-background text-foreground">
-      <section className="relative isolate px-4 py-6 sm:px-6 lg:px-8" aria-labelledby="hero-title">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,var(--gradient-start),transparent_32rem),radial-gradient(circle_at_85%_12%,var(--gradient-end),transparent_28rem)]" />
-        <div className="mx-auto grid w-full max-w-7xl gap-6">
-          <header className="grid gap-6 rounded-[2.5rem] border border-border bg-card/78 p-6 shadow-[0_28px_100px_var(--shadow-shell)] backdrop-blur sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:p-10">
-            <div className="grid gap-4">
-              <Badge variant="secondary" className="w-fit">
-                <Sparkles className="size-3.5" />
-                Private Phase 1 Prototype
-              </Badge>
-              <div className="grid gap-4">
-                <h1 id="hero-title" className="max-w-4xl text-5xl font-semibold tracking-[-0.07em] text-balance sm:text-7xl lg:text-8xl">
-                  SimTalk
-                </h1>
-                <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-                  Speak naturally. Hear instantly. A polished browser-owned translation console for
-                  validating live speech, translated audio, and local transcript review without
-                  exposing long-lived secrets.
-                </p>
-              </div>
-            </div>
-            <Card className="overflow-hidden rounded-[2rem] bg-background/72">
-              <CardContent className="grid gap-4 p-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Current state</p>
-                    <p className="text-2xl font-semibold tracking-[-0.03em]">{activeStatusDetails.label}</p>
-                  </div>
-                  <ListeningOrb isActive={isListening} prefersReducedMotion={prefersReducedMotion} />
-                </div>
-                <p className="text-sm leading-6 text-muted-foreground">{activeStatusDetails.message}</p>
-              </CardContent>
-            </Card>
-          </header>
+    <main
+      style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'transparent',
+        color: '#FFFFFF'
+      }}
+    >
+      {view === 'lobby' ? (
+        <Lobby
+          mode={mode}
+          source={source}
+          target={target}
+          isLaunching={status === 'launching' || status === 'connecting'}
+          errorMessage={errorMessage}
+          onChangeMode={(next) => {
+            if (next !== 'listener' && isAutoLanguage(source)) {
+              const fallback = findLanguage('en');
+              setSource(fallback.bcp47 === target.bcp47 ? findLanguage('es') : fallback);
+            }
+            setMode(next);
+            setErrorMessage(null);
+          }}
+          onChangeSource={setSource}
+          onChangeTarget={setTarget}
+          onSwap={swapLanguages}
+          onLaunch={launch}
+        />
+      ) : null}
 
-          <section className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
-            <Card className="bg-card/88 backdrop-blur" id="session-setup">
-              <CardHeader>
-                <Badge variant="secondary" className="w-fit">
-                  Session setup
-                </Badge>
-                <CardTitle>Choose the conversation workflow</CardTitle>
-                <CardDescription>
-                  Preparing a session only requests a short-lived credential. Microphone capture starts
-                  later, after an explicit action.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="grid gap-8" onSubmit={handleSubmit}>
-                  <fieldset className="grid gap-4" aria-describedby="mode-help">
-                    <legend className="text-base font-semibold text-foreground">Conversation mode</legend>
-                    <p id="mode-help" className="text-sm leading-6 text-muted-foreground">
-                      Native radio controls are styled as large cards and remain keyboard accessible.
-                    </p>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      {conversationModes.map((mode) => {
-                        const Icon = modeMeta[mode].icon;
-
-                        return (
-                          <label
-                            className="group grid cursor-pointer gap-4 rounded-[1.5rem] border border-border bg-background/72 p-6 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/8 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
-                            key={mode}
-                          >
-                            <input
-                              checked={selectedMode === mode}
-                              className="sr-only"
-                              name="conversation-mode"
-                              onChange={() => handleModeSelect(mode)}
-                              type="radio"
-                              value={mode}
-                            />
-                            <span className="flex items-center justify-between gap-4">
-                              <span className="grid size-12 place-items-center rounded-full bg-secondary text-muted-foreground transition-colors group-has-[:checked]:bg-primary group-has-[:checked]:text-primary-foreground">
-                                <Icon className="size-5" />
-                              </span>
-                              <span className="text-xs font-semibold tracking-[0.1em] text-muted-foreground uppercase">
-                                {modeMeta[mode].eyebrow}
-                              </span>
-                            </span>
-                            <span className="grid gap-2">
-                              <strong className="text-lg font-semibold tracking-[-0.02em] text-foreground">
-                                {modeLabels[mode]}
-                              </strong>
-                              <small className="text-sm leading-6 text-muted-foreground">
-                                {modeDescriptions[mode]}
-                              </small>
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-
-                  <fieldset className="grid gap-4">
-                    <legend className="text-base font-semibold text-foreground">Language direction</legend>
-                    <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-                      <label className="grid gap-2">
-                        <span className="text-sm font-semibold text-muted-foreground">Spoken language</span>
-                        <select
-                          aria-describedby="source-language-help"
-                          className={selectClassName}
-                          disabled={!needsSourceLanguage}
-                          onChange={(event) => handleSourceLanguageChange(event.target.value)}
-                          value={sourceLanguage}
-                        >
-                          {languageOptions.map((language) => (
-                            <option key={language.code} value={language.code}>
-                              {language.label}
-                            </option>
-                          ))}
-                        </select>
-                        <small id="source-language-help" className="min-h-10 text-sm leading-5 text-muted-foreground">
-                          {sourceHelpText}
-                        </small>
-                      </label>
-
-                      <Button
-                        aria-label={isTurnaboutMode ? 'Switch speaker direction' : 'Flip selected languages'}
-                        className="mb-10 h-14 justify-self-start px-6 lg:justify-self-center"
-                        disabled={!needsSourceLanguage || status === 'loading' || status === 'connecting'}
-                        onClick={handleFlipLanguages}
-                        size={isTurnaboutMode ? 'default' : 'icon'}
-                        type="button"
-                        variant="outline"
-                      >
-                        <ArrowLeftRight className="size-5" />
-                        {isTurnaboutMode && <span>Switch speaker direction</span>}
-                      </Button>
-
-                      <label className="grid gap-2">
-                        <span className="text-sm font-semibold text-muted-foreground">Translation language</span>
-                        <select
-                          className={selectClassName}
-                          onChange={(event) => handleTargetLanguageChange(event.target.value)}
-                          value={targetLanguage}
-                        >
-                          {languageOptions.map((language) => (
-                            <option key={language.code} value={language.code}>
-                              {language.label}
-                            </option>
-                          ))}
-                        </select>
-                        <small className="min-h-10 text-sm leading-5 text-muted-foreground">
-                          Translated audio and output transcript use this language.
-                        </small>
-                      </label>
-                    </div>
-                  </fieldset>
-
-                  <div className="flex flex-wrap items-center gap-4">
-                    <Button disabled={status === 'loading'} size="lg" type="submit">
-                      {status === 'loading' ? 'Preparing session...' : 'Prepare translation session'}
-                    </Button>
-                    <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                      Changing the mode or languages clears any prepared credential so WebRTC cannot
-                      start with stale direction settings.
-                    </p>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/88 backdrop-blur" aria-labelledby="session-status">
-              <CardHeader>
-                <Badge variant={activeStatusDetails.badgeVariant} className="w-fit">
-                  <StatusIcon className="size-3.5" />
-                  {activeStatusDetails.label}
-                </Badge>
-                <CardTitle id="session-status">Recording is off by default</CardTitle>
-                <CardDescription>
-                  Recording and capture remain off until you explicitly start the browser session.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-6">
-                <div
-                  aria-live="polite"
-                  className={cn(
-                    'status-card grid place-items-center rounded-[2rem] border border-border bg-background/70 p-8',
-                    `status-card--${status}`
-                  )}
-                  role="status"
-                >
-                  <ListeningOrb isActive={isListening} prefersReducedMotion={prefersReducedMotion} />
-                  <p className="mt-4 text-center text-sm leading-6 text-muted-foreground">
-                    {status === 'error' ? errorMessage : activeStatusDetails.message}
-                  </p>
-                </div>
-
-                {preparedToken && (
-                  <div className="flex flex-wrap gap-4">
-                    <Button
-                      disabled={status === 'connecting' || isWebRtcSessionActive}
-                      onClick={handleStartWebRtc}
-                      type="button"
-                    >
-                      <Mic className="size-4" />
-                      {status === 'connecting' ? 'Connecting audio...' : startWebRtcLabel}
-                    </Button>
-                    <Button
-                      disabled={!isWebRtcSessionActive}
-                      onClick={handleStopWebRtc}
-                      type="button"
-                      variant="secondary"
-                    >
-                      <Square className="size-4" />
-                      {stopWebRtcLabel}
-                    </Button>
-                  </div>
-                )}
-
-                {canShowPreparedSession && browserSafeSession && (
-                  <dl className="grid gap-4 rounded-[1.5rem] border border-border bg-background/70 p-4 text-sm">
-                    <div className="grid gap-1">
-                      <dt className="font-medium text-muted-foreground">Prepared session</dt>
-                      <dd className="break-all font-semibold text-foreground">{browserSafeSession.sessionId}</dd>
-                    </div>
-                    <div className="grid gap-1">
-                      <dt className="font-medium text-muted-foreground">Credential expires</dt>
-                      <dd className="font-semibold text-foreground">
-                        {new Date(browserSafeSession.expiresAt).toLocaleTimeString()}
-                      </dd>
-                    </div>
-                    <div className="grid gap-1">
-                      <dt className="font-medium text-muted-foreground">WebRTC endpoint</dt>
-                      <dd className="break-all font-semibold text-foreground">
-                        {browserSafeSession.translationCallUrl}
-                      </dd>
-                    </div>
-                  </dl>
-                )}
-
-                <section className="grid gap-4 rounded-[1.5rem] border border-border bg-background/70 p-4" aria-labelledby="local-recording-title">
-                  <div className="grid gap-2">
-                    <h4 id="local-recording-title" className="text-base font-semibold text-foreground">
-                      Local recording
-                    </h4>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      Recording is opt-in and stays in this browser as a local blob until you
-                      download it, refresh, or reset the session.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-4">
-                    <Button
-                      disabled={!canStartRecording}
-                      onClick={handleStartLocalRecording}
-                      type="button"
-                      variant="outline"
-                    >
-                      <Mic className="size-4" />
-                      Start local recording
-                    </Button>
-                    <Button
-                      disabled={recordingStatus !== 'recording'}
-                      onClick={() => {
-                        void stopLocalRecording();
-                      }}
-                      type="button"
-                      variant="secondary"
-                    >
-                      <Square className="size-4" />
-                      Stop local recording
-                    </Button>
-                    {audioRecordingUrl && (
-                      <Button asChild variant="outline">
-                        <a download={audioRecordingName} href={audioRecordingUrl}>
-                          <Download className="size-4" />
-                          Download audio recording
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    {recordingStatus === 'recording' && 'Local microphone recording is active.'}
-                    {recordingStatus === 'ready' &&
-                      'Audio recording is stored as a local browser blob and has not been uploaded.'}
-                    {recordingStatus === 'off' && 'Audio recording is off by default.'}
-                    {recordingStatus === 'unsupported' &&
-                      'Local recording is unsupported in this browser.'}
-                    {recordingStatus === 'error' && recordingError}
-                  </p>
-                </section>
-              </CardContent>
-            </Card>
-          </section>
-
-          <Card className="bg-card/88 backdrop-blur" aria-labelledby="mode-flow-title">
-            <CardHeader>
-              <Badge variant="secondary" className="w-fit">
-                Mode flow
-              </Badge>
-              <CardTitle id="mode-flow-title">{modeLabels[selectedMode]}</CardTitle>
-              <CardDescription>
-                {selectedMode === 'listener' &&
-                  'Listener mode keeps source language detection automatic and continuously translates into the selected target language.'}
-                {selectedMode === 'turnabout' &&
-                  'Turn-about mode assumes one active speaker at a time. Switch the direction manually before the next person speaks.'}
-                {selectedMode === 'practice' &&
-                  'Practice mode treats each attempt as a phrase: start, speak, pause, review transcripts, then clear for another attempt.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[1.5rem] border border-border bg-background/70 p-6">
-                <p className="text-sm font-semibold text-muted-foreground">Current direction</p>
-                <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-foreground">
-                  {needsSourceLanguage ? getLanguageLabel(sourceLanguage) : 'Auto-detected'} to{' '}
-                  {getLanguageLabel(targetLanguage)}
-                </p>
-              </div>
-              <div className="rounded-[1.5rem] border border-border bg-background/70 p-6">
-                <p className="text-sm font-semibold text-muted-foreground">Mode rule</p>
-                <p className="mt-2 text-sm leading-6 text-foreground">
-                  {selectedMode === 'listener' &&
-                    'Keep speaking naturally. No diarisation or speaker switching is required.'}
-                  {selectedMode === 'turnabout' &&
-                    'Only one direction is active. Use the switch action between speakers.'}
-                  {selectedMode === 'practice' &&
-                    'Pause after each phrase so the source and translated transcripts can be reviewed.'}
-                </p>
-              </div>
-              <div className="rounded-[1.5rem] border border-border bg-background/70 p-6">
-                <p className="text-sm font-semibold text-muted-foreground">Next action</p>
-                <p className="mt-2 text-sm leading-6 text-foreground">
-                  {selectedMode === 'listener' && 'Prepare a session, then start the microphone.'}
-                  {selectedMode === 'turnabout' && 'Prepare again after switching direction to avoid stale credentials.'}
-                  {selectedMode === 'practice' && practiceReviewMessage}
-                </p>
-                {isPracticeMode && (
-                  <Button className="mt-4" onClick={handleNewPracticeAttempt} type="button" variant="outline">
-                    <RotateCcw className="size-4" />
-                    New practice attempt
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <section className="grid gap-6 lg:grid-cols-2" aria-labelledby="transcript-title">
-            <div className="flex flex-wrap items-end justify-between gap-4 lg:col-span-2">
-              <div>
-                <Badge variant="secondary" className="mb-4 w-fit">
-                  Transcript panels
-                </Badge>
-                <h2 id="transcript-title" className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-                  Review what SimTalk heard and returned
-                </h2>
-              </div>
-              <Button disabled={!hasTranscript} onClick={handleDownloadTranscript} type="button" variant="outline">
-                <Download className="size-4" />
-                Download transcript
-              </Button>
-            </div>
-
-            <Card className="bg-card/88 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Input transcript</CardTitle>
-                <CardDescription>
-                  {needsSourceLanguage
-                    ? `Spoken ${getLanguageLabel(sourceLanguage)} captured from the microphone.`
-                    : 'Listener Mode uses automatic source-language detection.'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-6">
-                  <p className="whitespace-pre-wrap break-words text-base leading-8 text-foreground">
-                    {inputTranscript || 'Waiting for input transcript deltas.'}
-                  </p>
-                </article>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/88 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Translated transcript</CardTitle>
-                <CardDescription>
-                  Output audio and text target {getLanguageLabel(targetLanguage)}.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <article className="min-h-56 rounded-[1.5rem] border border-border bg-background/72 p-6">
-                  <p className="whitespace-pre-wrap break-words text-base leading-8 text-foreground">
-                    {outputTranscript || 'Waiting for translated transcript deltas.'}
-                  </p>
-                </article>
-              </CardContent>
-            </Card>
-          </section>
-
-          <footer className="rounded-[2rem] border border-border bg-card/72 p-6 text-sm leading-6 text-muted-foreground backdrop-blur">
-            The browser receives only a short-lived client secret. Audio flows directly from this browser
-            to OpenAI over WebRTC and is not sent to the SimTalk backend.
-          </footer>
+      {view === 'session' ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <SessionHeader
+            mode={mode}
+            source={mode === 'listener' && isAutoLanguage(source) ? null : source}
+            target={target}
+            activeSide={mode === 'turnabout' ? activeSide : undefined}
+            status={headerStatus}
+            onExit={endSession}
+            onToggleDev={() => setDevOpen((prev) => !prev)}
+          />
+          {mode === 'listener' ? (
+            <ListenerSurface
+              target={target}
+              liveText={outputTranscript}
+              history={listenerHistory}
+              isStreaming={outputTranscript.length > 0 && status === 'live'}
+              onPause={pauseListener}
+              onOpenTranscript={() => setTranscriptSheetOpen(true)}
+            />
+          ) : null}
+          {mode === 'turnabout' ? (
+            <TurnaboutSurface
+              source={source}
+              target={target}
+              activeSide={activeSide}
+              turns={turns}
+              recording={holdingMic}
+              liveSrc={holdingMic ? inputTranscript.slice(liveBaseInputLen) : ''}
+              liveDst={holdingMic ? outputTranscript.slice(liveBaseOutputLen) : ''}
+              busy={status === 'connecting' || status === 'launching'}
+              onFlip={() => {
+                void flipTurnaboutSides();
+              }}
+              onMicDown={onMicDown}
+              onMicUp={onMicUp}
+            />
+          ) : null}
+          {mode === 'practice' ? (
+            <PracticeSurface
+              source={source}
+              target={target}
+              stage={practiceStage}
+              heardText={inputTranscript}
+              modelTranslation={outputTranscript}
+              attempt={practiceAttempt}
+              audioUrl={practiceAudioUrl}
+              onStartRecording={startPracticeRecording}
+              onStopRecording={stopPracticeRecording}
+              onAttemptChange={setPracticeAttempt}
+              onSubmitAttempt={submitPracticeAttempt}
+              onReveal={revealPractice}
+              onTryAgain={tryPracticeAgain}
+              onNextPhrase={nextPracticePhrase}
+            />
+          ) : null}
         </div>
-      </section>
+      ) : null}
+
+      {view === 'summary' ? (
+        <Summary
+          mode={mode}
+          source={mode === 'listener' && isAutoLanguage(source) ? null : source}
+          target={target}
+          inputTranscript={inputTranscript}
+          outputTranscript={outputTranscript}
+          turns={turns}
+          audioUrl={recordingBlobUrl}
+          audioFilename={recordingNameRef.current}
+          onCopy={copyTranscript}
+          onDownloadTranscript={downloadTranscript}
+          onNewSession={newSession}
+        />
+      ) : null}
+
+      <TranscriptSheet
+        open={transcriptSheetOpen}
+        title="TRANSLATED TRANSCRIPT"
+        entries={listenerHistory}
+        onClose={() => setTranscriptSheetOpen(false)}
+        onCopyAll={copyTranscript}
+      />
+
+      <DevDrawer
+        open={devOpen}
+        token={token}
+        status={status}
+        recordingStatus={recordingBlobUrl ? `ready · ${recordingMimeType}` : recorderRef.current ? 'recording' : 'off'}
+        recentDeltas={deltaLog}
+        onClose={() => setDevOpen(false)}
+      />
     </main>
   );
 };

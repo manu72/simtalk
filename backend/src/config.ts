@@ -7,11 +7,13 @@ export type AppConfig = {
   readonly realtimeClientSecretTtlSeconds: number;
   readonly realtimeTokenRateLimitWindowMs: number;
   readonly realtimeTokenRateLimitMaxRequests: number;
+  readonly realtimeInputTranscriptionModel: string;
 };
 
 const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'] as const;
 const defaultOpenAiRealtimeClientSecretUrl =
   'https://api.openai.com/v1/realtime/translations/client_secrets';
+const defaultRealtimeInputTranscriptionModel = 'gpt-realtime-whisper';
 
 const parseAllowedOrigins = (value: string | undefined): readonly string[] => {
   const origins = value
@@ -63,5 +65,7 @@ export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig
     5,
     1,
     100
-  )
+  ),
+  realtimeInputTranscriptionModel:
+    env.OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL?.trim() || defaultRealtimeInputTranscriptionModel
 });
