@@ -71,8 +71,9 @@ Shared contracts in `shared/types/src/index.ts` are the **source of truth** for 
 
 ## Frontend Notes
 
-- UI uses semantic HTML + native controls; custom CSS variables on an 8px spacing scale in `styles.css`.
-- Tailwind v4 and `@radix-ui/react-slot`, `class-variance-authority`, `tailwind-merge` are installed (`frontend/src/components/ui/` has button/card/badge from a shadcn-style setup) but the legacy `styles.css` is still the primary styling layer — check before assuming Tailwind is wired into a given component.
+- UI uses semantic HTML + native controls; custom CSS variables and inline component styles should preserve the existing 8px spacing rhythm.
+- Active global CSS lives in `frontend/src/styles/tokens.css`, imported by `frontend/src/main.tsx`. It defines SimTalk brand tokens, semantic color aliases, base styles, and reduced-motion handling.
+- Tailwind, shadcn/ui runtime dependencies, `@radix-ui/react-slot`, `class-variance-authority`, and `tailwind-merge` are not installed in the active frontend package. `components.json`, `frontend/src/components/ui/`, and `frontend/src/lib/utils.ts` are stale scaffold remnants unless revived deliberately.
 - Respect `prefers-reduced-motion`; never rely on color alone for state.
 
 ## Agentic OS

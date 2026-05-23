@@ -89,5 +89,5 @@ simtalk/
 
 - `frontend/src/styles.css` no longer exists; active global CSS is `frontend/src/styles/tokens.css`.
 - `components.json`, `frontend/src/components/ui/*`, and `frontend/src/lib/utils.ts` are present but not part of the active UI path.
-- `.agentic/SUBSYSTEMS/*` and `docs/ux-redesign-plan.md` lag the current implementation.
+- `.agentic/SUBSYSTEMS/*`, `.agentic/PROJECT_BRIEF.md`, `.agentic/LESSONS/decisions.md`, `CLAUDE.md`, and `docs/ux-redesign-plan.md` contained stale Tailwind/shadcn or planned-status claims at the start of this pass.
 - No in-repo CI/deploy configuration exists.

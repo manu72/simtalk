@@ -11,7 +11,7 @@ SimTalk is a TypeScript pnpm workspace for a private, pre-MVP realtime speech-to
    - Requests a short-lived OpenAI realtime translation credential from the backend.
    - Captures microphone audio after user action.
    - Opens a direct WebRTC session with OpenAI using the client secret.
-   - Plays translated audio, renders transcript deltas, records local browser audio where implemented, and tears down media resources.
+   - Plays translated audio, renders transcript deltas, manages mode-specific session state, records local browser audio where implemented, and tears down media resources.
 
 2. Hono backend (`backend/`)
    - Exposes `GET /health` and `POST /realtime/token`.
@@ -52,15 +52,17 @@ Browser UI
 | Backend | Hono 4.12.21, `@hono/node-server` 2.0.3 |
 | Shared contracts | Zod, `@simtalk/shared-types` |
 | Realtime translation | OpenAI `gpt-realtime-translate` |
-| Test tooling | Vitest, React Testing Library, jsdom, Playwright |
+| Test tooling | Vitest 4.1.7, React Testing Library, jsdom, Playwright 1.60.0 |
 | Deployment target | Vercel in Phase 1, out-of-repo settings |
 
-Tailwind CSS and shadcn/ui are not installed in the active frontend package. `components.json` and `frontend/src/components/ui/*` are scaffold remnants unless revived later.
+Tailwind CSS, shadcn/ui runtime dependencies, Radix Slot, `class-variance-authority`, and `tailwind-merge` are not installed in the active frontend package. `components.json`, `frontend/src/components/ui/*`, and `frontend/src/lib/utils.ts` are scaffold remnants unless revived later.
 
 ## Entrypoints
 
 - `frontend/src/main.tsx` renders the React app and imports `frontend/src/styles/tokens.css`.
 - `frontend/src/App.tsx` is the frontend session orchestrator.
+- `frontend/src/realtimeTokenClient.ts` owns browser-to-backend token requests and client-side schema/error validation.
+- `frontend/src/realtimeTranslationSession.ts` owns microphone capture, WebRTC offer/answer exchange, OpenAI data-channel transcript deltas, remote audio attachment, and teardown.
 - `backend/src/server.ts` starts the Hono server with `@hono/node-server`.
 - `backend/src/app.ts` wires middleware, routes, and shared error handling.
 - `shared/types/src/index.ts` is the cross-boundary contract hub.
@@ -84,3 +86,4 @@ Tailwind CSS and shadcn/ui are not installed in the active frontend package. `co
 - Manual live OpenAI validation is still pending.
 - Deployment implementation is still out-of-repo.
 - The backend validates `mode` and `sourceLanguage`, but currently forwards only `targetLanguage` and transcription model settings to OpenAI for token minting.
+- Agentic subsystem notes and `CLAUDE.md` contained stale Tailwind/shadcn guidance at the start of this pass; README and generated docsync artifacts should be treated as more current for active frontend dependencies.

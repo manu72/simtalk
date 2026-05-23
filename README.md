@@ -29,12 +29,15 @@ Implemented now:
 
 - pnpm workspace with `frontend`, `backend`, and `shared/types` packages.
 - React 19 + Vite 7 frontend with accessible mode/language/session controls and UX-redesigned Lobby, Listener, Turn-about, Practice, transcript, dev drawer, and Summary surfaces.
+- 70+ language catalog with automatic source detection for Listener mode and explicit language pairs for Turn-about and Practice.
 - Hono backend with `GET /health` and `POST /realtime/token`.
 - Shared Zod schemas and inferred TypeScript types for modes, language tags, token requests/responses, API errors, and health responses.
 - Server-side OpenAI realtime translation client-secret minting.
 - Configured-origin CORS, baseline security headers, and in-memory rate limiting for token issuance.
 - Browser token request client with schema validation and timeout handling.
 - Browser-native WebRTC setup using microphone capture, `RTCPeerConnection`, SDP exchange with OpenAI, remote translated audio playback, transcript delta handling, and cleanup.
+- Turn-about side flips re-mint direction-specific tokens and keep captured turn transcripts when the mic is released.
+- Practice keeps the live mic muted until an active recording attempt and captures browser-local practice audio for review when available.
 - Browser-local listener recording, practice recording, transcript copy/download, and audio download when a recording exists.
 - Vitest coverage for shared contracts, backend config/routes/services, frontend components/clients/WebRTC service, plus Playwright browser flows with mocked token/OpenAI network boundaries.
 
@@ -423,6 +426,7 @@ Before making non-trivial changes:
 Important current doc drift outside README:
 
 - `.agentic/SUBSYSTEMS/api.md`, `web.md`, `shared.md`, and `tests.md` still contain planned/unknown status text even though implementation exists.
+- `.agentic/PROJECT_BRIEF.md` and `.agentic/LESSONS/decisions.md` still mention Tailwind/shadcn as active frontend technology; package manifests are the source of truth.
 - `docs/ux-redesign-plan.md` still reads like a proposal even though much of the UX redesign has landed.
 - Refreshing Agentic memory should be done through the dedicated Agentic OS update flow, not by ad hoc edits during ordinary README work.
 

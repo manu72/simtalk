@@ -11,7 +11,7 @@ Frontend: React \+ Vite \+ TypeScript
  Auth/security: Vercel Password Protection \+ allowlisted email/session gate  
  Database: none  
  Realtime: OpenAI `gpt-realtime-translate` via browser WebRTC  
- Domain: `simtalk.app`
+ Domain: `simtalk.app` TBC
 
 Phase 2 should move the backend/runtime to **Google Cloud Run**, introduce proper auth, persistence, room management, and likely a WebRTC room layer such as LiveKit.
 
