@@ -13,7 +13,8 @@
   "dependencies": {
     "@hono/node-server": "2.0.3",
     "@simtalk/shared-types": "workspace:0.0.0",
-    "hono": "4.12.21"
+    "hono": "4.12.21",
+    "livekit-server-sdk": "^2.15.3"
   },
   "devDependencies": {
     "@types/node": "22.19.19",

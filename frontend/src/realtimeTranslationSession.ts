@@ -17,6 +17,8 @@ type CreateRealtimeTranslationSessionOptions = {
   readonly createPeerConnection?: () => RTCPeerConnection;
   readonly createAudioElement?: () => HTMLAudioElement;
   readonly fetchImpl?: typeof fetch;
+  readonly inputStream?: MediaStream;
+  readonly stopInputStreamOnStop?: boolean;
   readonly startLocalAudioEnabled?: boolean;
   readonly onLocalStream?: (stream: MediaStream) => void;
   readonly onTranscriptDelta?: (delta: TranscriptDelta) => void;
@@ -106,6 +108,8 @@ export const createRealtimeTranslationSession = async ({
   createPeerConnection = () => new RTCPeerConnection(),
   createAudioElement = defaultCreateAudioElement,
   fetchImpl = fetch,
+  inputStream,
+  stopInputStreamOnStop = inputStream ? false : true,
   startLocalAudioEnabled = true,
   onLocalStream,
   onTranscriptDelta,
@@ -135,8 +139,10 @@ export const createRealtimeTranslationSession = async ({
     }
     isStopped = true;
 
-    for (const track of localStream?.getTracks() ?? []) {
-      track.stop();
+    if (stopInputStreamOnStop) {
+      for (const track of localStream?.getTracks() ?? []) {
+        track.stop();
+      }
     }
 
     dataChannel?.close();
@@ -149,8 +155,10 @@ export const createRealtimeTranslationSession = async ({
   };
 
   try {
-    const mediaStreamPromise = getUserMedia({ audio: true });
-    if (signal) {
+    const mediaStreamPromise = inputStream
+      ? Promise.resolve(inputStream)
+      : getUserMedia({ audio: true });
+    if (signal && !inputStream) {
       void mediaStreamPromise
         .then((stream) => {
           if (signal.aborted && stream !== localStream) {

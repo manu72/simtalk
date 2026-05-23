@@ -95,8 +95,10 @@ The Phase 1 runtime has three boundaries:
 2. Hono backend
    - Exposes `GET /health`.
    - Exposes `POST /realtime/token`.
+   - Exposes `POST /rooms` and `POST /rooms/:roomId/token` for Phase 1.5 LiveKit rooms.
    - Validates requests with shared Zod schemas.
    - Reads `OPENAI_API_KEY` server-side only.
+   - Reads LiveKit credentials server-side only.
    - Calls OpenAI's realtime translations client-secret endpoint.
    - Returns a browser-safe token response.
    - Applies CORS, security headers, and token request rate limiting.
@@ -127,8 +129,9 @@ Phase 1 security controls currently in code:
 
 - `OPENAI_API_KEY` is used only by the backend.
 - Token responses are schema-validated and must not include the server API key.
+- LiveKit room token responses are schema-validated and must not include the LiveKit API secret.
 - Token requests are validated before any OpenAI call.
-- `POST /realtime/token` uses an in-memory per-client rate limiter.
+- `POST /realtime/token` and room token routes use in-memory per-client rate limiters.
 - CORS only reflects origins listed in `ALLOWED_ORIGINS`.
 - Backend responses include baseline security headers:
   - `Content-Security-Policy`
@@ -283,7 +286,6 @@ Backend variables in `backend/.env.example`:
 ```bash
 APP_ENV=development
 PORT=3000
-APP_URL=http://localhost:5173
 ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 OPENAI_API_KEY=
 OPENAI_REALTIME_CLIENT_SECRET_URL=https://api.openai.com/v1/realtime/translations/client_secrets
@@ -291,8 +293,14 @@ OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS=600
 OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL=gpt-realtime-whisper
 REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS=60000
 REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS=5
-SESSION_SECRET=
-VERCEL_PROTECTION_BYPASS_SECRET=
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+LIVEKIT_TOKEN_TTL_SECONDS=600
+LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS=300
+LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS=60
+ROOM_TOKEN_RATE_LIMIT_WINDOW_MS=60000
+ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS=10
 ```
 
 Frontend variables in `frontend/.env.example`:
@@ -304,9 +312,11 @@ VITE_API_BASE_URL=http://localhost:3000
 Notes:
 
 - `OPENAI_API_KEY` must never be exposed through a frontend `VITE_*` variable.
+- `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` are backend-only and must never be exposed through frontend `VITE_*` variables.
 - `OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL` controls the input transcription model sent to OpenAI when minting a realtime translation client secret.
-- `APP_URL`, `SESSION_SECRET`, and `VERCEL_PROTECTION_BYPASS_SECRET` are reserved for Phase 1 deployment/access-control integration and are not currently consumed by backend code.
-- `ALLOWED_ORIGINS` should include the production frontend origin in deployed environments.
+- `ALLOWED_ORIGINS` should include the production frontend origin in deployed environments, for example `https://simtalk.dev`.
+- For the single-project Vercel deploy, set `VITE_API_BASE_URL=/api`.
+- Remote room UI stores only an opaque participant identity in `sessionStorage` for reload continuity. It does not store transcripts, room tokens, OpenAI client secrets, or LiveKit participant tokens.
 
 ## API Usage
 
@@ -333,6 +343,22 @@ curl -X POST http://localhost:3000/realtime/token \
 ```
 
 The token route requires a configured backend `OPENAI_API_KEY`. It returns a short-lived browser credential and OpenAI translation calls URL, not the server API key.
+
+Remote room creation:
+
+```bash
+curl -X POST http://localhost:3000/rooms
+```
+
+Remote room token request:
+
+```bash
+curl -X POST http://localhost:3000/rooms/room_abcdefghijklmnopqrstuvwxyz/token \
+  -H "Content-Type: application/json" \
+  -d '{"participantIdentity":"participant_abcdefghijklmnop","targetLanguage":"es"}'
+```
+
+The room token route requires configured backend LiveKit credentials. It returns a short-lived room-scoped participant token, not the LiveKit API secret.
 
 ## Testing
 
@@ -365,17 +391,20 @@ Current E2E coverage is intentionally small: it verifies the frontend shell plus
 
 Phase 1 target:
 
-- Vercel for the frontend and thin Node/Hono backend.
-- Custom domain: `simtalk.app`.
-- Vercel Password Protection and a single-user allowlist for private access.
+- One Vercel project for the frontend and thin Hono API functions mounted under `/api`.
+- Custom domain: `simtalk.dev`.
+- Vercel Password Protection for private access in Phase 1 and Phase 1.5.
 - Environment variables configured in Vercel project settings.
+- Build command: `pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/frontend build`.
+- Output directory: `frontend/dist`.
+- Health check: `GET /api/health` or `/health` via Vercel rewrite.
 
 Current repo status:
 
-- No `.github/workflows/` directory exists.
-- No Vercel config file exists.
+- GitHub Actions CI and Vercel deploy workflows are configured in `.github/workflows/`.
+- Vercel project config is committed in `vercel.json`.
 - No Dockerfile or Cloud Run config exists.
-- Deployment settings are currently out-of-repo.
+- Vercel project settings, password protection, domain, and secrets remain out-of-repo.
 
 Phase 2 target:
 

@@ -273,6 +273,25 @@ describe('createRealtimeTranslationSession', () => {
     expect(audioElement.srcObject).toBeTruthy();
   });
 
+  it('can translate an existing remote media stream without owning its track lifecycle', async () => {
+    const mediaStream = new FakeMediaStream();
+    const getUserMedia = vi.fn();
+
+    const session = await createRealtimeTranslationSession({
+      token,
+      inputStream: mediaStream as unknown as MediaStream,
+      getUserMedia,
+      createPeerConnection: () => new FakePeerConnection() as unknown as RTCPeerConnection,
+      createAudioElement: () => document.createElement('audio'),
+      fetchImpl: vi.fn(async () => new Response('answer-sdp'))
+    });
+
+    session.stop();
+
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(mediaStream.tracks[0]?.stop).not.toHaveBeenCalled();
+  });
+
   it('stops local tracks, closes the data channel, and closes the peer connection', async () => {
     const mediaStream = new FakeMediaStream();
     const peerConnection = new FakePeerConnection();

@@ -10,8 +10,8 @@ Frontend: React \+ Vite \+ TypeScript
  Backend: small Node/Hono service  
  Auth/security: Vercel Password Protection \+ allowlisted email/session gate  
  Database: none  
- Realtime: OpenAI `gpt-realtime-translate` via browser WebRTC  
- Domain: `simtalk.app` TBC
+Realtime: OpenAI `gpt-realtime-translate` via browser WebRTC  
+Domain: `simtalk.dev`
 
 Phase 2 should move the backend/runtime to **Google Cloud Run**, introduce proper auth, persistence, room management, and likely a WebRTC room layer such as LiveKit.
 
@@ -75,7 +75,7 @@ Vercel Password Protection enabled.
  No OpenAI API key in browser.  
  Browser receives only short-lived ephemeral OpenAI tokens.  
  Backend validates requested mode/languages before issuing session token.  
- Strict CORS for `simtalk.app`.  
+Strict CORS for `simtalk.dev`.  
  Rate limit token creation endpoint.  
  Disable transcript logging.  
  Set security headers: CSP, HSTS, X-Frame-Options / frame-ancestors, Referrer-Policy.  
@@ -85,7 +85,7 @@ Big warning: Vercel password protection is fine for Phase 1 internal testing, bu
 
 ## **5\. Phase 1 Runtime Flow**
 
-User opens `simtalk.app`.
+User opens `simtalk.dev`.
 
 Vercel protection gates access.
 
@@ -145,6 +145,21 @@ Spoken language
  Audio output preference
 
 Avoid translating every participant to every other participant by default. Translate active speaker audio into distinct target languages required by listeners.
+
+## **8.5 Phase 1.5 Private Remote Rooms**
+
+Phase 1.5 adds private two-user remote rooms while keeping the Phase 1 privacy boundary:
+
+Frontend: Vercel-hosted React/Vite app  
+Backend/API: Vercel Hono functions under `/api`  
+Room/media layer: LiveKit Cloud  
+Realtime translation: browser-local OpenAI Realtime Translate sessions  
+Auth/security: Vercel Password Protection only  
+Database: none
+
+The browser publishes microphone audio to LiveKit and subscribes to the other participant's microphone track. Each browser sends only the remote participant's audio track to its own short-lived OpenAI translation session, so each user hears translated output in their preferred language and does not hear their own translated voice.
+
+Remote room transcripts and captions remain browser-only. The only intentional browser storage in Phase 1.5 is an opaque `sessionStorage` participant identity for reload continuity within a room.
 
 ## **9\. Key Risks**
 

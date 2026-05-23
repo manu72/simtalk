@@ -8,7 +8,12 @@ import {
   openAiRealtimeTranslationCallsUrl,
   realtimeTokenRequestSchema,
   realtimeTokenResponseSchema,
-  realtimeTokenRoute
+  realtimeTokenRoute,
+  roomCreateResponseSchema,
+  roomIdSchema,
+  roomTokenRequestSchema,
+  roomTokenResponseSchema,
+  roomTokenRoute
 } from '../../../shared/types/src/index';
 
 describe('shared API contracts', () => {
@@ -27,6 +32,12 @@ describe('shared API contracts', () => {
 
   it('defines the backend realtime token route', () => {
     expect(realtimeTokenRoute).toBe('/realtime/token');
+  });
+
+  it('defines the LiveKit room token route helper', () => {
+    expect(roomTokenRoute('room_abcdefghijklmnopqrstuvwxyz')).toBe(
+      '/rooms/room_abcdefghijklmnopqrstuvwxyz/token'
+    );
   });
 
   it('requires a source language for turn-about mode', () => {
@@ -105,6 +116,35 @@ describe('shared API contracts', () => {
       sessionId: 'sess_test',
       translationCallUrl: openAiRealtimeTranslationCallsUrl
     });
+  });
+
+  it('validates shareable room ids and room creation responses', () => {
+    const roomId = 'room_abcdefghijklmnopqrstuvwxyz';
+
+    expect(roomIdSchema.safeParse(roomId).success).toBe(true);
+    expect(roomCreateResponseSchema.parse({
+      roomId,
+      roomUrlPath: `/rooms/${roomId}`,
+      expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+    })).toMatchObject({ roomId });
+  });
+
+  it('validates LiveKit token requests and responses without server secrets', () => {
+    const request = roomTokenRequestSchema.parse({
+      participantIdentity: 'participant_abcdefghijklmnop',
+      sourceLanguage: 'en',
+      targetLanguage: 'es'
+    });
+    const response = roomTokenResponseSchema.parse({
+      liveKitUrl: 'wss://simtalk.livekit.cloud',
+      participantToken: 'livekit.jwt',
+      roomId: 'room_abcdefghijklmnopqrstuvwxyz',
+      participantIdentity: request.participantIdentity,
+      expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+    });
+
+    expect(response.participantToken).toBe('livekit.jwt');
+    expect(JSON.stringify(response)).not.toContain('LIVEKIT_API_SECRET');
   });
 
   it('validates the standard API error envelope', () => {

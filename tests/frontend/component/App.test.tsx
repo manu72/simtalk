@@ -30,6 +30,19 @@ const tokenJsonResponse = () =>
     headers: { 'Content-Type': 'application/json' }
   });
 
+const roomCreateJsonResponse = () =>
+  new Response(
+    JSON.stringify({
+      roomId: 'room_abcdefghijklmnopqrstuvwxyz',
+      roomUrlPath: '/rooms/room_abcdefghijklmnopqrstuvwxyz',
+      expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+    }),
+    {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+
 beforeEach(() => {
   createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
 });
@@ -37,6 +50,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   createRealtimeTranslationSessionMock.mockReset();
+  window.history.pushState({}, '', '/');
 });
 
 describe('Lobby', () => {
@@ -53,6 +67,20 @@ describe('Lobby', () => {
   it('shows the LAUNCH primary CTA', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: /launch/i })).toBeInTheDocument();
+  });
+
+  it('creates a remote room and routes to the room screen', async () => {
+    const fetchMock = mockFetch(roomCreateJsonResponse());
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /create remote room/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /remote talk/i })).toBeInTheDocument();
+    });
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms', { method: 'POST' });
   });
 
   it('Listener mode shows two language cards: a Detect (Automatic) source and a Translate-into target', () => {

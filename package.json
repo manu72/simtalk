@@ -10,12 +10,26 @@
   "scripts": {
     "dev": "pnpm --filter @simtalk/shared-types build && pnpm --parallel --filter @simtalk/shared-types --filter @simtalk/backend --filter @simtalk/frontend dev",
     "build": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/backend build && pnpm --filter @simtalk/frontend build",
-    "typecheck": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/backend typecheck && pnpm --filter @simtalk/frontend typecheck",
+    "format": "prettier --write \"**/*.{json,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{json,yml,yaml}\"",
+    "lint": "eslint .",
+    "typecheck": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/backend typecheck && pnpm --filter @simtalk/frontend typecheck && pnpm typecheck:api",
+    "typecheck:api": "tsc -p api/tsconfig.json --noEmit",
     "test": "pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/shared-types test && pnpm --filter @simtalk/backend test && pnpm --filter @simtalk/frontend test",
     "test:e2e": "pnpm --filter @simtalk/shared-types build && playwright test"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "latest",
-    "typescript": "latest"
+    "@types/node": "^25.9.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.8.3",
+    "typescript": "latest",
+    "typescript-eslint": "^8.59.4",
+    "vercel": "^54.4.1"
+  },
+  "dependencies": {
+    "hono": "4.12.21"
   }
 }

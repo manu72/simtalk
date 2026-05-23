@@ -7,9 +7,12 @@ import { createCorsMiddleware } from './middleware/cors.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
 import { healthRoute } from './routes/health.js';
 import { createRealtimeRoute } from './routes/realtime.js';
+import { createRoomsRoute } from './routes/rooms.js';
+import type { createLiveKitRoomService } from './services/liveKitRooms.js';
 
 type AppDependencies = {
   readonly fetch?: typeof fetch;
+  readonly liveKitRoomService?: ReturnType<typeof createLiveKitRoomService>;
 };
 
 export const createApp = (
@@ -23,6 +26,7 @@ export const createApp = (
 
   app.route('/health', healthRoute);
   app.route('/realtime', createRealtimeRoute(config, dependencies));
+  app.route('/rooms', createRoomsRoute(config, dependencies));
 
   app.notFound((c) =>
     c.json(
