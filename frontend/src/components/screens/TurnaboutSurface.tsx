@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { STIcon } from '../brand/Icons';
-import { FONT_BODY, FONT_DISPLAY, ST, STButton } from '../brand/primitives';
+import { FONT_BODY, FONT_DISPLAY, ST } from '../brand/primitives';
 import type { Language } from '../brand/languages';
 
 export type ConversationTurn = {
@@ -229,18 +229,44 @@ export const TurnaboutSurface = ({
           </div>
         </div>
 
-        <STButton
-          variant="primary"
-          size="lg"
-          onMouseDown={onMicDown}
-          onMouseUp={onMicUp}
-          onTouchStart={onMicDown}
-          onTouchEnd={onMicUp}
+        <button
+          type="button"
           aria-label="Hold to talk"
-          style={{ borderRadius: 999, padding: '14px 18px' }}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            event.currentTarget.setPointerCapture(event.pointerId);
+            onMicDown();
+          }}
+          onPointerUp={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+            onMicUp();
+          }}
+          onPointerCancel={onMicUp}
+          onContextMenu={(event) => event.preventDefault()}
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 999,
+            background: recording ? ST.pinkDeep : ST.pink,
+            border: `3px solid ${ST.navy}`,
+            boxShadow: recording ? `0 2px 0 0 ${ST.navy}` : `0 6px 0 0 ${ST.navy}`,
+            transform: recording ? 'translateY(4px)' : undefined,
+            transition: 'transform 100ms cubic-bezier(.34,1.56,.64,1), box-shadow 100ms, background 80ms',
+            color: ST.white,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            touchAction: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
+            userSelect: 'none'
+          }}
         >
-          <STIcon name="mic" size={24} color={ST.white} />
-        </STButton>
+          <STIcon name="mic" size={28} color={ST.white} />
+        </button>
       </div>
     </div>
   );

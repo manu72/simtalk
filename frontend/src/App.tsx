@@ -62,6 +62,8 @@ export const App = () => {
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [holdingMic, setHoldingMic] = useState(false);
   const turnBuilderRef = useRef<{ src: string; dst: string; side: 'you' | 'them' } | null>(null);
+  const holdingMicRef = useRef(false);
+  const inputBaselineRef = useRef(0);
 
   // Practice
   const [practiceStage, setPracticeStage] = useState<PracticeStage>('idle');
@@ -331,21 +333,23 @@ export const App = () => {
   }, []);
 
   const onMicDown = useCallback(() => {
+    if (holdingMicRef.current) return;
+    holdingMicRef.current = true;
     setHoldingMic(true);
     lastOutputLenRef.current = outputTranscript.length;
-  }, [outputTranscript.length]);
+    inputBaselineRef.current = inputTranscript.length;
+  }, [outputTranscript.length, inputTranscript.length]);
 
   const onMicUp = useCallback(() => {
+    if (!holdingMicRef.current) return;
+    holdingMicRef.current = false;
     setHoldingMic(false);
     const builder = turnBuilderRef.current;
+    turnBuilderRef.current = null;
     if (!builder) return;
-    const sliceStart = lastOutputLenRef.current;
-    const newDst = outputTranscript.slice(sliceStart).trim();
-    const newSrc = inputTranscript.slice(-300).trim();
-    if (!newSrc && !newDst) {
-      turnBuilderRef.current = null;
-      return;
-    }
+    const newDst = outputTranscript.slice(lastOutputLenRef.current).trim();
+    const newSrc = inputTranscript.slice(inputBaselineRef.current).trim();
+    if (!newSrc && !newDst) return;
     const fromYou = builder.side === 'you';
     const srcLang = fromYou
       ? (activeSide === 'source' ? source : target)
@@ -365,7 +369,6 @@ export const App = () => {
         status: 'done'
       }
     ]);
-    turnBuilderRef.current = null;
   }, [outputTranscript, inputTranscript, activeSide, source, target]);
 
   const startPracticeRecording = useCallback(() => {
