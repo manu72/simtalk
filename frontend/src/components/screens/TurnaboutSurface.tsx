@@ -6,7 +6,7 @@ import type { Language } from '../brand/languages';
 
 export type ConversationTurn = {
   readonly id: string;
-  readonly side: 'you' | 'them';
+  readonly side: 'source' | 'target';
   readonly srcLang: Language;
   readonly dstLang: Language;
   readonly src: string;
@@ -30,11 +30,9 @@ type TurnaboutSurfaceProps = {
 
 const SpeakerBadge = ({
   lang,
-  you,
   speaking
 }: {
   readonly lang: Language;
-  readonly you: boolean;
   readonly speaking: boolean;
 }) => (
   <span
@@ -64,71 +62,83 @@ const SpeakerBadge = ({
         }}
       />
     ) : null}
-    {you ? 'YOU' : 'THEM'} · {lang.code}
+    <span style={{ fontSize: 13, lineHeight: 1 }}>{lang.flag}</span>
+    {lang.code}
   </span>
 );
 
 const Bubble = ({ turn }: { readonly turn: ConversationTurn }) => {
-  const fromYou = turn.side === 'you';
+  const fromSource = turn.side === 'source';
+  const hasSrc = turn.src.trim().length > 0;
+  const hasDst = turn.dst.trim().length > 0;
+  const translating = turn.status === 'translating';
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: fromYou ? 'flex-end' : 'flex-start',
+        alignItems: fromSource ? 'flex-end' : 'flex-start',
         gap: 6,
         marginBottom: 18,
         width: '100%',
         animation: 'st-fade-in 220ms ease-out both'
       }}
     >
-      <SpeakerBadge lang={turn.srcLang} you={fromYou} speaking={turn.status === 'translating'} />
-      <div
-        style={{
-          maxWidth: '78%',
-          background: fromYou ? ST.pink : ST.white,
-          color: fromYou ? ST.white : ST.navy,
-          border: `3px solid ${ST.navy}`,
-          borderRadius: 18,
-          padding: '10px 14px',
-          boxShadow: `0 4px 0 0 ${ST.navy}`,
-          fontFamily: FONT_BODY,
-          fontSize: 15,
-          fontWeight: 600,
-          lineHeight: 1.35
-        }}
-      >
-        {turn.src || '…'}
-      </div>
-      <div
-        style={{
-          maxWidth: '78%',
-          marginTop: 2,
-          background: 'rgba(255,255,255,0.96)',
-          color: ST.navy,
-          border: `2px dashed ${ST.navy}`,
-          borderRadius: 16,
-          padding: '8px 12px',
-          fontFamily: FONT_BODY,
-          fontSize: 14,
-          fontWeight: 500,
-          lineHeight: 1.35
-        }}
-      >
+      <SpeakerBadge lang={turn.srcLang} speaking={translating} />
+      {hasSrc ? (
         <div
           style={{
-            fontSize: 10,
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            opacity: 0.65,
-            marginBottom: 4
+            maxWidth: '78%',
+            background: fromSource ? ST.pink : ST.white,
+            color: fromSource ? ST.white : ST.navy,
+            border: `3px solid ${ST.navy}`,
+            borderRadius: 18,
+            padding: '10px 14px',
+            boxShadow: `0 4px 0 0 ${ST.navy}`,
+            fontFamily: FONT_BODY,
+            fontSize: 15,
+            fontWeight: 600,
+            lineHeight: 1.35
           }}
         >
-          {turn.status === 'translating' ? 'translating…' : `${turn.dstLang.code} · translated`}
+          {turn.src}
         </div>
-        <div style={{ opacity: turn.status === 'translating' ? 0.7 : 1 }}>{turn.dst || '…'}</div>
-      </div>
+      ) : null}
+      {hasDst || translating ? (
+        <div
+          style={{
+            maxWidth: '78%',
+            marginTop: 2,
+            background: 'rgba(255,255,255,0.96)',
+            color: ST.navy,
+            border: `2px dashed ${ST.navy}`,
+            borderRadius: 16,
+            padding: '8px 12px',
+            fontFamily: FONT_BODY,
+            fontSize: 14,
+            fontWeight: 500,
+            lineHeight: 1.35
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              opacity: 0.65,
+              marginBottom: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
+            <span style={{ fontSize: 12 }}>{turn.dstLang.flag}</span>
+            {translating && !hasDst ? 'translating…' : `${turn.dstLang.code}`}
+          </div>
+          {hasDst ? <div style={{ opacity: translating ? 0.85 : 1 }}>{turn.dst}</div> : null}
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -196,7 +206,7 @@ export const TurnaboutSurface = ({
           <Bubble
             turn={{
               id: 'live-preview',
-              side: 'you',
+              side: activeSide,
               srcLang: speakerLang,
               dstLang: listenerLang,
               src: liveSrc,

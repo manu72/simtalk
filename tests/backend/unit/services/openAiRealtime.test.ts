@@ -27,6 +27,7 @@ const createTestConfig = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   realtimeClientSecretTtlSeconds: 30,
   realtimeTokenRateLimitWindowMs: 60_000,
   realtimeTokenRateLimitMaxRequests: 5,
+  realtimeInputTranscriptionModel: 'gpt-realtime-whisper',
   ...overrides
 });
 

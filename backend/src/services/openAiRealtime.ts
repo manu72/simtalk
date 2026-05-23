@@ -112,6 +112,11 @@ export const createOpenAiRealtimeService = (
           session: {
             model: 'gpt-realtime-translate',
             audio: {
+              input: {
+                transcription: {
+                  model: config.realtimeInputTranscriptionModel
+                }
+              },
               output: {
                 language: request.targetLanguage
               }

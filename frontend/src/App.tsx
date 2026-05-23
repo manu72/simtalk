@@ -61,7 +61,7 @@ export const App = () => {
   const [activeSide, setActiveSide] = useState<'source' | 'target'>('source');
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [holdingMic, setHoldingMic] = useState(false);
-  const turnBuilderRef = useRef<{ src: string; dst: string; side: 'you' | 'them' } | null>(null);
+  const turnBuilderRef = useRef<{ src: string; dst: string; side: 'source' | 'target' } | null>(null);
   const holdingMicRef = useRef(false);
   const inputBaselineRef = useRef(0);
   const [liveBaseInputLen, setLiveBaseInputLen] = useState(0);
@@ -227,7 +227,7 @@ export const App = () => {
       turnBuilderRef.current = {
         src: '',
         dst: '',
-        side: activeSide === 'source' ? 'you' : 'them'
+        side: activeSide
       };
     }
   }, [mode, holdingMic, activeSide]);
@@ -426,19 +426,15 @@ export const App = () => {
     const newDst = outputTranscript.slice(lastOutputLenRef.current).trim();
     const newSrc = inputTranscript.slice(inputBaselineRef.current).trim();
     if (!newSrc && !newDst) return;
-    const fromYou = builder.side === 'you';
-    const srcLang = fromYou
-      ? (activeSide === 'source' ? source : target)
-      : (activeSide === 'source' ? target : source);
-    const dstLang = fromYou
-      ? (activeSide === 'source' ? target : source)
-      : (activeSide === 'source' ? source : target);
+    const speakerSide = builder.side;
+    const srcLang = speakerSide === 'source' ? source : target;
+    const dstLang = speakerSide === 'source' ? target : source;
     const turnId = `turn_${Date.now()}`;
     setTurns((prev) => [
       ...prev,
       {
         id: turnId,
-        side: builder.side,
+        side: speakerSide,
         srcLang,
         dstLang,
         src: newSrc,
@@ -448,7 +444,7 @@ export const App = () => {
     ]);
     pendingTurnIdRef.current = turnId;
     pendingBaseOutputLenRef.current = lastOutputLenRef.current;
-  }, [outputTranscript, inputTranscript, activeSide, source, target]);
+  }, [outputTranscript, inputTranscript, source, target]);
 
   useEffect(() => {
     const id = pendingTurnIdRef.current;
@@ -531,26 +527,24 @@ export const App = () => {
     tryPracticeAgain();
   }, [tryPracticeAgain]);
 
-  const copyTranscript = useCallback(() => {
+  const buildTranscriptText = useCallback((): string => {
+    if (mode === 'turnabout' && turns.length > 0) {
+      const lines = [
+        'SimTalk transcript',
+        'Mode: turnabout',
+        `Languages: ${source.name} ↔ ${target.name}`,
+        ''
+      ];
+      turns.forEach((turn, i) => {
+        lines.push(`[Turn ${i + 1}] ${turn.srcLang.code} → ${turn.dstLang.code}`);
+        if (turn.src) lines.push(turn.src);
+        if (turn.dst) lines.push(`→ ${turn.dst}`);
+        lines.push('');
+      });
+      return lines.join('\n').trimEnd();
+    }
     const sourceLabel = mode === 'listener' ? 'Auto-detected' : source.name;
-    const text = [
-      `SimTalk transcript`,
-      `Mode: ${mode}`,
-      `Source: ${sourceLabel}`,
-      `Target: ${target.name}`,
-      '',
-      'Source transcript:',
-      inputTranscript || '(none)',
-      '',
-      'Translated transcript:',
-      outputTranscript || '(none)'
-    ].join('\n');
-    void navigator.clipboard?.writeText(text);
-  }, [mode, source, target, inputTranscript, outputTranscript]);
-
-  const downloadTranscript = useCallback(() => {
-    const sourceLabel = mode === 'listener' ? 'Auto-detected' : source.name;
-    const text = [
+    return [
       'SimTalk transcript',
       `Mode: ${mode}`,
       `Source: ${sourceLabel}`,
@@ -562,7 +556,14 @@ export const App = () => {
       'Translated transcript:',
       outputTranscript || '(none)'
     ].join('\n');
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  }, [mode, turns, source, target, inputTranscript, outputTranscript]);
+
+  const copyTranscript = useCallback(() => {
+    void navigator.clipboard?.writeText(buildTranscriptText());
+  }, [buildTranscriptText]);
+
+  const downloadTranscript = useCallback(() => {
+    const blob = new Blob([buildTranscriptText()], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -574,7 +575,7 @@ export const App = () => {
       a.remove();
       URL.revokeObjectURL(url);
     }
-  }, [mode, source, target, inputTranscript, outputTranscript]);
+  }, [buildTranscriptText]);
 
   const headerStatus: 'connecting' | 'live' | 'paused' | 'idle' = useMemo(() => {
     if (status === 'launching' || status === 'connecting') return 'connecting';
@@ -680,10 +681,12 @@ export const App = () => {
 
       {view === 'summary' ? (
         <Summary
+          mode={mode}
           source={mode === 'listener' ? null : source}
           target={target}
           inputTranscript={inputTranscript}
           outputTranscript={outputTranscript}
+          turns={turns}
           audioUrl={recordingBlobUrl}
           audioFilename={recordingNameRef.current}
           onCopy={copyTranscript}

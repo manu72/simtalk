@@ -75,6 +75,11 @@ describe('POST /realtime/token', () => {
       session: {
         model: 'gpt-realtime-translate',
         audio: {
+          input: {
+            transcription: {
+              model: 'gpt-realtime-whisper'
+            }
+          },
           output: {
             language: 'es'
           }

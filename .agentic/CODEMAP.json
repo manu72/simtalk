@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-22T23:37:55+00:00",
+  "generated_at": "2026-05-23T04:14:03+00:00",
   "root": ".",
   "entries": [
     {
@@ -196,6 +196,30 @@
       ]
     },
     {
+      "path": ".claude",
+      "kind": "dir",
+      "language": null,
+      "subsystem": null,
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        ".claude"
+      ]
+    },
+    {
+      "path": ".claude/settings.local.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": ".claude",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "settings.local.json"
+      ]
+    },
+    {
       "path": ".cursor",
       "kind": "dir",
       "language": null,
@@ -313,6 +337,18 @@
       "related_tests": [],
       "read_triggers": [
         "skill.md"
+      ]
+    },
+    {
+      "path": "CLAUDE.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "claude.md"
       ]
     },
     {
@@ -1014,6 +1050,18 @@
       ]
     },
     {
+      "path": "docs/ux-redesign-plan.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": "docs",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "ux-redesign-plan.md"
+      ]
+    },
+    {
       "path": "frontend",
       "kind": "dir",
       "language": null,
@@ -1239,7 +1287,175 @@
       ]
     },
     {
-      "path": "frontend/src/components/ui",
+      "path": "frontend/src/components/brand",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "brand",
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/brand/Icons.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "icons.tsx",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/brand/LanguagePicker.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "languagepicker.tsx",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/brand/ModeSegmented.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "modesegmented.tsx",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/brand/languages.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "languages.ts",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/brand/primitives.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "primitives.tsx",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/screens",
       "kind": "dir",
       "language": null,
       "subsystem": "web",
@@ -1257,6 +1473,7 @@
         "page",
         "playback",
         "react",
+        "screens",
         "shadcn",
         "tailwind",
         "transcript",
@@ -1266,7 +1483,7 @@
       ]
     },
     {
-      "path": "frontend/src/components/ui/badge.tsx",
+      "path": "frontend/src/components/screens/ListenerSurface.tsx",
       "kind": "file",
       "language": "typescript",
       "subsystem": "web",
@@ -1276,10 +1493,10 @@
         "frontend/tsconfig.test.json"
       ],
       "read_triggers": [
-        "badge.tsx",
         "browser",
         "component",
         "frontend",
+        "listenersurface.tsx",
         "mic",
         "microphone",
         "page",
@@ -1294,7 +1511,7 @@
       ]
     },
     {
-      "path": "frontend/src/components/ui/button.tsx",
+      "path": "frontend/src/components/screens/Lobby.tsx",
       "kind": "file",
       "language": "typescript",
       "subsystem": "web",
@@ -1305,9 +1522,9 @@
       ],
       "read_triggers": [
         "browser",
-        "button.tsx",
         "component",
         "frontend",
+        "lobby.tsx",
         "mic",
         "microphone",
         "page",
@@ -1322,7 +1539,7 @@
       ]
     },
     {
-      "path": "frontend/src/components/ui/card.tsx",
+      "path": "frontend/src/components/screens/PracticeSurface.tsx",
       "kind": "file",
       "language": "typescript",
       "subsystem": "web",
@@ -1333,13 +1550,13 @@
       ],
       "read_triggers": [
         "browser",
-        "card.tsx",
         "component",
         "frontend",
         "mic",
         "microphone",
         "page",
         "playback",
+        "practicesurface.tsx",
         "react",
         "shadcn",
         "tailwind",
@@ -1350,7 +1567,91 @@
       ]
     },
     {
-      "path": "frontend/src/lib",
+      "path": "frontend/src/components/screens/Summary.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "summary.tsx",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/screens/TranscriptSheet.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "transcriptsheet.tsx",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/screens/TurnaboutSurface.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "turnaboutsurface.tsx",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/session",
       "kind": "dir",
       "language": null,
       "subsystem": "web",
@@ -1363,7 +1664,35 @@
         "browser",
         "component",
         "frontend",
-        "lib",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "session",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/components/session/DevDrawer.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "devdrawer.tsx",
+        "frontend",
         "mic",
         "microphone",
         "page",
@@ -1378,7 +1707,7 @@
       ]
     },
     {
-      "path": "frontend/src/lib/utils.ts",
+      "path": "frontend/src/components/session/SessionHeader.tsx",
       "kind": "file",
       "language": "typescript",
       "subsystem": "web",
@@ -1396,11 +1725,11 @@
         "page",
         "playback",
         "react",
+        "sessionheader.tsx",
         "shadcn",
         "tailwind",
         "transcript",
         "ui",
-        "utils.ts",
         "view",
         "vite"
       ]
@@ -1490,7 +1819,35 @@
       ]
     },
     {
-      "path": "frontend/src/styles.css",
+      "path": "frontend/src/styles",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "web",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "styles",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/styles/tokens.css",
       "kind": "file",
       "language": "css",
       "subsystem": "web",
@@ -1509,8 +1866,8 @@
         "playback",
         "react",
         "shadcn",
-        "styles.css",
         "tailwind",
+        "tokens.css",
         "transcript",
         "ui",
         "view",
