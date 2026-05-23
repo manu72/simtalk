@@ -175,6 +175,37 @@ describe('Session controls', () => {
     expect(screen.getByRole('button', { name: /hold to talk/i })).toBeInTheDocument();
   });
 
+  it('captures Turn-about transcript deltas that arrive before mic release renders', async () => {
+    const session = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    let onTranscriptDelta: ((delta: { readonly kind: 'input' | 'output'; readonly text: string }) => void) | undefined;
+
+    createRealtimeTranslationSessionMock.mockImplementation(async (options) => {
+      onTranscriptDelta = options.onTranscriptDelta;
+      return session;
+    });
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+    const micButton = await screen.findByRole('button', { name: /hold to talk/i });
+    micButton.setPointerCapture = vi.fn();
+    micButton.hasPointerCapture = vi.fn(() => true);
+    micButton.releasePointerCapture = vi.fn();
+
+    await act(async () => {
+      fireEvent.pointerDown(micButton, { pointerId: 1 });
+      onTranscriptDelta?.({ kind: 'input', text: 'hello there' });
+      onTranscriptDelta?.({ kind: 'output', text: 'hola alli' });
+      fireEvent.pointerUp(micButton, { pointerId: 1 });
+    });
+
+    expect(screen.getByText('hello there')).toBeInTheDocument();
+    expect(screen.getByText('hola alli')).toBeInTheDocument();
+  });
+
   it('Turn-about FLIP re-mints a token with swapped source and target', async () => {
     const fetchMock = mockFetch(tokenJsonResponse());
     render(<App />);

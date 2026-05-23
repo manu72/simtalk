@@ -55,6 +55,8 @@ export const App = () => {
   // Transcripts (raw streaming buffers)
   const [inputTranscript, setInputTranscript] = useState('');
   const [outputTranscript, setOutputTranscript] = useState('');
+  const inputTranscriptRef = useRef('');
+  const outputTranscriptRef = useRef('');
   const [deltaLog, setDeltaLog] = useState<string[]>([]);
 
   // Turn-about
@@ -158,6 +160,8 @@ export const App = () => {
   );
 
   const resetTranscriptBuffers = useCallback(() => {
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
     setInputTranscript('');
     setOutputTranscript('');
     setDeltaLog([]);
@@ -206,9 +210,13 @@ export const App = () => {
         return next.slice(-50);
       });
       if (delta.kind === 'input') {
-        setInputTranscript((prev) => prev + delta.text);
+        const next = inputTranscriptRef.current + delta.text;
+        inputTranscriptRef.current = next;
+        setInputTranscript(next);
       } else {
-        setOutputTranscript((prev) => prev + delta.text);
+        const next = outputTranscriptRef.current + delta.text;
+        outputTranscriptRef.current = next;
+        setOutputTranscript(next);
       }
     },
     []
@@ -220,17 +228,6 @@ export const App = () => {
     if (sentences.length === 0) return;
     setListenerHistory(sentences);
   }, [outputTranscript, mode]);
-
-  useEffect(() => {
-    if (mode !== 'turnabout' || !holdingMic) return;
-    if (!turnBuilderRef.current) {
-      turnBuilderRef.current = {
-        src: '',
-        dst: '',
-        side: activeSide
-      };
-    }
-  }, [mode, holdingMic, activeSide]);
 
   const startSessionWithRequest = useCallback(
     async (
@@ -374,6 +371,8 @@ export const App = () => {
     sessionRef.current = null;
     localStreamRef.current = null;
 
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
     setInputTranscript('');
     setOutputTranscript('');
     setLiveBaseInputLen(0);
@@ -406,16 +405,21 @@ export const App = () => {
     if (holdingMicRef.current) return;
     holdingMicRef.current = true;
     setHoldingMic(true);
+    turnBuilderRef.current = {
+      src: '',
+      dst: '',
+      side: activeSide
+    };
     const priorPendingId = pendingTurnIdRef.current;
     if (priorPendingId) {
       setTurns((prev) => prev.map((t) => (t.id === priorPendingId ? { ...t, status: 'done' } : t)));
       pendingTurnIdRef.current = null;
     }
-    lastOutputLenRef.current = outputTranscript.length;
-    inputBaselineRef.current = inputTranscript.length;
-    setLiveBaseInputLen(inputTranscript.length);
-    setLiveBaseOutputLen(outputTranscript.length);
-  }, [outputTranscript.length, inputTranscript.length]);
+    lastOutputLenRef.current = outputTranscriptRef.current.length;
+    inputBaselineRef.current = inputTranscriptRef.current.length;
+    setLiveBaseInputLen(inputTranscriptRef.current.length);
+    setLiveBaseOutputLen(outputTranscriptRef.current.length);
+  }, [activeSide]);
 
   const onMicUp = useCallback(() => {
     if (!holdingMicRef.current) return;
@@ -424,8 +428,8 @@ export const App = () => {
     const builder = turnBuilderRef.current;
     turnBuilderRef.current = null;
     if (!builder) return;
-    const newDst = outputTranscript.slice(lastOutputLenRef.current).trim();
-    const newSrc = inputTranscript.slice(inputBaselineRef.current).trim();
+    const newDst = outputTranscriptRef.current.slice(lastOutputLenRef.current).trim();
+    const newSrc = inputTranscriptRef.current.slice(inputBaselineRef.current).trim();
     if (!newSrc && !newDst) return;
     const speakerSide = builder.side;
     const srcLang = speakerSide === 'source' ? source : target;
@@ -445,7 +449,7 @@ export const App = () => {
     ]);
     pendingTurnIdRef.current = turnId;
     pendingBaseOutputLenRef.current = lastOutputLenRef.current;
-  }, [outputTranscript, inputTranscript, source, target]);
+  }, [source, target]);
 
   useEffect(() => {
     const id = pendingTurnIdRef.current;
@@ -458,6 +462,8 @@ export const App = () => {
   const startPracticeRecording = useCallback(() => {
     revokePracticeAudio();
     setPracticeAudioUrl(null);
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
     setInputTranscript('');
     setOutputTranscript('');
     setPracticeAttempt('');
@@ -529,6 +535,8 @@ export const App = () => {
     revokePracticeAudio();
     setPracticeAudioUrl(null);
     setPracticeAttempt('');
+    inputTranscriptRef.current = '';
+    outputTranscriptRef.current = '';
     setInputTranscript('');
     setOutputTranscript('');
     sessionRef.current?.setLocalAudioEnabled(false);
