@@ -24,15 +24,15 @@ type LobbyProps = {
 const TITLES: Record<ConversationMode, { line1: string; line2?: string; tagline: string }> = {
   listener: {
     line1: "JUST LISTEN.",
-    tagline: "Any spoken language. We'll translate it in your ear.",
+    tagline: "Automatically translate any language.",
   },
   turnabout: {
     line1: "TALK TO ANYONE.",
-    tagline: "Two languages, one phone. Hold to speak — they hear it in theirs.",
+    tagline: "Two languages, one phone.",
   },
   practice: {
     line1: "PRACTICE.",
-    tagline: "Speak, listen back, try the translation yourself.",
+    tagline: "Practice your language skills.",
   },
 };
 
@@ -106,7 +106,7 @@ export const Lobby = ({
               }}
             >
               <STIcon name="headphones" size={14} color={ST.white} />
-              Any spoken language. We&apos;ll detect it.
+              Universal translator for any human language.
             </p>
           </div>
         ) : (
@@ -183,7 +183,7 @@ export const Lobby = ({
               fontFamily: FONT_DISPLAY,
             }}
           >
-            Your mic stays on this device. Audio goes direct to OpenAI.
+            Use the mic on this device. Audio streams to OpenAI.
           </p>
         )}
       </div>
