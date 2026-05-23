@@ -1,0 +1,142 @@
+/* SimTalk Design System — verbatim brand tokens.
+   Source: design handoff bundle, colors_and_type.css. */
+
+:root {
+  /* Brand palette */
+  --st-navy:        #0B1149;
+  --st-navy-deep:   #060A2E;
+  --st-purple:      #6B3FD0;
+  --st-purple-soft: #8B5BFF;
+  --st-pink:        #FF3E9E;
+  --st-pink-deep:   #D81F7E;
+  --st-cyan:        #2BE6F2;
+  --st-cyan-deep:   #0FB8C5;
+  --st-yellow:      #FFD23F;
+  --st-white:       #FFFFFF;
+  --st-white-soft:  #F4F0FF;
+
+  /* Translucent layers */
+  --st-tint-white-08: rgba(255, 255, 255, 0.08);
+  --st-tint-white-10: rgba(255, 255, 255, 0.10);
+  --st-tint-white-20: rgba(255, 255, 255, 0.20);
+
+  /* Signature nebula gradient */
+  --st-bg-nebula: radial-gradient(
+    120% 90% at 50% 45%,
+    #7A4DE6 0%,
+    #4327B0 28%,
+    #1A1A78 55%,
+    var(--st-navy-deep) 100%
+  );
+
+  /* Typography */
+  --st-font-display: 'Luckiest Guy', 'Lilita One', system-ui, sans-serif;
+  --st-font-body:    'Poppins', system-ui, -apple-system, sans-serif;
+
+  /* Radii */
+  --st-r-sm:   10px;
+  --st-r-md:   16px;
+  --st-r-lg:   22px;
+  --st-r-xl:   32px;
+  --st-r-pill: 999px;
+
+  /* Chunky 3D offset shadows */
+  --st-shadow-sm: 0 3px 0 0 var(--st-navy);
+  --st-shadow-md: 0 6px 0 0 var(--st-navy);
+  --st-shadow-lg: 0 10px 0 0 var(--st-navy);
+
+  /* Soft halos (only over nebula) */
+  --st-halo-pink: 0 0 40px rgba(255, 62, 158, 0.45);
+  --st-halo-cyan: 0 0 40px rgba(43, 230, 242, 0.35);
+
+  /* Motion */
+  --st-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --st-dur-fast:    120ms;
+  --st-dur-base:    220ms;
+
+  /* Legacy Tailwind/shadcn variable aliases — preserves existing call sites
+     during migration. New components should use --st-* tokens directly. */
+  color-scheme: dark;
+  --color-surface:        var(--st-navy-deep);
+  --color-surface-raised: var(--st-navy);
+  --color-surface-muted:  rgba(255, 255, 255, 0.08);
+  --color-text:           var(--st-white);
+  --color-text-muted:     rgba(255, 255, 255, 0.72);
+  --color-accent:         var(--st-pink);
+  --color-on-accent:      var(--st-white);
+  --color-danger:         #FF5A5F;
+  --color-border-subtle:  rgba(255, 255, 255, 0.18);
+  --color-focus:          var(--st-cyan);
+  --gradient-start:       rgba(139, 91, 255, 0.35);
+  --gradient-end:         rgba(255, 62, 158, 0.18);
+  --shadow-shell:         rgba(6, 10, 46, 0.65);
+  --shadow-primary:       rgba(255, 62, 158, 0.35);
+  --radius:               var(--st-r-lg);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+html {
+  background: var(--st-navy-deep);
+}
+
+body {
+  margin: 0;
+  font-family: var(--st-font-body);
+  color: var(--st-white);
+  background:
+    radial-gradient(120% 90% at 50% 45%, #7A4DE6 0%, #4327B0 28%, #1A1A78 55%, var(--st-navy-deep) 100%) fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+* { box-sizing: border-box; }
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; background: none; border: none; padding: 0; }
+button:disabled { cursor: not-allowed; }
+
+::selection {
+  background: var(--st-pink);
+  color: var(--st-white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Reusable signature animations */
+@keyframes st-pulse-soft {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.08); }
+}
+
+@keyframes st-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1);   }
+}
+
+@keyframes st-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}

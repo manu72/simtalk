@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
+      "mcp__plugin_context-mode_context-mode__ctx_search",
+      "Read(//private/tmp/**)",
+      "Bash(curl -sSL --compressed -D headers.txt \"https://api.anthropic.com/v1/design/h/8MIscQ0gUnTVQ5EyfDsIag\" -o simtalk_design.bin)",
+      "Bash(mkdir -p /tmp/simtalk_design)",
+      "Bash(tar -xzf /tmp/simtalk_design.bin -C /tmp/simtalk_design)",
+      "Read(//tmp/**)",
+      "Bash(grep -v -E '\\\\.\\(png|jpg|jpeg|webp|gif|woff|ttf|otf\\)$')",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm --filter @simtalk/frontend typecheck)",
+      "Bash(pnpm --filter @simtalk/frontend test)",
+      "Bash(pnpm test *)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute"
+    ]
+  }
+}
