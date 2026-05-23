@@ -20,6 +20,8 @@ type TurnaboutSurfaceProps = {
   readonly activeSide: 'source' | 'target';
   readonly turns: ReadonlyArray<ConversationTurn>;
   readonly recording: boolean;
+  readonly liveSrc: string;
+  readonly liveDst: string;
   readonly onFlip: () => void;
   readonly onMicDown: () => void;
   readonly onMicUp: () => void;
@@ -136,18 +138,22 @@ export const TurnaboutSurface = ({
   activeSide,
   turns,
   recording,
+  liveSrc,
+  liveDst,
   onFlip,
   onMicDown,
   onMicUp
 }: TurnaboutSurfaceProps) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const speakerLang = activeSide === 'source' ? source : target;
+  const listenerLang = activeSide === 'source' ? target : source;
+  const showLivePreview = recording;
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [turns.length]);
+  }, [turns.length, liveSrc, liveDst]);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -162,7 +168,7 @@ export const TurnaboutSurface = ({
           margin: '0 auto'
         }}
       >
-        {turns.length === 0 ? (
+        {turns.length === 0 && !showLivePreview ? (
           <div
             style={{
               padding: '40px 16px',
@@ -180,9 +186,23 @@ export const TurnaboutSurface = ({
               Pass the phone to flip sides.
             </span>
           </div>
-        ) : (
-          turns.map((turn) => <Bubble key={turn.id} turn={turn} />)
-        )}
+        ) : null}
+
+        {turns.map((turn) => <Bubble key={turn.id} turn={turn} />)}
+
+        {showLivePreview ? (
+          <Bubble
+            turn={{
+              id: 'live-preview',
+              side: 'you',
+              srcLang: speakerLang,
+              dstLang: listenerLang,
+              src: liveSrc,
+              dst: liveDst,
+              status: 'translating'
+            }}
+          />
+        ) : null}
       </div>
 
       <div

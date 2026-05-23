@@ -64,6 +64,10 @@ export const App = () => {
   const turnBuilderRef = useRef<{ src: string; dst: string; side: 'you' | 'them' } | null>(null);
   const holdingMicRef = useRef(false);
   const inputBaselineRef = useRef(0);
+  const [liveBaseInputLen, setLiveBaseInputLen] = useState(0);
+  const [liveBaseOutputLen, setLiveBaseOutputLen] = useState(0);
+  const pendingTurnIdRef = useRef<string | null>(null);
+  const pendingBaseOutputLenRef = useRef(0);
 
   // Practice
   const [practiceStage, setPracticeStage] = useState<PracticeStage>('idle');
@@ -125,6 +129,11 @@ export const App = () => {
     }
     recorderRef.current = null;
     localStreamRef.current = null;
+    const pendingId = pendingTurnIdRef.current;
+    if (pendingId) {
+      setTurns((prev) => prev.map((t) => (t.id === pendingId ? { ...t, status: 'done' } : t)));
+      pendingTurnIdRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -336,8 +345,15 @@ export const App = () => {
     if (holdingMicRef.current) return;
     holdingMicRef.current = true;
     setHoldingMic(true);
+    const priorPendingId = pendingTurnIdRef.current;
+    if (priorPendingId) {
+      setTurns((prev) => prev.map((t) => (t.id === priorPendingId ? { ...t, status: 'done' } : t)));
+      pendingTurnIdRef.current = null;
+    }
     lastOutputLenRef.current = outputTranscript.length;
     inputBaselineRef.current = inputTranscript.length;
+    setLiveBaseInputLen(inputTranscript.length);
+    setLiveBaseOutputLen(outputTranscript.length);
   }, [outputTranscript.length, inputTranscript.length]);
 
   const onMicUp = useCallback(() => {
@@ -357,19 +373,30 @@ export const App = () => {
     const dstLang = fromYou
       ? (activeSide === 'source' ? target : source)
       : (activeSide === 'source' ? source : target);
+    const turnId = `turn_${Date.now()}`;
     setTurns((prev) => [
       ...prev,
       {
-        id: `turn_${Date.now()}`,
+        id: turnId,
         side: builder.side,
         srcLang,
         dstLang,
         src: newSrc,
         dst: newDst,
-        status: 'done'
+        status: 'translating'
       }
     ]);
+    pendingTurnIdRef.current = turnId;
+    pendingBaseOutputLenRef.current = lastOutputLenRef.current;
   }, [outputTranscript, inputTranscript, activeSide, source, target]);
+
+  useEffect(() => {
+    const id = pendingTurnIdRef.current;
+    if (!id) return;
+    const newDst = outputTranscript.slice(pendingBaseOutputLenRef.current).trim();
+    if (!newDst) return;
+    setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, dst: newDst } : t)));
+  }, [outputTranscript]);
 
   const startPracticeRecording = useCallback(() => {
     revokePracticeAudio();
@@ -560,6 +587,8 @@ export const App = () => {
               activeSide={activeSide}
               turns={turns}
               recording={holdingMic}
+              liveSrc={holdingMic ? inputTranscript.slice(liveBaseInputLen) : ''}
+              liveDst={holdingMic ? outputTranscript.slice(liveBaseOutputLen) : ''}
               onFlip={flipTurnaboutSides}
               onMicDown={onMicDown}
               onMicUp={onMicUp}
