@@ -15,10 +15,16 @@
   --st-white:       #FFFFFF;
   --st-white-soft:  #F4F0FF;
 
+  /* Semantic state colors */
+  --st-success:     #34D27A;
+  --st-danger:      #FF5A5F;
+
   /* Translucent layers */
   --st-tint-white-08: rgba(255, 255, 255, 0.08);
   --st-tint-white-10: rgba(255, 255, 255, 0.10);
   --st-tint-white-20: rgba(255, 255, 255, 0.20);
+  --st-tint-success-80: rgba(52, 210, 122, 0.80);
+  --st-tint-danger-16:  rgba(255, 90, 95, 0.16);
 
   /* Signature nebula gradient */
   --st-bg-nebula: radial-gradient(
@@ -64,7 +70,8 @@
   --color-text-muted:     rgba(255, 255, 255, 0.72);
   --color-accent:         var(--st-pink);
   --color-on-accent:      var(--st-white);
-  --color-danger:         #FF5A5F;
+  --color-danger:         var(--st-danger);
+  --color-success:        var(--st-success);
   --color-border-subtle:  rgba(255, 255, 255, 0.18);
   --color-focus:          var(--st-cyan);
   --gradient-start:       rgba(139, 91, 255, 0.35);

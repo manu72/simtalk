@@ -168,8 +168,8 @@ export const Lobby = ({
           <div
             role="alert"
             style={{
-              background: "rgba(255,90,95,0.15)",
-              border: "2px solid #FF5A5F",
+              background: ST.dangerSoft,
+              border: `2px solid ${ST.danger}`,
               color: ST.white,
               padding: "10px 14px",
               borderRadius: 14,

@@ -195,9 +195,9 @@ export const RemoteRoomSurface = ({
                   width: 14,
                   height: 14,
                   borderRadius: 999,
-                  background: isLive ? '#34D27A' : ST.yellow,
+                  background: isLive ? ST.success : ST.yellow,
                   border: `2px solid ${ST.white}`,
-                  boxShadow: isLive ? '0 0 18px rgba(52,210,122,0.8)' : 'none'
+                  boxShadow: isLive ? `0 0 18px ${ST.successGlow}` : 'none'
                 }}
               />
             </div>
@@ -226,8 +226,8 @@ export const RemoteRoomSurface = ({
                 style={{
                   padding: '10px 12px',
                   borderRadius: 14,
-                  border: '2px solid #FF5A5F',
-                  background: 'rgba(255,90,95,0.16)',
+                  border: `2px solid ${ST.danger}`,
+                  background: ST.dangerSoft,
                   fontSize: 13,
                   fontWeight: 700
                 }}

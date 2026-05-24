@@ -12,7 +12,11 @@ export const ST = {
   cyan: '#2BE6F2',
   cyanDeep: '#0FB8C5',
   yellow: '#FFD23F',
-  white: '#FFFFFF'
+  white: '#FFFFFF',
+  success: '#34D27A',
+  successGlow: 'rgba(52,210,122,0.8)',
+  danger: '#FF5A5F',
+  dangerSoft: 'rgba(255,90,95,0.16)'
 } as const;
 
 export const FONT_DISPLAY = "'Luckiest Guy', 'Lilita One', system-ui, sans-serif";
