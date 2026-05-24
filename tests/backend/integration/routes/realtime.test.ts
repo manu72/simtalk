@@ -14,6 +14,8 @@ const openAiSuccessPayload = {
   }
 };
 
+const accessPassword = 'test-access-password';
+
 const createJsonResponse = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), {
     status,
@@ -23,6 +25,7 @@ const createJsonResponse = (body: unknown, status = 200): Response =>
 const createTestConfig = (overrides: NodeJS.ProcessEnv = {}) =>
   createAppConfig({
     APP_ENV: 'test',
+    APP_ACCESS_PASSWORD: accessPassword,
     OPENAI_API_KEY: 'sk-test-secret',
     OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS: '300',
     REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS: '60000',
@@ -35,6 +38,7 @@ const createTokenRequest = (headers: Record<string, string> = {}) =>
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Access-Password': accessPassword,
       'x-forwarded-for': '203.0.113.10',
       ...headers
     },
@@ -98,7 +102,10 @@ describe('POST /realtime/token', () => {
 
     const response = await app.request(realtimeTokenRoute, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Password': accessPassword
+      },
       body: JSON.stringify({
         mode: 'turnabout',
         targetLanguage: 'en'

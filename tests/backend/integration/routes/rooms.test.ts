@@ -7,10 +7,12 @@ import { createAppConfig } from '../../../../backend/src/config.js';
 import { LiveKitRoomError } from '../../../../backend/src/services/liveKitRooms.js';
 
 const roomId = 'room_abcdefghijklmnopqrstuvwxyz';
+const accessPassword = 'test-access-password';
 
 const createTestConfig = (overrides: NodeJS.ProcessEnv = {}) =>
   createAppConfig({
     APP_ENV: 'test',
+    APP_ACCESS_PASSWORD: accessPassword,
     ROOM_TOKEN_RATE_LIMIT_WINDOW_MS: '60000',
     ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS: '5',
     ...overrides
@@ -36,7 +38,10 @@ describe('remote room routes', () => {
     const roomService = createRoomService();
     const app = createApp(createTestConfig(), { liveKitRoomService: roomService });
 
-    const response = await app.request(roomCreateRoute, { method: 'POST' });
+    const response = await app.request(roomCreateRoute, {
+      method: 'POST',
+      headers: { 'X-Access-Password': accessPassword }
+    });
     const body = await response.json();
 
     expect(response.status).toBe(201);
@@ -61,7 +66,10 @@ describe('remote room routes', () => {
       }
     });
 
-    const response = await app.request(roomCreateRoute, { method: 'POST' });
+    const response = await app.request(roomCreateRoute, {
+      method: 'POST',
+      headers: { 'X-Access-Password': accessPassword }
+    });
     const body = await response.json();
 
     expect(response.status).toBe(201);
@@ -79,7 +87,10 @@ describe('remote room routes', () => {
 
     const response = await app.request(roomTokenRoute(roomId), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Password': accessPassword
+      },
       body: JSON.stringify({
         participantIdentity: 'participant_abcdefghijklmnop',
         targetLanguage: 'es'
@@ -118,7 +129,10 @@ describe('remote room routes', () => {
 
     const response = await app.request(roomTokenRoute(roomId), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Password': accessPassword
+      },
       body: JSON.stringify({
         participantIdentity: 'participant_abcdefghijklmnop',
         targetLanguage: 'es'
@@ -143,7 +157,10 @@ describe('remote room routes', () => {
 
     const response = await app.request(roomTokenRoute(roomId), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Password': accessPassword
+      },
       body: JSON.stringify({
         sourceLanguage: 'es',
         targetLanguage: 'es'
@@ -167,7 +184,10 @@ describe('remote room routes', () => {
 
     const response = await app.request('/rooms/not-a-room/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Password': accessPassword
+      },
       body: JSON.stringify({ targetLanguage: 'es' })
     });
     const body = await response.json();
@@ -192,7 +212,10 @@ describe('remote room routes', () => {
       }
     });
 
-    const response = await app.request(roomCreateRoute, { method: 'POST' });
+    const response = await app.request(roomCreateRoute, {
+      method: 'POST',
+      headers: { 'X-Access-Password': accessPassword }
+    });
     const body = await response.json();
 
     expect(response.status).toBe(503);
@@ -218,6 +241,7 @@ describe('remote room routes', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Access-Password': accessPassword,
         'x-forwarded-for': '203.0.113.10'
       },
       body: JSON.stringify({ targetLanguage: 'es' })

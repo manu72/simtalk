@@ -135,15 +135,9 @@ describe('access gate integration', () => {
     expect(response.status).toBe(200);
   });
 
-  it('leaves all routes open when APP_ACCESS_PASSWORD is empty', async () => {
-    const fetchMock = vi.fn(async () => createJsonResponse(openAiSuccessPayload));
-    const app = createApp(
-      createAppConfig({ ...baseEnv, APP_ACCESS_PASSWORD: '' }),
-      { fetch: fetchMock }
+  it('fails config creation when APP_ACCESS_PASSWORD is empty outside development', () => {
+    expect(() => createAppConfig({ ...baseEnv, APP_ACCESS_PASSWORD: '' })).toThrow(
+      'APP_ACCESS_PASSWORD is required when APP_ENV is "test"'
     );
-
-    const response = await app.request(realtimeRequest());
-
-    expect(response.status).toBe(200);
   });
 });

@@ -55,8 +55,8 @@ export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig
   const appEnv = env.APP_ENV ?? 'development';
 
   if (!appAccessPassword && appEnv !== 'development') {
-    console.warn(
-      '[config] APP_ACCESS_PASSWORD is empty in a non-development environment — expensive API routes are publicly reachable.'
+    throw new Error(
+      `[config] APP_ACCESS_PASSWORD is required when APP_ENV is "${appEnv}". Set APP_ACCESS_PASSWORD before starting the backend outside development.`
     );
   }
 

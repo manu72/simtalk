@@ -5,6 +5,7 @@ import { createAppConfig } from '../../../backend/src/config.js';
 
 const config = createAppConfig({
   APP_ENV: 'test',
+  APP_ACCESS_PASSWORD: 'test-access-password',
   PORT: '3000',
   ALLOWED_ORIGINS: 'http://localhost:5173'
 });
