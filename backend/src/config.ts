@@ -8,6 +8,14 @@ export type AppConfig = {
   readonly realtimeTokenRateLimitWindowMs: number;
   readonly realtimeTokenRateLimitMaxRequests: number;
   readonly realtimeInputTranscriptionModel: string;
+  readonly liveKitUrl: string | undefined;
+  readonly liveKitApiKey: string | undefined;
+  readonly liveKitApiSecret: string | undefined;
+  readonly liveKitTokenTtlSeconds: number;
+  readonly liveKitRoomEmptyTimeoutSeconds: number;
+  readonly liveKitRoomDepartureTimeoutSeconds: number;
+  readonly roomTokenRateLimitWindowMs: number;
+  readonly roomTokenRateLimitMaxRequests: number;
 };
 
 const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'] as const;
@@ -67,5 +75,33 @@ export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig
     100
   ),
   realtimeInputTranscriptionModel:
-    env.OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL?.trim() || defaultRealtimeInputTranscriptionModel
+    env.OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL?.trim() || defaultRealtimeInputTranscriptionModel,
+  liveKitUrl: env.LIVEKIT_URL?.trim() || undefined,
+  liveKitApiKey: env.LIVEKIT_API_KEY?.trim() || undefined,
+  liveKitApiSecret: env.LIVEKIT_API_SECRET?.trim() || undefined,
+  liveKitTokenTtlSeconds: parseIntegerInRange(env.LIVEKIT_TOKEN_TTL_SECONDS, 600, 60, 3600),
+  liveKitRoomEmptyTimeoutSeconds: parseIntegerInRange(
+    env.LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS,
+    300,
+    30,
+    3600
+  ),
+  liveKitRoomDepartureTimeoutSeconds: parseIntegerInRange(
+    env.LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS,
+    60,
+    10,
+    600
+  ),
+  roomTokenRateLimitWindowMs: parseIntegerInRange(
+    env.ROOM_TOKEN_RATE_LIMIT_WINDOW_MS,
+    60_000,
+    1_000,
+    3_600_000
+  ),
+  roomTokenRateLimitMaxRequests: parseIntegerInRange(
+    env.ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS,
+    10,
+    1,
+    100
+  )
 });

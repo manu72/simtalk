@@ -13,12 +13,14 @@ type LobbyProps = {
   readonly source: Language;
   readonly target: Language;
   readonly isLaunching: boolean;
+  readonly isCreatingRoom?: boolean;
   readonly errorMessage: string | null;
   readonly onChangeMode: (mode: ConversationMode) => void;
   readonly onChangeSource: (lang: Language) => void;
   readonly onChangeTarget: (lang: Language) => void;
   readonly onSwap: () => void;
   readonly onLaunch: () => void;
+  readonly onCreateRoom?: () => void;
 };
 
 const TITLES: Record<ConversationMode, { line1: string; line2?: string; tagline: string }> = {
@@ -41,12 +43,14 @@ export const Lobby = ({
   source,
   target,
   isLaunching,
+  isCreatingRoom = false,
   errorMessage,
   onChangeMode,
   onChangeSource,
   onChangeTarget,
   onSwap,
   onLaunch,
+  onCreateRoom,
 }: LobbyProps) => {
   const [picker, setPicker] = useState<"source" | "target" | null>(null);
   const titles = TITLES[mode];
@@ -155,12 +159,17 @@ export const Lobby = ({
         <STButton variant="primary" size="lg" full onClick={onLaunch} disabled={isLaunching} icon="mic">
           {isLaunching ? "LAUNCHING…" : "LAUNCH"}
         </STButton>
+        {onCreateRoom ? (
+          <STButton variant="secondary" size="md" full onClick={onCreateRoom} disabled={isCreatingRoom} icon="globe">
+            {isCreatingRoom ? "CREATING ROOM…" : "CREATE REMOTE ROOM"}
+          </STButton>
+        ) : null}
         {errorMessage ? (
           <div
             role="alert"
             style={{
-              background: "rgba(255,90,95,0.15)",
-              border: "2px solid #FF5A5F",
+              background: ST.dangerSoft,
+              border: `2px solid ${ST.danger}`,
               color: ST.white,
               padding: "10px 14px",
               borderRadius: 14,

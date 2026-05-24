@@ -1,7 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { participantIdentitySchema } from '../../../shared/types/src/index';
 
+const createLiveKitRemoteRoomSessionMock = vi.hoisted(() => vi.fn());
 const createRealtimeTranslationSessionMock = vi.hoisted(() => vi.fn());
+
+vi.mock('../../../frontend/src/liveKitRemoteRoomSession', () => ({
+  createLiveKitRemoteRoomSession: createLiveKitRemoteRoomSessionMock
+}));
 
 vi.mock('../../../frontend/src/realtimeTranslationSession', () => ({
   createRealtimeTranslationSession: createRealtimeTranslationSessionMock,
@@ -30,13 +36,34 @@ const tokenJsonResponse = () =>
     headers: { 'Content-Type': 'application/json' }
   });
 
+const roomCreateJsonResponse = () =>
+  new Response(
+    JSON.stringify({
+      roomId: 'room_abcdefghijklmnopqrstuvwxyz',
+      roomUrlPath: '/rooms/room_abcdefghijklmnopqrstuvwxyz',
+      expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+    }),
+    {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+
 beforeEach(() => {
+  createLiveKitRemoteRoomSessionMock.mockResolvedValue({
+    participantIdentity: 'participant_abcdefghijklmnop',
+    setOriginalAudioMuted: vi.fn(),
+    stop: vi.fn()
+  });
   createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  createLiveKitRemoteRoomSessionMock.mockReset();
   createRealtimeTranslationSessionMock.mockReset();
+  window.history.pushState({}, '', '/');
 });
 
 describe('Lobby', () => {
@@ -53,6 +80,39 @@ describe('Lobby', () => {
   it('shows the LAUNCH primary CTA', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: /launch/i })).toBeInTheDocument();
+  });
+
+  it('creates a remote room and routes to the room screen', async () => {
+    const fetchMock = mockFetch(roomCreateJsonResponse());
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /create remote room/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /remote talk/i })).toBeInTheDocument();
+    });
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms', { method: 'POST' });
+  });
+
+  it('generates a schema-valid fallback participant identity when crypto.randomUUID is unavailable', async () => {
+    vi.stubGlobal('crypto', {});
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    vi.spyOn(Date, 'now').mockReturnValue(1);
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /join room/i }));
+    });
+
+    await waitFor(() => expect(createLiveKitRemoteRoomSessionMock).toHaveBeenCalled());
+    const call = createLiveKitRemoteRoomSessionMock.mock.calls[0] as
+      | [{ roomTokenRequest: { participantIdentity?: string } }]
+      | undefined;
+    const participantIdentity = call?.[0].roomTokenRequest.participantIdentity;
+    expect(participantIdentitySchema.safeParse(participantIdentity).success).toBe(true);
   });
 
   it('Listener mode shows two language cards: a Detect (Automatic) source and a Translate-into target', () => {
@@ -124,6 +184,38 @@ describe('Launch flow', () => {
       expect(screen.getByRole('button', { name: /end session/i })).toBeInTheDocument();
     });
     expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops a translation session that resolves after the user ended launch', async () => {
+    const translationSession = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    let resolveTranslationSession: ((session: typeof translationSession) => void) | undefined;
+
+    createRealtimeTranslationSessionMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveTranslationSession = resolve;
+        })
+    );
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+
+    await act(async () => {
+      resolveTranslationSession?.(translationSession);
+    });
+
+    await waitFor(() => {
+      expect(translationSession.stop).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('surfaces an error in the lobby when the token request fails', async () => {

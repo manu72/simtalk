@@ -125,7 +125,7 @@ export const SessionHeader = ({
             {isListener ? `AUTO → ${target.code}` : `${source?.code ?? '??'} ↔ ${target.code}`}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-            {status === 'live' ? <LiveDot color="#34D27A" /> : null}
+            {status === 'live' ? <LiveDot color={ST.success} /> : null}
             <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.7 }}>
               {status === 'connecting' && 'CONNECTING…'}
               {status === 'live' && `LIVE · ${formatDuration(elapsed)}`}

@@ -7,10 +7,15 @@ import { Lobby } from './components/screens/Lobby';
 import { ListenerSurface } from './components/screens/ListenerSurface';
 import { TurnaboutSurface, type ConversationTurn } from './components/screens/TurnaboutSurface';
 import { PracticeSurface, type PracticeStage } from './components/screens/PracticeSurface';
+import { RemoteRoomSurface, type RemoteRoomStatus } from './components/screens/RemoteRoomSurface';
 import { Summary } from './components/screens/Summary';
 import { TranscriptSheet } from './components/screens/TranscriptSheet';
 import { SessionHeader } from './components/session/SessionHeader';
 import { DevDrawer } from './components/session/DevDrawer';
+import {
+  createLiveKitRemoteRoomSession,
+  type RemoteRoomSession
+} from './liveKitRemoteRoomSession';
 import { RealtimeTokenClientError, requestRealtimeToken } from './realtimeTokenClient';
 import {
   createRealtimeTranslationSession,
@@ -18,6 +23,7 @@ import {
   type RealtimeTranslationSession,
   type TranscriptDelta
 } from './realtimeTranslationSession';
+import { requestRoomCreate, RoomTokenClientError } from './roomTokenClient';
 
 type View = 'lobby' | 'session' | 'summary';
 
@@ -40,11 +46,57 @@ const splitSentences = (text: string): string[] =>
 const isDevModeFromUrl = (): boolean =>
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev');
 
+const roomIdFromPathname = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const match = /^\/rooms\/([^/?#]+)$/.exec(window.location.pathname);
+  if (!match) return null;
+  const encodedRoomId = match[1];
+  if (!encodedRoomId) return null;
+  try {
+    return decodeURIComponent(encodedRoomId);
+  } catch {
+    return null;
+  }
+};
+
+const participantIdentityMinSuffixLength = 16;
+
+const createBrowserParticipantIdentity = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `participant_${crypto.randomUUID().replaceAll('-', '')}`;
+  }
+
+  const suffix = `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  return `participant_${suffix.padEnd(participantIdentityMinSuffixLength, '0')}`;
+};
+
+const participantIdentityStorageKey = (roomId: string): string =>
+  `simtalk.room.${roomId}.participantIdentity`;
+
+const getParticipantIdentityForRoom = (roomId: string): string => {
+  const key = participantIdentityStorageKey(roomId);
+  const stored = window.sessionStorage.getItem(key);
+  if (stored) return stored;
+
+  return createBrowserParticipantIdentity();
+};
+
 export const App = () => {
   // Lobby state
   const [mode, setMode] = useState<ConversationMode>('listener');
   const [source, setSource] = useState<Language>(AUTO_LANGUAGE);
   const [target, setTarget] = useState<Language>(findLanguage('es'));
+
+  // Remote room state stays browser-local. sessionStorage is used only for reload identity continuity.
+  const [remoteRoomId, setRemoteRoomId] = useState<string | null>(() => roomIdFromPathname());
+  const [remoteSource, setRemoteSource] = useState<Language>(AUTO_LANGUAGE);
+  const [remoteTarget, setRemoteTarget] = useState<Language>(findLanguage('es'));
+  const [remoteStatus, setRemoteStatus] = useState<RemoteRoomStatus>('idle');
+  const [remoteErrorMessage, setRemoteErrorMessage] = useState<string | null>(null);
+  const [remoteTranslatedCaption, setRemoteTranslatedCaption] = useState('');
+  const [remoteParticipantCount, setRemoteParticipantCount] = useState(0);
+  const [remoteOriginalAudioMuted, setRemoteOriginalAudioMuted] = useState(true);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   // App flow
   const [view, setView] = useState<View>('lobby');
@@ -95,6 +147,8 @@ export const App = () => {
 
   // Refs to session lifecycle
   const sessionRef = useRef<RealtimeTranslationSession | null>(null);
+  const remoteSessionRef = useRef<RemoteRoomSession | null>(null);
+  const joinGenerationRef = useRef(0);
   const localStreamRef = useRef<MediaStream | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const launchIdRef = useRef(0);
@@ -114,6 +168,7 @@ export const App = () => {
   }, []);
 
   const teardownSession = useCallback(() => {
+    launchIdRef.current += 1;
     abortRef.current?.abort();
     abortRef.current = null;
     try {
@@ -138,6 +193,18 @@ export const App = () => {
     }
   }, []);
 
+  const teardownRemoteRoom = useCallback(() => {
+    joinGenerationRef.current += 1;
+    try {
+      remoteSessionRef.current?.stop();
+    } catch {
+      // best effort
+    }
+    remoteSessionRef.current = null;
+    setRemoteParticipantCount(0);
+    setRemoteTranslatedCaption('');
+  }, []);
+
   useEffect(() => {
     if (isDevModeFromUrl()) setDevOpen(true);
     const handler = (event: KeyboardEvent) => {
@@ -153,11 +220,23 @@ export const App = () => {
   useEffect(
     () => () => {
       teardownSession();
+      teardownRemoteRoom();
       revokeRecordingUrl();
       revokePracticeAudio();
     },
-    [teardownSession, revokeRecordingUrl, revokePracticeAudio]
+    [teardownSession, teardownRemoteRoom, revokeRecordingUrl, revokePracticeAudio]
   );
+
+  useEffect(() => {
+    const onPopState = () => {
+      setRemoteRoomId(roomIdFromPathname());
+      teardownRemoteRoom();
+      setRemoteStatus('idle');
+      setRemoteErrorMessage(null);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [teardownRemoteRoom]);
 
   const resetTranscriptBuffers = useCallback(() => {
     inputTranscriptRef.current = '';
@@ -236,32 +315,45 @@ export const App = () => {
     ): Promise<'ok' | 'superseded'> => {
       const launchId = launchIdRef.current + 1;
       launchIdRef.current = launchId;
+      const isCurrentLaunch = () => launchIdRef.current === launchId;
       setStatus('connecting');
 
-      const tokenResponse = await requestRealtimeToken(request);
-      if (launchIdRef.current !== launchId) return 'superseded';
+      let tokenResponse: RealtimeTokenResponse;
+      try {
+        tokenResponse = await requestRealtimeToken(request);
+      } catch (error) {
+        if (!isCurrentLaunch()) return 'superseded';
+        throw error;
+      }
+      if (!isCurrentLaunch()) return 'superseded';
       setToken(tokenResponse);
 
       const abort = new AbortController();
       abortRef.current = abort;
 
-      const session = await createRealtimeTranslationSession({
-        token: tokenResponse,
-        signal: abort.signal,
-        startLocalAudioEnabled: opts.startLocalAudioEnabled,
-        onLocalStream: (stream) => {
-          if (launchIdRef.current !== launchId) return;
-          localStreamRef.current = stream;
-          if (opts.startSessionRecorder) startMediaRecorder(stream);
-        },
-        onTranscriptDelta: (delta) => {
-          if (launchIdRef.current === launchId) handleTranscriptDelta(delta);
-        },
-        onRemoteAudio: () => {
-          if (launchIdRef.current === launchId) setStatus('live');
-        }
-      });
-      if (launchIdRef.current !== launchId) {
+      let session: RealtimeTranslationSession;
+      try {
+        session = await createRealtimeTranslationSession({
+          token: tokenResponse,
+          signal: abort.signal,
+          startLocalAudioEnabled: opts.startLocalAudioEnabled,
+          onLocalStream: (stream) => {
+            if (!isCurrentLaunch()) return;
+            localStreamRef.current = stream;
+            if (opts.startSessionRecorder) startMediaRecorder(stream);
+          },
+          onTranscriptDelta: (delta) => {
+            if (isCurrentLaunch()) handleTranscriptDelta(delta);
+          },
+          onRemoteAudio: () => {
+            if (isCurrentLaunch()) setStatus('live');
+          }
+        });
+      } catch (error) {
+        if (!isCurrentLaunch()) return 'superseded';
+        throw error;
+      }
+      if (!isCurrentLaunch()) {
         session.stop();
         return 'superseded';
       }
@@ -272,11 +364,122 @@ export const App = () => {
     [handleTranscriptDelta, startMediaRecorder]
   );
 
-  const errorMessageFor = (error: unknown, fallback: string): string => {
+  const errorMessageFor = useCallback((error: unknown, fallback: string): string => {
     if (error instanceof RealtimeTokenClientError) return error.message;
+    if (error instanceof RoomTokenClientError) return error.message;
     if (error instanceof RealtimeTranslationSessionError) return error.message;
     return fallback;
-  };
+  }, []);
+
+  const createRemoteRoom = useCallback(async () => {
+    if (isCreatingRoom) return;
+    setIsCreatingRoom(true);
+    setErrorMessage(null);
+    try {
+      const room = await requestRoomCreate();
+      window.history.pushState({}, '', room.roomUrlPath);
+      setRemoteRoomId(room.roomId);
+      setRemoteStatus('idle');
+      setRemoteErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(errorMessageFor(error, 'Could not create a remote room. Please try again.'));
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  }, [errorMessageFor, isCreatingRoom]);
+
+  const joinRemoteRoom = useCallback(async () => {
+    if (!remoteRoomId || remoteStatus === 'joining') return;
+    teardownRemoteRoom();
+    const joinGeneration = joinGenerationRef.current + 1;
+    joinGenerationRef.current = joinGeneration;
+    setRemoteStatus('joining');
+    setRemoteErrorMessage(null);
+
+    try {
+      const isCurrentJoin = () => joinGenerationRef.current === joinGeneration;
+      const participantIdentity = getParticipantIdentityForRoom(remoteRoomId);
+      const hintedSourceLanguage = isAutoLanguage(remoteSource) ? undefined : remoteSource.bcp47;
+      const session = await createLiveKitRemoteRoomSession({
+        roomId: remoteRoomId,
+        roomTokenRequest: {
+          participantIdentity,
+          sourceLanguage: hintedSourceLanguage,
+          targetLanguage: remoteTarget.bcp47
+        },
+        realtimeTokenRequest: {
+          mode: 'listener',
+          sourceLanguage: hintedSourceLanguage,
+          targetLanguage: remoteTarget.bcp47
+        },
+        onParticipantCountChange: (count) => {
+          if (isCurrentJoin()) setRemoteParticipantCount(count);
+        },
+        onTranscriptDelta: (delta) => {
+          if (isCurrentJoin() && delta.kind === 'output') {
+            setRemoteTranslatedCaption((prev) => `${prev}${delta.text}`.slice(-1000));
+          }
+        },
+        onRemoteAudioActive: () => {
+          if (isCurrentJoin()) setRemoteStatus('live');
+        },
+        onTranslationError: (message) => {
+          if (!isCurrentJoin()) return;
+          setRemoteStatus('error');
+          setRemoteErrorMessage(message);
+        }
+      });
+      if (!isCurrentJoin()) {
+        try {
+          session.stop();
+        } catch {
+          // best effort
+        }
+        return;
+      }
+      remoteSessionRef.current = session;
+      window.sessionStorage.setItem(
+        participantIdentityStorageKey(remoteRoomId),
+        session.participantIdentity
+      );
+      session.setOriginalAudioMuted(remoteOriginalAudioMuted);
+      setRemoteStatus('live');
+    } catch (error) {
+      if (joinGenerationRef.current !== joinGeneration) return;
+      teardownRemoteRoom();
+      setRemoteStatus('error');
+      setRemoteErrorMessage(errorMessageFor(error, 'Could not join the remote room. Please try again.'));
+    }
+  }, [
+    remoteRoomId,
+    remoteSource,
+    remoteTarget,
+    remoteOriginalAudioMuted,
+    remoteStatus,
+    errorMessageFor,
+    teardownRemoteRoom
+  ]);
+
+  const leaveRemoteRoom = useCallback(() => {
+    teardownRemoteRoom();
+    setRemoteStatus('idle');
+    setRemoteErrorMessage(null);
+    window.history.pushState({}, '', '/');
+    setRemoteRoomId(null);
+  }, [teardownRemoteRoom]);
+
+  const toggleOriginalAudio = useCallback(() => {
+    setRemoteOriginalAudioMuted((prev) => {
+      const next = !prev;
+      remoteSessionRef.current?.setOriginalAudioMuted(next);
+      return next;
+    });
+  }, []);
+
+  const copyRemoteRoomLink = useCallback(() => {
+    if (!remoteRoomId) return;
+    void navigator.clipboard?.writeText(new URL(`/rooms/${remoteRoomId}`, window.location.origin).toString());
+  }, [remoteRoomId]);
 
   const launch = useCallback(async () => {
     if (status === 'launching' || status === 'connecting') return;
@@ -314,6 +517,7 @@ export const App = () => {
     teardownSession,
     resetTranscriptBuffers,
     revokeRecordingUrl,
+    errorMessageFor,
     startSessionWithRequest
   ]);
 
@@ -399,7 +603,7 @@ export const App = () => {
       setErrorMessage(errorMessageFor(error, 'Could not switch sides. Try again.'));
       setStatus('error');
     }
-  }, [activeSide, mode, source, target, status, startSessionWithRequest, teardownSession]);
+  }, [activeSide, mode, source, target, status, startSessionWithRequest, teardownSession, errorMessageFor]);
 
   const onMicDown = useCallback(() => {
     if (holdingMicRef.current) return;
@@ -614,6 +818,40 @@ export const App = () => {
     }
   }, [source, target]);
 
+  useEffect(() => {
+    if (isAutoLanguage(remoteSource)) return;
+    if (remoteSource.bcp47 === remoteTarget.bcp47) {
+      const other = LANGUAGES.find((lang) => lang.bcp47 !== remoteSource.bcp47);
+      if (other) setRemoteTarget(other);
+    }
+  }, [remoteSource, remoteTarget]);
+
+  if (remoteRoomId) {
+    const roomUrl = new URL(`/rooms/${remoteRoomId}`, window.location.origin).toString();
+
+    return (
+      <RemoteRoomSurface
+        roomId={remoteRoomId}
+        roomUrl={roomUrl}
+        source={remoteSource}
+        target={remoteTarget}
+        status={remoteStatus}
+        participantCount={remoteParticipantCount}
+        translatedCaption={remoteTranslatedCaption}
+        originalAudioMuted={remoteOriginalAudioMuted}
+        errorMessage={remoteErrorMessage}
+        onChangeSource={setRemoteSource}
+        onChangeTarget={setRemoteTarget}
+        onJoin={() => {
+          void joinRemoteRoom();
+        }}
+        onLeave={leaveRemoteRoom}
+        onToggleOriginalAudio={toggleOriginalAudio}
+        onCopyLink={copyRemoteRoomLink}
+      />
+    );
+  }
+
   return (
     <main
       style={{
@@ -630,6 +868,7 @@ export const App = () => {
           source={source}
           target={target}
           isLaunching={status === 'launching' || status === 'connecting'}
+          isCreatingRoom={isCreatingRoom}
           errorMessage={errorMessage}
           onChangeMode={(next) => {
             if (next !== 'listener' && isAutoLanguage(source)) {
@@ -643,6 +882,9 @@ export const App = () => {
           onChangeTarget={setTarget}
           onSwap={swapLanguages}
           onLaunch={launch}
+          onCreateRoom={() => {
+            void createRemoteRoom();
+          }}
         />
       ) : null}
 
