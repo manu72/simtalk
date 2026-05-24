@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-23T11:07:08+00:00",
+  "generated_at": "2026-05-24T00:31:13+00:00",
   "root": ".",
   "entries": [
     {
@@ -256,6 +256,18 @@
       ]
     },
     {
+      "path": ".cursor/plans/simtalk_deployment_rooms_b4ffca08.plan.md",
+      "kind": "file",
+      "language": "markdown",
+      "subsystem": ".cursor",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "simtalk_deployment_rooms_b4ffca08.plan.md"
+      ]
+    },
+    {
       "path": ".cursor/skills",
       "kind": "dir",
       "language": null,
@@ -340,6 +352,60 @@
       ]
     },
     {
+      "path": ".github",
+      "kind": "dir",
+      "language": null,
+      "subsystem": null,
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        ".github"
+      ]
+    },
+    {
+      "path": ".github/workflows",
+      "kind": "dir",
+      "language": null,
+      "subsystem": ".github",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "workflows"
+      ]
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "kind": "file",
+      "language": "yaml",
+      "subsystem": ".github",
+      "role": "source-of-truth",
+      "risk_tags": [
+        "infra",
+        "ci"
+      ],
+      "related_tests": [],
+      "read_triggers": [
+        "ci.yml"
+      ]
+    },
+    {
+      "path": ".github/workflows/vercel-deploy.yml",
+      "kind": "file",
+      "language": "yaml",
+      "subsystem": ".github",
+      "role": "source-of-truth",
+      "risk_tags": [
+        "infra",
+        "ci"
+      ],
+      "related_tests": [],
+      "read_triggers": [
+        "vercel-deploy.yml"
+      ]
+    },
+    {
       "path": "CLAUDE.md",
       "kind": "file",
       "language": "markdown",
@@ -385,6 +451,83 @@
       "related_tests": [],
       "read_triggers": [
         "system_architecture.md"
+      ]
+    },
+    {
+      "path": "api",
+      "kind": "dir",
+      "language": null,
+      "subsystem": "api",
+      "role": "module",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "api/[...route].ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "[...route].ts",
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "api/tsconfig.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "tsconfig.json",
+        "zod"
       ]
     },
     {
@@ -758,6 +901,34 @@
       ]
     },
     {
+      "path": "backend/src/routes/rooms.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "backend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "rooms.ts",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
       "path": "backend/src/schemas",
       "kind": "dir",
       "language": null,
@@ -837,6 +1008,34 @@
         "route",
         "schema",
         "services",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "backend/src/services/liveKitRooms.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "backend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "livekitrooms.ts",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
         "token",
         "zod"
       ]
@@ -1059,6 +1258,18 @@
       "related_tests": [],
       "read_triggers": [
         "ux-redesign-plan.md"
+      ]
+    },
+    {
+      "path": "eslint.config.js",
+      "kind": "file",
+      "language": "javascript",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "eslint.config.js"
       ]
     },
     {
@@ -1567,6 +1778,34 @@
       ]
     },
     {
+      "path": "frontend/src/components/screens/RemoteRoomSurface.tsx",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "remoteroomsurface.tsx",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
       "path": "frontend/src/components/screens/Summary.tsx",
       "kind": "file",
       "language": "typescript",
@@ -1735,6 +1974,34 @@
       ]
     },
     {
+      "path": "frontend/src/liveKitRemoteRoomSession.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "livekitremoteroomsession.ts",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
       "path": "frontend/src/main.tsx",
       "kind": "file",
       "language": "typescript",
@@ -1810,6 +2077,34 @@
         "playback",
         "react",
         "realtimetranslationsession.ts",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
+      "path": "frontend/src/roomTokenClient.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "frontend/tsconfig.test.json"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "roomtokenclient.ts",
         "shadcn",
         "tailwind",
         "transcript",
@@ -2401,14 +2696,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "coverage",
@@ -2431,14 +2726,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2467,14 +2762,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2504,14 +2799,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2541,14 +2836,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2578,14 +2873,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2606,6 +2901,80 @@
       ]
     },
     {
+      "path": "tests/backend/integration/routes/rooms.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "rooms.test.ts",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
+      "path": "tests/backend/integration/vercelAdapter.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "verceladapter.test.ts",
+        "zod"
+      ]
+    },
+    {
       "path": "tests/backend/unit",
       "kind": "dir",
       "language": null,
@@ -2615,14 +2984,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2652,14 +3021,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2689,14 +3058,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2717,6 +3086,43 @@
       ]
     },
     {
+      "path": "tests/backend/unit/services/liveKitRooms.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "api",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts"
+      ],
+      "read_triggers": [
+        "api",
+        "backend",
+        "controller",
+        "cors",
+        "endpoint",
+        "ephemeral",
+        "handler",
+        "hono",
+        "livekitrooms.test.ts",
+        "middleware",
+        "rate-limit",
+        "route",
+        "schema",
+        "token",
+        "zod"
+      ]
+    },
+    {
       "path": "tests/backend/unit/services/openAiRealtime.test.ts",
       "kind": "file",
       "language": "typescript",
@@ -2726,14 +3132,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "api",
@@ -2763,14 +3169,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "coverage",
@@ -2793,14 +3199,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "coverage",
@@ -2824,14 +3230,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -2860,14 +3266,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -2896,14 +3302,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "app.test.tsx",
@@ -2933,14 +3339,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -2970,14 +3376,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -3007,14 +3413,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -3035,6 +3441,43 @@
       ]
     },
     {
+      "path": "tests/frontend/unit/liveKitRemoteRoomSession.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "livekitremoteroomsession.test.ts",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
       "path": "tests/frontend/unit/realtimeTokenClient.test.ts",
       "kind": "file",
       "language": "typescript",
@@ -3044,14 +3487,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -3081,14 +3524,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "browser",
@@ -3109,6 +3552,43 @@
       ]
     },
     {
+      "path": "tests/frontend/unit/roomTokenClient.test.ts",
+      "kind": "file",
+      "language": "typescript",
+      "subsystem": "web",
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [
+        "tests/backend/integration/app.test.ts",
+        "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
+        "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
+        "tests/backend/unit/services/openAiRealtime.test.ts",
+        "tests/e2e/home.spec.ts",
+        "tests/frontend/component/App.test.tsx",
+        "tests/frontend/support/setupTests.ts"
+      ],
+      "read_triggers": [
+        "browser",
+        "component",
+        "frontend",
+        "mic",
+        "microphone",
+        "page",
+        "playback",
+        "react",
+        "roomtokenclient.test.ts",
+        "shadcn",
+        "tailwind",
+        "transcript",
+        "ui",
+        "view",
+        "vite"
+      ]
+    },
+    {
       "path": "tests/shared",
       "kind": "dir",
       "language": null,
@@ -3118,14 +3598,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "contract",
@@ -3144,14 +3624,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "contract",
@@ -3171,14 +3651,14 @@
       "related_tests": [
         "tests/backend/integration/app.test.ts",
         "tests/backend/integration/routes/realtime.test.ts",
+        "tests/backend/integration/routes/rooms.test.ts",
+        "tests/backend/integration/vercelAdapter.test.ts",
         "tests/backend/unit/config.test.ts",
+        "tests/backend/unit/services/liveKitRooms.test.ts",
         "tests/backend/unit/services/openAiRealtime.test.ts",
         "tests/e2e/home.spec.ts",
         "tests/frontend/component/App.test.tsx",
-        "tests/frontend/support/setupTests.ts",
-        "tests/frontend/unit/realtimeTokenClient.test.ts",
-        "tests/frontend/unit/realtimeTranslationSession.test.ts",
-        "tests/shared/unit/index.test.ts"
+        "tests/frontend/support/setupTests.ts"
       ],
       "read_triggers": [
         "contract",
@@ -3198,6 +3678,18 @@
       "related_tests": [],
       "read_triggers": [
         "tsconfig.base.json"
+      ]
+    },
+    {
+      "path": "vercel.json",
+      "kind": "file",
+      "language": "json",
+      "subsystem": null,
+      "role": "source-of-truth",
+      "risk_tags": [],
+      "related_tests": [],
+      "read_triggers": [
+        "vercel.json"
       ]
     }
   ]

@@ -1,6 +1,12 @@
 import { Hono } from 'hono';
 
-import { apiErrorSchema, roomIdSchema, roomTokenRequestSchema } from '@simtalk/shared-types';
+import {
+  apiErrorSchema,
+  roomCreateResponseSchema,
+  roomIdSchema,
+  roomTokenRequestSchema,
+  roomTokenResponseSchema
+} from '@simtalk/shared-types';
 
 import type { AppConfig } from '../config.js';
 import { createRateLimitMiddleware } from '../middleware/rateLimit.js';
@@ -31,7 +37,7 @@ export const createRoomsRoute = (
 
   route.post('/', rateLimit, async (c) => {
     try {
-      const room = await roomService.createRoom();
+      const room = roomCreateResponseSchema.parse(await roomService.createRoom());
       c.header('Cache-Control', 'no-store');
       return c.json(room, 201);
     } catch (error) {
@@ -93,7 +99,9 @@ export const createRoomsRoute = (
     }
 
     try {
-      const token = await roomService.createParticipantToken(parsedRoomId.data, parsedBody.data);
+      const token = roomTokenResponseSchema.parse(
+        await roomService.createParticipantToken(parsedRoomId.data, parsedBody.data)
+      );
       c.header('Cache-Control', 'no-store');
       return c.json(token);
     } catch (error) {

@@ -48,6 +48,31 @@ describe('remote room routes', () => {
     expect(JSON.stringify(body)).not.toContain('LIVEKIT_API_SECRET');
   });
 
+  it('returns the validated room create response instead of raw service fields', async () => {
+    const app = createApp(createTestConfig(), {
+      liveKitRoomService: {
+        createRoom: vi.fn(async () => ({
+          roomId,
+          roomUrlPath: `/rooms/${roomId}`,
+          expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
+          liveKitApiSecret: 'LIVEKIT_API_SECRET'
+        })),
+        createParticipantToken: vi.fn()
+      }
+    });
+
+    const response = await app.request(roomCreateRoute, { method: 'POST' });
+    const body = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(body).toMatchObject({
+      roomId,
+      roomUrlPath: `/rooms/${roomId}`
+    });
+    expect(body).not.toHaveProperty('liveKitApiSecret');
+    expect(JSON.stringify(body)).not.toContain('LIVEKIT_API_SECRET');
+  });
+
   it('mints a room-scoped LiveKit participant token', async () => {
     const roomService = createRoomService();
     const app = createApp(createTestConfig(), { liveKitRoomService: roomService });
@@ -74,6 +99,42 @@ describe('remote room routes', () => {
       participantIdentity: 'participant_abcdefghijklmnop',
       targetLanguage: 'es'
     });
+  });
+
+  it('returns the validated room token response instead of raw service fields', async () => {
+    const app = createApp(createTestConfig(), {
+      liveKitRoomService: {
+        createRoom: vi.fn(),
+        createParticipantToken: vi.fn(async () => ({
+          liveKitUrl: 'wss://simtalk.livekit.cloud',
+          participantToken: 'livekit.jwt',
+          roomId,
+          participantIdentity: 'participant_abcdefghijklmnop',
+          expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
+          liveKitApiSecret: 'LIVEKIT_API_SECRET'
+        }))
+      }
+    });
+
+    const response = await app.request(roomTokenRoute(roomId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      })
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      liveKitUrl: 'wss://simtalk.livekit.cloud',
+      participantToken: 'livekit.jwt',
+      roomId,
+      participantIdentity: 'participant_abcdefghijklmnop'
+    });
+    expect(body).not.toHaveProperty('liveKitApiSecret');
+    expect(JSON.stringify(body)).not.toContain('LIVEKIT_API_SECRET');
   });
 
   it('rejects invalid room token requests before minting a token', async () => {
