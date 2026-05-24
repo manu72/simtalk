@@ -175,8 +175,6 @@ Current privacy invariants:
 - Optional recording stays browser-local and explicit.
 - Refreshing the page should clear unsaved session data.
 
-Important limitation: Vercel Password Protection and the single-user allowlist are Phase 1 deployment controls configured outside this repo. They are not implemented as in-repo backend auth.
-
 ## Project Structure
 
 Generated/vendor folders such as `node_modules/`, `dist/`, `test-results/`, coverage output, and Python `__pycache__/` are intentionally excluded.
