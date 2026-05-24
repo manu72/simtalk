@@ -165,6 +165,7 @@ export const App = () => {
   }, []);
 
   const teardownSession = useCallback(() => {
+    launchIdRef.current += 1;
     abortRef.current?.abort();
     abortRef.current = null;
     try {
@@ -311,32 +312,45 @@ export const App = () => {
     ): Promise<'ok' | 'superseded'> => {
       const launchId = launchIdRef.current + 1;
       launchIdRef.current = launchId;
+      const isCurrentLaunch = () => launchIdRef.current === launchId;
       setStatus('connecting');
 
-      const tokenResponse = await requestRealtimeToken(request);
-      if (launchIdRef.current !== launchId) return 'superseded';
+      let tokenResponse: RealtimeTokenResponse;
+      try {
+        tokenResponse = await requestRealtimeToken(request);
+      } catch (error) {
+        if (!isCurrentLaunch()) return 'superseded';
+        throw error;
+      }
+      if (!isCurrentLaunch()) return 'superseded';
       setToken(tokenResponse);
 
       const abort = new AbortController();
       abortRef.current = abort;
 
-      const session = await createRealtimeTranslationSession({
-        token: tokenResponse,
-        signal: abort.signal,
-        startLocalAudioEnabled: opts.startLocalAudioEnabled,
-        onLocalStream: (stream) => {
-          if (launchIdRef.current !== launchId) return;
-          localStreamRef.current = stream;
-          if (opts.startSessionRecorder) startMediaRecorder(stream);
-        },
-        onTranscriptDelta: (delta) => {
-          if (launchIdRef.current === launchId) handleTranscriptDelta(delta);
-        },
-        onRemoteAudio: () => {
-          if (launchIdRef.current === launchId) setStatus('live');
-        }
-      });
-      if (launchIdRef.current !== launchId) {
+      let session: RealtimeTranslationSession;
+      try {
+        session = await createRealtimeTranslationSession({
+          token: tokenResponse,
+          signal: abort.signal,
+          startLocalAudioEnabled: opts.startLocalAudioEnabled,
+          onLocalStream: (stream) => {
+            if (!isCurrentLaunch()) return;
+            localStreamRef.current = stream;
+            if (opts.startSessionRecorder) startMediaRecorder(stream);
+          },
+          onTranscriptDelta: (delta) => {
+            if (isCurrentLaunch()) handleTranscriptDelta(delta);
+          },
+          onRemoteAudio: () => {
+            if (isCurrentLaunch()) setStatus('live');
+          }
+        });
+      } catch (error) {
+        if (!isCurrentLaunch()) return 'superseded';
+        throw error;
+      }
+      if (!isCurrentLaunch()) {
         session.stop();
         return 'superseded';
       }

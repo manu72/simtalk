@@ -154,6 +154,38 @@ describe('Launch flow', () => {
     expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(1);
   });
 
+  it('stops a translation session that resolves after the user ended launch', async () => {
+    const translationSession = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    let resolveTranslationSession: ((session: typeof translationSession) => void) | undefined;
+
+    createRealtimeTranslationSessionMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveTranslationSession = resolve;
+        })
+    );
+    mockFetch(tokenJsonResponse());
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+
+    await waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /end session/i }));
+
+    await act(async () => {
+      resolveTranslationSession?.(translationSession);
+    });
+
+    await waitFor(() => {
+      expect(translationSession.stop).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('surfaces an error in the lobby when the token request fails', async () => {
     const failedResponse = new Response(
       JSON.stringify({ error: { code: 'rate_limited', message: 'Too many launches' } }),

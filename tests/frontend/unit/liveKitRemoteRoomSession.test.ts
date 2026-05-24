@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const requestRoomTokenMock = vi.hoisted(() => vi.fn());
 const requestRealtimeTokenMock = vi.hoisted(() => vi.fn());
@@ -20,6 +20,14 @@ import { createLiveKitRemoteRoomSession } from '../../../frontend/src/liveKitRem
 
 const roomId = 'room_abcdefghijklmnopqrstuvwxyz';
 
+const roomTokenResponse = {
+  liveKitUrl: 'wss://simtalk.livekit.cloud',
+  participantToken: 'livekit.jwt',
+  roomId,
+  participantIdentity: 'participant_abcdefghijklmnop',
+  expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+};
+
 const createFakeRoom = () => {
   const handlers = new Map<string, (...args: never[]) => void>();
   const room = {
@@ -39,16 +47,20 @@ const createFakeRoom = () => {
 };
 
 describe('createLiveKitRemoteRoomSession', () => {
+  beforeEach(() => {
+    requestRoomTokenMock.mockReset();
+    requestRealtimeTokenMock.mockReset();
+    createRealtimeTranslationSessionMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('surfaces browser-local translation startup failures from remote tracks', async () => {
     const { room, handlers } = createFakeRoom();
     const onTranslationError = vi.fn();
-    requestRoomTokenMock.mockResolvedValue({
-      liveKitUrl: 'wss://simtalk.livekit.cloud',
-      participantToken: 'livekit.jwt',
-      roomId,
-      participantIdentity: 'participant_abcdefghijklmnop',
-      expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
-    });
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
     requestRealtimeTokenMock.mockRejectedValue(new Error('OpenAI token failed'));
 
     await createLiveKitRemoteRoomSession({
@@ -78,5 +90,70 @@ describe('createLiveKitRemoteRoomSession', () => {
       expect(onTranslationError).toHaveBeenCalledWith('OpenAI token failed');
     });
     expect(createRealtimeTranslationSessionMock).not.toHaveBeenCalled();
+  });
+
+  it('stops a translation session that resolves after the room session was stopped', async () => {
+    const { room, handlers } = createFakeRoom();
+    const translationSession = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    let resolveTranslationSession: ((session: typeof translationSession) => void) | undefined;
+
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+    requestRealtimeTokenMock.mockResolvedValue({
+      clientSecret: 'ek_test_client_secret',
+      expiresAt: new Date('2026-05-20T13:00:00.000Z').toISOString(),
+      sessionId: 'sess_test',
+      sessionExpiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
+      translationCallUrl: 'https://api.openai.com/v1/realtime/translations/calls'
+    });
+    vi.stubGlobal(
+      'MediaStream',
+      class FakeMediaStream {
+        readonly tracks: readonly MediaStreamTrack[];
+
+        constructor(tracks: readonly MediaStreamTrack[]) {
+          this.tracks = tracks;
+        }
+      }
+    );
+    createRealtimeTranslationSessionMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveTranslationSession = resolve;
+        })
+    );
+
+    const session = await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: {
+        mode: 'listener',
+        targetLanguage: 'es'
+      },
+      createRoom: () => room as never
+    });
+
+    handlers.get('trackSubscribed')?.(
+      {
+        kind: 'audio',
+        source: 'microphone',
+        mediaStreamTrack: {} as MediaStreamTrack
+      } as never,
+      {} as never,
+      {} as never
+    );
+
+    await vi.waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalled();
+    });
+
+    session.stop();
+    resolveTranslationSession?.(translationSession);
+
+    await vi.waitFor(() => {
+      expect(translationSession.stop).toHaveBeenCalledTimes(1);
+    });
   });
 });

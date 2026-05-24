@@ -105,13 +105,23 @@ export const createLiveKitRemoteRoomSession = async ({
     }
 
     const remoteStream = new MediaStream([track.mediaStreamTrack]);
-    translationSession = await createRealtimeTranslationSession({
+    const nextTranslationSession = await createRealtimeTranslationSession({
       token: realtimeToken,
       inputStream: remoteStream,
       stopInputStreamOnStop: false,
       onTranscriptDelta,
       onRemoteAudio: onRemoteAudioActive
     });
+    if (stopped) {
+      try {
+        nextTranslationSession.stop();
+      } catch {
+        // best effort
+      }
+      return;
+    }
+
+    translationSession = nextTranslationSession;
   };
 
   const handleRemoteTrackError = (error: unknown) => {
@@ -127,8 +137,14 @@ export const createLiveKitRemoteRoomSession = async ({
     .on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
       void handleRemoteTrack(track, publication, participant).catch(handleRemoteTrackError);
     })
-    .on(RoomEvent.TrackUnsubscribed, () => {
+    .on(RoomEvent.TrackUnsubscribed, (track) => {
+      if (track !== originalAudioTrack) {
+        return;
+      }
       stopTranslation();
+      originalAudioTrack.detach().forEach((element) => element.remove());
+      originalAudioTrack = null;
+      originalAudioElement = null;
     })
     .on(RoomEvent.ParticipantConnected, updateParticipantCount)
     .on(RoomEvent.ParticipantDisconnected, updateParticipantCount);
