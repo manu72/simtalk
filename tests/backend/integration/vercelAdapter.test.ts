@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import vercelHandler from '../../../api/[...route].js';
+import vercelHandler from '../../../api/index.js';
 
 describe('Vercel API adapter', () => {
   it('mounts the Hono backend under /api for single-project Vercel deploys', async () => {
