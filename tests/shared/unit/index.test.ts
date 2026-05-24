@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  apiErrorCodes,
   apiErrorCodeSchema,
   apiErrorSchema,
   conversationModes,
@@ -174,8 +175,12 @@ describe('shared API contracts', () => {
   });
 });
 
-describe('apiErrorCodeSchema', () => {
-  it('accepts the unauthorized code', () => {
-    expect(apiErrorCodeSchema.parse('unauthorized')).toBe('unauthorized');
+describe('apiErrorCodes', () => {
+  it('includes the unauthorized code', () => {
+    expect(apiErrorCodes).toContain('unauthorized');
+  });
+
+  it('rejects unknown codes via apiErrorCodeSchema', () => {
+    expect(() => apiErrorCodeSchema.parse('not_a_real_code')).toThrow();
   });
 });
