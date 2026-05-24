@@ -93,7 +93,10 @@ describe('Lobby', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /remote talk/i })).toBeInTheDocument();
     });
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms', { method: 'POST' });
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms', {
+      method: 'POST',
+      headers: {}
+    });
   });
 
   it('generates a schema-valid fallback participant identity when crypto.randomUUID is unavailable', async () => {
