@@ -75,21 +75,22 @@ export const RemoteRoomSurface = ({
         }}
       >
         <div>
-          <p
+          <span
             style={{
-              margin: 0,
-              fontFamily: FONT_DISPLAY,
               fontSize: 12,
-              letterSpacing: '0.10em',
+              fontWeight: 800,
+              opacity: 0.85,
               textTransform: 'uppercase',
-              opacity: 0.8
+              letterSpacing: '0.10em'
             }}
           >
             Private two-person room
-          </p>
-          <STTitle id="remote-room-title" as="h1" size={44} stroke={3} shadow={5}>
-            Remote Talk.
-          </STTitle>
+          </span>
+          <div style={{ marginTop: 10 }}>
+            <STTitle id="remote-room-title" as="h1" size={56} stroke={4} shadow={6}>
+              Remote Talk.
+            </STTitle>
+          </div>
         </div>
 
         <STCard tone="white" padding={18}>
