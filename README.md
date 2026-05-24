@@ -1,6 +1,6 @@
 # SimTalk
 
-Speak naturally. Hear instantly.
+Listen Talk Practice.
 
 SimTalk is a realtime speech-to-speech translation web app built around OpenAI `gpt-realtime-translate`. It is designed to let people who do not share a spoken language hold a low-latency conversation with live translated audio and transcripts.
 
