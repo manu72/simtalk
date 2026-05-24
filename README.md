@@ -6,13 +6,13 @@ SimTalk is a realtime speech-to-speech translation web app built around OpenAI `
 
 OpenAI describes `gpt-realtime-translate` as using dynamic voice adaptation for translated speech. In practice, translated audio is intended to follow the source speaker's general tone, pitch, and speaking style, so the rendered voice can adapt as different speakers talk and may align with perceived speaker characteristics such as gender. This is adaptive translated voice rendering, not exact voice cloning or a guaranteed speaker-identity match.
 
-Phase 1 is a private, single-device prototype for validating three conversation workflows:
+Phase 1 is a private prototype for validating three local conversation workflows:
 
 - Listener Mode (UN Mode): listen to any supported spoken language and hear translation in a selected target language.
 - Turn-about Mode: two people share one device and manually switch speaker direction.
 - Practice Mode: speak deliberately, pause, replay, and review translation output for language learning.
 
-Phase 2 is planned to add authenticated accounts, persistence, and remote multi-user rooms.
+Phase 1.5 adds private two-person remote rooms through LiveKit Cloud. Phase 2 is planned to add authenticated accounts, persistence, and larger multi-user rooms.
 
 For source product and architecture context, see:
 
@@ -21,29 +21,32 @@ For source product and architecture context, see:
 
 ## Project Status
 
-Status: pre-MVP Phase 1 prototype.
+Status: pre-MVP Phase 1 / Phase 1.5 prototype.
 
-The current codebase is past the initial scaffold. It includes the shared API contract, backend realtime-token boundary, frontend session flows, browser-native WebRTC startup path, and browser-local recording/download paths.
+The current codebase is past the initial scaffold. It includes the shared API contract, backend realtime-token boundary, LiveKit room-token boundary, frontend local and remote session flows, browser-native WebRTC startup path, and browser-local recording/download paths.
 
 Implemented now:
 
 - pnpm workspace with `frontend`, `backend`, and `shared/types` packages.
-- React 19 + Vite 7 frontend with accessible mode/language/session controls and UX-redesigned Lobby, Listener, Turn-about, Practice, transcript, dev drawer, and Summary surfaces.
-- 70+ language catalog with automatic source detection for Listener mode and explicit language pairs for Turn-about and Practice.
-- Hono backend with `GET /health` and `POST /realtime/token`.
-- Shared Zod schemas and inferred TypeScript types for modes, language tags, token requests/responses, API errors, and health responses.
+- React 19 + Vite 7 frontend with accessible mode/language/session controls and UX-redesigned Lobby, Listener, Turn-about, Practice, Remote Room, transcript, dev drawer, and Summary surfaces.
+- 70+ language catalog with automatic source detection for Listener mode and explicit language pairs for Turn-about, Practice, and remote rooms.
+- Hono backend with `GET /health`, `POST /realtime/token`, `POST /rooms`, and `POST /rooms/:roomId/token`.
+- Shared Zod schemas and inferred TypeScript types for modes, language tags, realtime token requests/responses, room requests/responses, API errors, and health responses.
 - Server-side OpenAI realtime translation client-secret minting.
-- Configured-origin CORS, baseline security headers, and in-memory rate limiting for token issuance.
-- Browser token request client with schema validation and timeout handling.
-- Browser-native WebRTC setup using microphone capture, `RTCPeerConnection`, SDP exchange with OpenAI, remote translated audio playback, transcript delta handling, and cleanup.
+- Server-side LiveKit room creation and room-scoped participant token minting.
+- Configured-origin CORS, baseline security headers, and in-memory rate limiting for realtime and room token issuance.
+- Browser realtime and room token request clients with schema validation and timeout/error handling.
+- Browser-native WebRTC setup using microphone capture or a supplied remote media stream, `RTCPeerConnection`, SDP exchange with OpenAI, remote translated audio playback, transcript delta handling, and cleanup.
+- LiveKit remote rooms for two participants, including local mic publish, remote mic subscription, original-audio mute controls, and translation of the subscribed remote track through OpenAI.
 - Turn-about side flips re-mint direction-specific tokens and keep captured turn transcripts when the mic is released.
 - Practice keeps the live mic muted until an active recording attempt and captures browser-local practice audio for review when available.
 - Browser-local listener recording, practice recording, transcript copy/download, and audio download when a recording exists.
-- Vitest coverage for shared contracts, backend config/routes/services, frontend components/clients/WebRTC service, plus Playwright browser flows with mocked token/OpenAI network boundaries.
+- Vercel single-project deployment config with `/api` rewrites plus GitHub Actions CI and Vercel deploy workflows.
+- Vitest coverage for shared contracts, backend config/routes/services/Vercel adapter, frontend components/clients/WebRTC/LiveKit services, plus Playwright browser flows with mocked token/OpenAI/room network boundaries.
 
 ## Technology Stack
 
-Phase 1:
+Phase 1 / 1.5:
 
 | Layer                                | Current technology                                               |
 | ------------------------------------ | ---------------------------------------------------------------- |
@@ -53,35 +56,39 @@ Phase 1:
 | Shared contracts                     | TypeScript, Zod                                                  |
 | Realtime translation                 | OpenAI `gpt-realtime-translate`                                  |
 | Browser transport                    | WebRTC                                                           |
+| Remote rooms                         | LiveKit Cloud via `livekit-client` and `livekit-server-sdk`      |
 | Package manager                      | pnpm 10.16.1                                                     |
 | Unit/component tests                 | Vitest, React Testing Library, jsdom                             |
 | E2E tests                            | Playwright                                                       |
-| Deployment target                    | Vercel for Phase 1                                               |
+| CI/CD                                | GitHub Actions CI and Vercel deploy workflows                    |
+| Deployment target                    | Vercel for Phase 1 / 1.5                                         |
 | Authentication/access                | Vercel Password Protection and allowlist, configured out of repo |
-| Database                             | None in Phase 1                                                  |
+| Database                             | None in Phase 1 / 1.5                                            |
 | Server-side audio/transcript storage | None                                                             |
 
 Tailwind CSS and shadcn/ui are architecture options from earlier planning, but they are not installed in the active frontend package. `components.json`, `frontend/src/components/ui/`, and `frontend/src/lib/utils.ts` remain as scaffold remnants and are not part of the current UI path.
 
 Phase 2 target stack:
 
-| Layer           | Planned technology                                                |
-| --------------- | ----------------------------------------------------------------- |
-| Backend hosting | Google Cloud Run                                                  |
-| Authentication  | Supabase Auth, Firebase Auth, Auth0, or equivalent                |
-| Database        | Supabase Postgres or Cloud SQL                                    |
-| Realtime rooms  | LiveKit or equivalent                                             |
-| Object storage  | GCS or Supabase Storage for explicitly user-controlled recordings |
+| Layer                           | Planned technology                                                 |
+| ------------------------------- | ------------------------------------------------------------------ |
+| Backend hosting                 | Google Cloud Run                                                   |
+| Authentication                  | Supabase Auth, Firebase Auth, Auth0, or equivalent                 |
+| Database                        | Supabase Postgres or Cloud SQL                                     |
+| Larger room/media orchestration | LiveKit or equivalent, scaled beyond the Phase 1.5 two-person room |
+| Object storage                  | GCS or Supabase Storage for explicitly user-controlled recordings  |
 
 ## Architecture
 
-The Phase 1 runtime has three boundaries:
+The current runtime has five boundaries:
 
 1. Browser app
    - Renders the mode/language/session UI.
    - Requests a short-lived realtime translation credential from the backend.
+   - Requests LiveKit room creation and room participant credentials from the backend for remote rooms.
    - Captures microphone audio only after explicit user action.
    - Establishes a direct WebRTC session with OpenAI using the short-lived client secret.
+   - For remote rooms, connects directly to LiveKit, publishes the local microphone, subscribes to a remote microphone track, and translates that remote track through OpenAI.
    - Plays remote translated audio and renders transcript deltas.
    - Cleans up microphone tracks, peer connection, data channel, and audio elements when stopped or aborted.
 
@@ -93,22 +100,31 @@ The Phase 1 runtime has three boundaries:
    - Reads `OPENAI_API_KEY` server-side only.
    - Reads LiveKit credentials server-side only.
    - Calls OpenAI's realtime translations client-secret endpoint.
-   - Returns a browser-safe token response.
-   - Applies CORS, security headers, and token request rate limiting.
+   - Returns browser-safe realtime and room token responses.
+   - Applies CORS, security headers, and request rate limiting.
    - Does not receive or proxy audio/transcript content.
 
-3. OpenAI Realtime Translate
+3. Vercel API adapter
+   - Uses `api/index.ts` to mount the Hono app under `/api`.
+   - Uses `vercel.json` rewrites so `/api/*` reaches the Hono adapter and all non-API paths reach the Vite SPA.
+
+4. OpenAI Realtime Translate
    - Issues realtime translation client secrets through the server-side API call.
    - Accepts the browser's SDP offer at the translation calls endpoint.
    - Handles speech recognition, translation, synthesized audio output, and transcript deltas.
    - Dynamically adapts translated audio toward the source speaker's general tone, pitch, and style; this may include speaker-presentation cues such as gender, but should not be treated as exact voice cloning or a guaranteed identity match.
 
-Current token/WebRTC flow:
+5. LiveKit Cloud
+   - Provides the Phase 1.5 remote-room media layer.
+   - Receives browser connections directly with short-lived participant tokens.
+   - Carries room audio between the two participants; the SimTalk backend does not proxy media.
+
+Current local token/WebRTC flow:
 
 ```text
 Browser UI
   -> POST /realtime/token
-  -> Hono validates request and rate limit
+  -> Hono validates request and applies rate limit
   -> Hono calls OpenAI client-secret endpoint with OPENAI_API_KEY
   -> Hono returns short-lived client secret and translation call URL
   -> User starts microphone/WebRTC
@@ -116,15 +132,30 @@ Browser UI
   -> OpenAI returns SDP answer, translated audio, and transcript deltas
 ```
 
+Current remote-room flow:
+
+```text
+Browser UI
+  -> POST /rooms
+  -> Hono creates a two-person LiveKit room
+  -> Hono returns a shareable /rooms/:roomId path
+  -> Browser joins the room path and POSTs /rooms/:roomId/token
+  -> Hono returns a short-lived LiveKit participant token
+  -> Browser connects directly to LiveKit and publishes local mic
+  -> Browser subscribes to the remote participant mic track
+  -> Browser requests an OpenAI realtime token and translates that remote track
+```
+
 ## Security And Privacy
 
-Phase 1 security controls currently in code:
+Current security controls in code:
 
 - `OPENAI_API_KEY` is used only by the backend.
-- Token responses are schema-validated and must not include the server API key.
+- Realtime token responses are schema-validated and must not include the server API key.
 - LiveKit room token responses are schema-validated and must not include the LiveKit API secret.
-- Token requests are validated before any OpenAI call.
-- `POST /realtime/token` and room token routes use in-memory per-client rate limiters.
+- Realtime token requests are validated before any OpenAI call.
+- Room creation/token requests are validated before any LiveKit token response.
+- `POST /realtime/token`, `POST /rooms`, and `POST /rooms/:roomId/token` use in-memory per-client rate limiters.
 - CORS only reflects origins listed in `ALLOWED_ORIGINS`.
 - Backend responses include baseline security headers:
   - `Content-Security-Policy`
@@ -133,9 +164,9 @@ Phase 1 security controls currently in code:
   - `Referrer-Policy`
   - `X-Content-Type-Options`
 - OpenAI upstream errors are mapped to sanitized client responses.
-- Token responses are returned with `Cache-Control: no-store`.
+- Realtime and room token responses are returned with `Cache-Control: no-store`.
 
-Phase 1 privacy invariants:
+Current privacy invariants:
 
 - No database.
 - No server-side transcript storage.
@@ -155,14 +186,24 @@ simtalk/
 |-- README.md
 |-- PRD.md
 |-- System_Architecture.md
+|-- CLAUDE.md
 |-- package.json
 |-- pnpm-workspace.yaml
 |-- pnpm-lock.yaml
 |-- tsconfig.base.json
+|-- eslint.config.js
 |-- playwright.config.ts
+|-- vercel.json
 |-- components.json               # stale shadcn scaffold config
+|-- .github/
+|   `-- workflows/
+|       |-- ci.yml
+|       `-- vercel-deploy.yml
 |-- .agentic/                    # Agentic OS project memory, codemap, subsystem notes
 |-- .cursor/                     # Cursor plans and project-local skills
+|-- api/
+|   |-- index.ts                  # Vercel adapter; mounts Hono under /api
+|   `-- tsconfig.json
 |-- backend/
 |   |-- .env.example
 |   |-- package.json
@@ -179,9 +220,11 @@ simtalk/
 |       |   `-- securityHeaders.ts
 |       |-- routes/
 |       |   |-- health.ts
-|       |   `-- realtime.ts
+|       |   |-- realtime.ts
+|       |   `-- rooms.ts
 |       `-- services/
-|           `-- openAiRealtime.ts
+|           |-- openAiRealtime.ts
+|           `-- liveKitRooms.ts
 |-- frontend/
 |   |-- .env.example
 |   |-- index.html
@@ -195,12 +238,14 @@ simtalk/
 |       |-- App.tsx
 |       |-- main.tsx
 |       |-- realtimeTokenClient.ts
+|       |-- roomTokenClient.ts
 |       |-- realtimeTranslationSession.ts
+|       |-- liveKitRemoteRoomSession.ts
 |       |-- styles/
 |       |   `-- tokens.css
 |       |-- components/
 |       |   |-- brand/            # brand primitives, icons, language and mode controls
-|       |   |-- screens/          # Lobby, mode surfaces, transcript sheet, summary
+|       |   |-- screens/          # Lobby, local mode surfaces, remote room, transcript sheet, summary
 |       |   |-- session/          # SessionHeader and DevDrawer
 |       |   `-- ui/               # unused shadcn-style scaffold remnants
 |       `-- lib/
@@ -269,13 +314,15 @@ Services:
 Root scripts:
 
 ```bash
+pnpm format:check
+pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:e2e
 pnpm build
 ```
 
-The root scripts build `@simtalk/shared-types` first where needed so frontend/backend package imports resolve consistently.
+The root scripts build `@simtalk/shared-types` first where needed so frontend/backend package imports resolve consistently. `pnpm typecheck` also runs `pnpm typecheck:api` for the Vercel adapter. `pnpm format` and `pnpm format:check` currently cover JSON/YAML files only; TypeScript style is enforced through ESLint and the TypeScript compiler.
 
 ## Environment Variables
 
@@ -363,12 +410,12 @@ The room token route requires configured backend LiveKit credentials. It returns
 Current test locations:
 
 - `tests/shared/unit/` - shared Zod schemas, constants, and inferred contracts.
-- `tests/backend/unit/` - backend config and OpenAI realtime service behavior.
-- `tests/backend/integration/` - Hono app routes, CORS, headers, token validation, error mapping, and rate limiting.
-- `tests/frontend/unit/` - frontend token client and WebRTC service.
-- `tests/frontend/component/` - React UI/session flow tests.
+- `tests/backend/unit/` - backend config, OpenAI realtime service, and LiveKit room service behavior.
+- `tests/backend/integration/` - Hono app routes, CORS, headers, realtime/room token validation, error mapping, rate limiting, and Vercel adapter behavior.
+- `tests/frontend/unit/` - frontend realtime token client, room token client, WebRTC session, and LiveKit remote room session.
+- `tests/frontend/component/` - React UI/session flow tests, including remote room create/join flows.
 - `tests/frontend/support/` - Testing Library setup.
-- `tests/e2e/` - Playwright browser tests with mocked token/OpenAI network boundaries.
+- `tests/e2e/` - Playwright browser tests with mocked token/OpenAI/room network boundaries.
 - `scripts/agentic/test_*.py` - Python unittest coverage for Agentic OS scripts.
 
 Run all package unit/component/integration tests:
@@ -383,11 +430,11 @@ Run browser E2E tests:
 pnpm test:e2e
 ```
 
-Current E2E coverage is intentionally small: it verifies the frontend shell plus mocked launch/session/summary flows. It does not yet exercise a live OpenAI WebRTC session.
+Current E2E coverage is intentionally small: it verifies the frontend shell, mocked launch/session/summary flows, and remote room creation UI. It does not yet exercise a live OpenAI WebRTC session or a live LiveKit room.
 
 ## Deployment
 
-Phase 1 target:
+Phase 1 / 1.5 target:
 
 - One Vercel project for the frontend and thin Hono API functions mounted under `/api`.
 - Custom domain: `simtalk.dev`.
@@ -395,11 +442,11 @@ Phase 1 target:
 - Environment variables configured in Vercel project settings.
 - Build command: `pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/frontend build`.
 - Output directory: `frontend/dist`.
-- Health check: `GET /api/health` or `/health` via Vercel rewrite.
+- Health check: `GET /api/health` in deployed environments; local backend health remains `GET /health`.
 
 ### Required Vercel environment variables
 
-Set these in **Vercel Project Settings → Environment Variables** for every environment that should serve API traffic (Production, Preview, and any Development environment that hits the deployed API). `vercel.json` intentionally does not list secret values; only the platform settings hold them. The Hono API at `api/[...route].ts` calls `createAppConfig()` which reads `process.env` — any missing variable causes the corresponding feature to return `503 missing_server_config` at request time, not at deploy time.
+Set these in **Vercel Project Settings → Environment Variables** for every environment that should serve API traffic (Production, Preview, and any Development environment that hits the deployed API). `vercel.json` intentionally does not list secret values; only the platform settings hold them. The Hono API adapter at `api/index.ts` mounts the backend app under `/api` and calls `createAppConfig()` which reads `process.env` — any missing variable causes the corresponding feature to return `503 missing_server_config` at request time, not at deploy time.
 
 Required for `POST /realtime/token`:
 
@@ -486,10 +533,10 @@ Frontend:
 Backend:
 
 - Keep CORS strict; do not use `*`.
-- Validate token requests before calling OpenAI.
+- Validate realtime token requests before calling OpenAI and room requests before returning LiveKit tokens.
 - Keep OpenAI API key server-side only.
 - Sanitize upstream errors.
-- Treat in-memory rate limiting as a Phase 1 guardrail, not a durable abuse-prevention system.
+- Treat in-memory rate limiting as a Phase 1 / 1.5 guardrail, not a durable abuse-prevention system.
 
 ## AI Coding Assistant Notes
 
@@ -501,12 +548,13 @@ Before making non-trivial changes:
 2. Use Agentic OS routing through `scripts/agentic/route_task.py` when applicable.
 3. Check the relevant `.agentic/SUBSYSTEMS/*.md` file, but verify it against code because some subsystem notes still lag the current implementation.
 4. Add or update tests for non-trivial logic.
-5. Preserve Phase 1 privacy and security invariants.
+5. Preserve the current privacy and security invariants.
 
 Important current doc drift outside README:
 
-- `.agentic/SUBSYSTEMS/api.md`, `web.md`, `shared.md`, and `tests.md` still contain planned/unknown status text even though implementation exists.
-- `.agentic/PROJECT_BRIEF.md` and `.agentic/LESSONS/decisions.md` still mention Tailwind/shadcn as active frontend technology; package manifests are the source of truth.
+- `PRD.md` still frames remote rooms as Phase 2 even though the Phase 1.5 two-person LiveKit path is implemented.
+- `CLAUDE.md` and `.agentic/SUBSYSTEMS/api.md`, `web.md`, `shared.md`, `tests.md`, and `infra.md` lag current room, Vercel adapter, and CI/deploy details.
+- `.agentic/PROJECT_BRIEF.md` and `.agentic/LESSONS/decisions.md` still contain older domain or Tailwind/shadcn assumptions; package manifests and `vercel.json` are the source of truth.
 - `docs/ux-redesign-plan.md` still reads like a proposal even though much of the UX redesign has landed.
 - Refreshing Agentic memory should be done through the dedicated Agentic OS update flow, not by ad hoc edits during ordinary README work.
 
@@ -516,14 +564,13 @@ Phase 1:
 
 - Polish and validate Listener, Turn-about, and Practice mode behavior.
 - Harden browser-local recording and transcript/audio downloads.
-- Broaden E2E coverage with OpenAI mocked at the network boundary.
-- Add deployment/CI configuration.
+- Broaden E2E coverage with OpenAI and LiveKit mocked at the network boundary.
 - Validate realtime behavior manually with a real OpenAI key and supported browser.
 
 Phase 1.5:
 
-- Vercel hosting
-- LiveKit Cloud remote rooms for 2 chat participants
+- Vercel hosting. Implemented in `vercel.json` plus `.github/workflows/vercel-deploy.yml`; still needs environment-specific operational validation.
+- LiveKit Cloud remote rooms for 2 chat participants. Implemented in code; still needs manual validation with real LiveKit credentials and browsers.
 
 Phase 2:
 
@@ -542,11 +589,10 @@ Future:
 
 - Mode-specific flows are implemented but still need live validation and product polish.
 - Browser-local recording/download is implemented for current session artifacts but still needs broader browser/device validation.
-- Playwright currently covers only mocked frontend launch/session paths.
-- Realtime WebRTC behavior still requires manual browser validation.
+- Playwright currently covers mocked frontend launch/session paths and remote room creation UI, not live OpenAI or LiveKit media.
+- Realtime WebRTC and LiveKit room behavior still require manual browser validation.
 - Rate limiting is in-memory and can reset with process/serverless lifecycle.
 - Vercel access control and domain settings are out-of-repo.
-- No CI/CD pipeline is currently committed.
 - No database or persistent storage exists in Phase 1 by design.
 
 ## Decision Log
