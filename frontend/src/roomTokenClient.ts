@@ -1,6 +1,8 @@
 import {
+  apiErrorSchema,
   roomCreateResponseSchema,
   roomCreateRoute,
+  roomIdSchema,
   roomTokenRequestSchema,
   roomTokenResponseSchema,
   roomTokenRoute,
@@ -9,8 +11,6 @@ import {
   type RoomTokenRequest,
   type RoomTokenResponse
 } from '@simtalk/shared-types';
-
-import { apiErrorSchema } from '@simtalk/shared-types';
 
 type RoomTokenClientOptions = {
   readonly apiBaseUrl?: string;
@@ -83,9 +83,17 @@ export const requestRoomToken = async (
     );
   }
 
+  const parsedRoomId = roomIdSchema.safeParse(roomId);
+  if (!parsedRoomId.success) {
+    throw new RoomTokenClientError(
+      parsedRoomId.error.issues[0]?.message ?? 'Room id is invalid',
+      'validation_error'
+    );
+  }
+
   let response: Response;
   try {
-    response = await fetchImpl(joinUrl(apiBaseUrl, roomTokenRoute(roomId)), {
+    response = await fetchImpl(joinUrl(apiBaseUrl, roomTokenRoute(parsedRoomId.data)), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(parsedRequest.data)

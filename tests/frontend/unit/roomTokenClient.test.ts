@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { requestRoomCreate, requestRoomToken } from '../../../frontend/src/roomTokenClient';
+import {
+  requestRoomCreate,
+  requestRoomToken,
+  RoomTokenClientError
+} from '../../../frontend/src/roomTokenClient';
 
 const roomId = 'room_abcdefghijklmnopqrstuvwxyz';
 
@@ -56,5 +60,22 @@ describe('room token client', () => {
         targetLanguage: 'es'
       })
     });
+  });
+
+  it('rejects malformed room ids before building the token route', async () => {
+    const fetchMock = vi.fn();
+
+    const result = await requestRoomToken(
+      'room_abcdefghijklmnopqrstuv%2Fescape',
+      { targetLanguage: 'es' },
+      { apiBaseUrl: '/api', fetchImpl: fetchMock }
+    ).catch((error: unknown) => error);
+
+    expect(result).toBeInstanceOf(RoomTokenClientError);
+    expect(result).toMatchObject({
+      code: 'validation_error',
+      message: 'Invalid room id'
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
