@@ -1,5 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'e2e-test-password');
+  });
+});
+
 const tokenResponse = {
   clientSecret: 'ek_test_client_secret',
   expiresAt: new Date('2026-05-20T13:00:00.000Z').toISOString(),
