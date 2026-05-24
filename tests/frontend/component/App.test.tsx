@@ -1,7 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { participantIdentitySchema } from '../../../shared/types/src/index';
 
+const createLiveKitRemoteRoomSessionMock = vi.hoisted(() => vi.fn());
 const createRealtimeTranslationSessionMock = vi.hoisted(() => vi.fn());
+
+vi.mock('../../../frontend/src/liveKitRemoteRoomSession', () => ({
+  createLiveKitRemoteRoomSession: createLiveKitRemoteRoomSessionMock
+}));
 
 vi.mock('../../../frontend/src/realtimeTranslationSession', () => ({
   createRealtimeTranslationSession: createRealtimeTranslationSessionMock,
@@ -44,11 +50,18 @@ const roomCreateJsonResponse = () =>
   );
 
 beforeEach(() => {
+  createLiveKitRemoteRoomSessionMock.mockResolvedValue({
+    participantIdentity: 'participant_abcdefghijklmnop',
+    setOriginalAudioMuted: vi.fn(),
+    stop: vi.fn()
+  });
   createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  createLiveKitRemoteRoomSessionMock.mockReset();
   createRealtimeTranslationSessionMock.mockReset();
   window.history.pushState({}, '', '/');
 });
@@ -81,6 +94,25 @@ describe('Lobby', () => {
       expect(screen.getByRole('heading', { name: /remote talk/i })).toBeInTheDocument();
     });
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms', { method: 'POST' });
+  });
+
+  it('generates a schema-valid fallback participant identity when crypto.randomUUID is unavailable', async () => {
+    vi.stubGlobal('crypto', {});
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    vi.spyOn(Date, 'now').mockReturnValue(1);
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /join room/i }));
+    });
+
+    await waitFor(() => expect(createLiveKitRemoteRoomSessionMock).toHaveBeenCalled());
+    const call = createLiveKitRemoteRoomSessionMock.mock.calls[0] as
+      | [{ roomTokenRequest: { participantIdentity?: string } }]
+      | undefined;
+    const participantIdentity = call?.[0].roomTokenRequest.participantIdentity;
+    expect(participantIdentitySchema.safeParse(participantIdentity).success).toBe(true);
   });
 
   it('Listener mode shows two language cards: a Detect (Automatic) source and a Translate-into target', () => {

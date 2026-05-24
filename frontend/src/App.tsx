@@ -59,12 +59,15 @@ const roomIdFromPathname = (): string | null => {
   }
 };
 
+const participantIdentityMinSuffixLength = 16;
+
 const createBrowserParticipantIdentity = (): string => {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return `participant_${crypto.randomUUID().replaceAll('-', '')}`;
   }
 
-  return `participant_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  const suffix = `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  return `participant_${suffix.padEnd(participantIdentityMinSuffixLength, '0')}`;
 };
 
 const participantIdentityStorageKey = (roomId: string): string =>
