@@ -75,9 +75,7 @@ const getParticipantIdentityForRoom = (roomId: string): string => {
   const stored = window.sessionStorage.getItem(key);
   if (stored) return stored;
 
-  const identity = createBrowserParticipantIdentity();
-  window.sessionStorage.setItem(key, identity);
-  return identity;
+  return createBrowserParticipantIdentity();
 };
 
 export const App = () => {
@@ -147,6 +145,7 @@ export const App = () => {
   // Refs to session lifecycle
   const sessionRef = useRef<RealtimeTranslationSession | null>(null);
   const remoteSessionRef = useRef<RemoteRoomSession | null>(null);
+  const joinGenerationRef = useRef(0);
   const localStreamRef = useRef<MediaStream | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const launchIdRef = useRef(0);
@@ -191,6 +190,7 @@ export const App = () => {
   }, []);
 
   const teardownRemoteRoom = useCallback(() => {
+    joinGenerationRef.current += 1;
     try {
       remoteSessionRef.current?.stop();
     } catch {
@@ -374,10 +374,13 @@ export const App = () => {
   const joinRemoteRoom = useCallback(async () => {
     if (!remoteRoomId || remoteStatus === 'joining') return;
     teardownRemoteRoom();
+    const joinGeneration = joinGenerationRef.current + 1;
+    joinGenerationRef.current = joinGeneration;
     setRemoteStatus('joining');
     setRemoteErrorMessage(null);
 
     try {
+      const isCurrentJoin = () => joinGenerationRef.current === joinGeneration;
       const participantIdentity = getParticipantIdentityForRoom(remoteRoomId);
       const hintedSourceLanguage = isAutoLanguage(remoteSource) ? undefined : remoteSource.bcp47;
       const session = await createLiveKitRemoteRoomSession({
@@ -392,18 +395,31 @@ export const App = () => {
           sourceLanguage: hintedSourceLanguage,
           targetLanguage: remoteTarget.bcp47
         },
-        onParticipantCountChange: setRemoteParticipantCount,
+        onParticipantCountChange: (count) => {
+          if (isCurrentJoin()) setRemoteParticipantCount(count);
+        },
         onTranscriptDelta: (delta) => {
-          if (delta.kind === 'output') {
+          if (isCurrentJoin() && delta.kind === 'output') {
             setRemoteTranslatedCaption((prev) => `${prev}${delta.text}`.slice(-1000));
           }
         },
-        onRemoteAudioActive: () => setRemoteStatus('live'),
+        onRemoteAudioActive: () => {
+          if (isCurrentJoin()) setRemoteStatus('live');
+        },
         onTranslationError: (message) => {
+          if (!isCurrentJoin()) return;
           setRemoteStatus('error');
           setRemoteErrorMessage(message);
         }
       });
+      if (!isCurrentJoin()) {
+        try {
+          session.stop();
+        } catch {
+          // best effort
+        }
+        return;
+      }
       remoteSessionRef.current = session;
       window.sessionStorage.setItem(
         participantIdentityStorageKey(remoteRoomId),
@@ -412,6 +428,7 @@ export const App = () => {
       session.setOriginalAudioMuted(remoteOriginalAudioMuted);
       setRemoteStatus('live');
     } catch (error) {
+      if (joinGenerationRef.current !== joinGeneration) return;
       teardownRemoteRoom();
       setRemoteStatus('error');
       setRemoteErrorMessage(errorMessageFor(error, 'Could not join the remote room. Please try again.'));
