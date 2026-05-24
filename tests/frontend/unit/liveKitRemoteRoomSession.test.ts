@@ -57,6 +57,35 @@ describe('createLiveKitRemoteRoomSession', () => {
     vi.unstubAllGlobals();
   });
 
+  it('disconnects the room when microphone startup fails after connect', async () => {
+    const { room } = createFakeRoom();
+    const microphoneError = new Error('Microphone permission denied');
+    room.localParticipant.setMicrophoneEnabled.mockRejectedValue(microphoneError);
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+
+    await expect(
+      createLiveKitRemoteRoomSession({
+        roomId,
+        roomTokenRequest: {
+          participantIdentity: 'participant_abcdefghijklmnop',
+          targetLanguage: 'es'
+        },
+        realtimeTokenRequest: {
+          mode: 'listener',
+          targetLanguage: 'es'
+        },
+        createRoom: () => room as never
+      })
+    ).rejects.toThrow('Microphone permission denied');
+
+    expect(room.connect).toHaveBeenCalledWith(
+      roomTokenResponse.liveKitUrl,
+      roomTokenResponse.participantToken
+    );
+    expect(room.disconnect).toHaveBeenCalledTimes(1);
+    expect(createRealtimeTranslationSessionMock).not.toHaveBeenCalled();
+  });
+
   it('surfaces browser-local translation startup failures from remote tracks', async () => {
     const { room, handlers } = createFakeRoom();
     const onTranslationError = vi.fn();

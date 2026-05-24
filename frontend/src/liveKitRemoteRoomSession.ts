@@ -84,6 +84,16 @@ export const createLiveKitRemoteRoomSession = async ({
     }
   };
 
+  const detachOriginalAudio = () => {
+    try {
+      originalAudioTrack?.detach().forEach((element) => element.remove());
+    } catch {
+      // best effort
+    }
+    originalAudioTrack = null;
+    originalAudioElement = null;
+  };
+
   const handleRemoteTrack = async (
     track: RemoteTrack,
     _publication: RemoteTrackPublication,
@@ -97,7 +107,7 @@ export const createLiveKitRemoteRoomSession = async ({
     const startupGeneration = translationStartupGeneration;
 
     if (track instanceof RemoteAudioTrack) {
-      originalAudioTrack?.detach().forEach((element) => element.remove());
+      detachOriginalAudio();
       originalAudioTrack = track;
       originalAudioElement = track.attach();
       originalAudioElement.hidden = true;
@@ -140,6 +150,13 @@ export const createLiveKitRemoteRoomSession = async ({
     onTranslationError?.(message);
   };
 
+  const stopRoomSession = () => {
+    stopped = true;
+    stopTranslation();
+    detachOriginalAudio();
+    room.disconnect();
+  };
+
   room
     .on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
       void handleRemoteTrack(track, publication, participant).catch(handleRemoteTrackError);
@@ -149,26 +166,28 @@ export const createLiveKitRemoteRoomSession = async ({
         return;
       }
       stopTranslation();
-      originalAudioTrack.detach().forEach((element) => element.remove());
-      originalAudioTrack = null;
-      originalAudioElement = null;
+      detachOriginalAudio();
     })
     .on(RoomEvent.ParticipantConnected, updateParticipantCount)
     .on(RoomEvent.ParticipantDisconnected, updateParticipantCount);
 
-  await room.connect(roomToken.liveKitUrl, roomToken.participantToken);
-  await room.localParticipant.setMicrophoneEnabled(true);
-  updateParticipantCount();
+  try {
+    await room.connect(roomToken.liveKitUrl, roomToken.participantToken);
+    await room.localParticipant.setMicrophoneEnabled(true);
+    updateParticipantCount();
+  } catch (error) {
+    try {
+      stopRoomSession();
+    } catch {
+      // Preserve the setup failure that callers need to surface.
+    }
+    throw error;
+  }
 
   return {
     room,
     participantIdentity: roomToken.participantIdentity,
     setOriginalAudioMuted,
-    stop: () => {
-      stopped = true;
-      stopTranslation();
-      originalAudioTrack?.detach().forEach((element) => element.remove());
-      room.disconnect();
-    }
+    stop: stopRoomSession
   };
 };
