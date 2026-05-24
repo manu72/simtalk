@@ -41,44 +41,37 @@ Implemented now:
 - Browser-local listener recording, practice recording, transcript copy/download, and audio download when a recording exists.
 - Vitest coverage for shared contracts, backend config/routes/services, frontend components/clients/WebRTC service, plus Playwright browser flows with mocked token/OpenAI network boundaries.
 
-Still pending:
-
-- Polishing and broader validation of the implemented Listener, Turn-about, and Practice flows.
-- Broader recording coverage and UX hardening beyond the current browser-local implementation.
-- In-repo CI/deploy configuration.
-- Manual realtime validation with a real OpenAI key and browser microphone permissions.
-
 ## Technology Stack
 
 Phase 1:
 
-| Layer | Current technology |
-| --- | --- |
-| Frontend | React 19, Vite 7, TypeScript |
-| UI styling | CSS variables, brand primitives, and component styles |
-| Backend | Node.js 22+, Hono |
-| Shared contracts | TypeScript, Zod |
-| Realtime translation | OpenAI `gpt-realtime-translate` |
-| Browser transport | WebRTC |
-| Package manager | pnpm 10.16.1 |
-| Unit/component tests | Vitest, React Testing Library, jsdom |
-| E2E tests | Playwright |
-| Deployment target | Vercel for Phase 1 |
-| Authentication/access | Vercel Password Protection and allowlist, configured out of repo |
-| Database | None in Phase 1 |
-| Server-side audio/transcript storage | None |
+| Layer                                | Current technology                                               |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| Frontend                             | React 19, Vite 7, TypeScript                                     |
+| UI styling                           | CSS variables, brand primitives, and component styles            |
+| Backend                              | Node.js 22+, Hono                                                |
+| Shared contracts                     | TypeScript, Zod                                                  |
+| Realtime translation                 | OpenAI `gpt-realtime-translate`                                  |
+| Browser transport                    | WebRTC                                                           |
+| Package manager                      | pnpm 10.16.1                                                     |
+| Unit/component tests                 | Vitest, React Testing Library, jsdom                             |
+| E2E tests                            | Playwright                                                       |
+| Deployment target                    | Vercel for Phase 1                                               |
+| Authentication/access                | Vercel Password Protection and allowlist, configured out of repo |
+| Database                             | None in Phase 1                                                  |
+| Server-side audio/transcript storage | None                                                             |
 
 Tailwind CSS and shadcn/ui are architecture options from earlier planning, but they are not installed in the active frontend package. `components.json`, `frontend/src/components/ui/`, and `frontend/src/lib/utils.ts` remain as scaffold remnants and are not part of the current UI path.
 
 Phase 2 target stack:
 
-| Layer | Planned technology |
-| --- | --- |
-| Backend hosting | Google Cloud Run |
-| Authentication | Supabase Auth, Firebase Auth, Auth0, or equivalent |
-| Database | Supabase Postgres or Cloud SQL |
-| Realtime rooms | LiveKit or equivalent |
-| Object storage | GCS or Supabase Storage for explicitly user-controlled recordings |
+| Layer           | Planned technology                                                |
+| --------------- | ----------------------------------------------------------------- |
+| Backend hosting | Google Cloud Run                                                  |
+| Authentication  | Supabase Auth, Firebase Auth, Auth0, or equivalent                |
+| Database        | Supabase Postgres or Cloud SQL                                    |
+| Realtime rooms  | LiveKit or equivalent                                             |
+| Object storage  | GCS or Supabase Storage for explicitly user-controlled recordings |
 
 ## Architecture
 
@@ -410,40 +403,40 @@ Set these in **Vercel Project Settings → Environment Variables** for every env
 
 Required for `POST /realtime/token`:
 
-| Variable | Purpose |
-|----------|---------|
+| Variable         | Purpose                                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
 | `OPENAI_API_KEY` | Server-only OpenAI key used to mint short-lived browser client secrets. Never expose via `VITE_*`. |
 
 Required for `POST /rooms` and `POST /rooms/:roomId/token` (Phase 1.5 remote rooms):
 
-| Variable | Purpose |
-|----------|---------|
-| `LIVEKIT_URL` | LiveKit Cloud project URL, e.g. `wss://<project>.livekit.cloud`. Returned to the browser inside the room-token response so the client can connect. |
-| `LIVEKIT_API_KEY` | LiveKit API key. Server-only; never expose via `VITE_*`. |
-| `LIVEKIT_API_SECRET` | LiveKit API secret. Server-only; never expose via `VITE_*`. |
+| Variable             | Purpose                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LIVEKIT_URL`        | LiveKit Cloud project URL, e.g. `wss://<project>.livekit.cloud`. Returned to the browser inside the room-token response so the client can connect. |
+| `LIVEKIT_API_KEY`    | LiveKit API key. Server-only; never expose via `VITE_*`.                                                                                           |
+| `LIVEKIT_API_SECRET` | LiveKit API secret. Server-only; never expose via `VITE_*`.                                                                                        |
 
 Recommended (have safe defaults; override only if you have a reason):
 
-| Variable | Default | Range |
-|----------|---------|-------|
-| `APP_ENV` | `development` | free text; set to `production` in prod |
-| `PORT` | `3000` | 1–65535 (ignored on Vercel; used by self-host) |
-| `ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | comma-separated origins; **set to the deployed frontend origin in prod**, e.g. `https://simtalk.dev` |
-| `OPENAI_REALTIME_CLIENT_SECRET_URL` | OpenAI translations client-secret endpoint | full URL |
-| `OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS` | `600` | 10–7200 |
-| `OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL` | `gpt-realtime-whisper` | model name |
-| `REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS` | `60000` | 1_000–3_600_000 |
-| `REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS` | `5` | 1–100 |
-| `LIVEKIT_TOKEN_TTL_SECONDS` | `600` | 60–3600 |
-| `LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS` | `300` | 30–3600 |
-| `LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS` | `60` | 10–600 |
-| `ROOM_TOKEN_RATE_LIMIT_WINDOW_MS` | `60000` | 1_000–3_600_000 |
-| `ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS` | `10` | 1–100 |
+| Variable                                    | Default                                       | Range                                                                                                |
+| ------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                   | `development`                                 | free text; set to `production` in prod                                                               |
+| `PORT`                                      | `3000`                                        | 1–65535 (ignored on Vercel; used by self-host)                                                       |
+| `ALLOWED_ORIGINS`                           | `http://localhost:5173,http://127.0.0.1:5173` | comma-separated origins; **set to the deployed frontend origin in prod**, e.g. `https://simtalk.dev` |
+| `OPENAI_REALTIME_CLIENT_SECRET_URL`         | OpenAI translations client-secret endpoint    | full URL                                                                                             |
+| `OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS` | `600`                                         | 10–7200                                                                                              |
+| `OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL` | `gpt-realtime-whisper`                        | model name                                                                                           |
+| `REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS`       | `60000`                                       | 1_000–3_600_000                                                                                      |
+| `REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS`    | `5`                                           | 1–100                                                                                                |
+| `LIVEKIT_TOKEN_TTL_SECONDS`                 | `600`                                         | 60–3600                                                                                              |
+| `LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS`        | `300`                                         | 30–3600                                                                                              |
+| `LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS`    | `60`                                          | 10–600                                                                                               |
+| `ROOM_TOKEN_RATE_LIMIT_WINDOW_MS`           | `60000`                                       | 1_000–3_600_000                                                                                      |
+| `ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS`        | `10`                                          | 1–100                                                                                                |
 
 Frontend build-time variables (set in the same Vercel UI; safe to expose because they are bundled into the client):
 
-| Variable | Default | Notes |
-|----------|---------|-------|
+| Variable            | Default                       | Notes                                               |
+| ------------------- | ----------------------------- | --------------------------------------------------- |
 | `VITE_API_BASE_URL` | `http://localhost:3000` (dev) | Set to `/api` for the single-project Vercel deploy. |
 
 Operational checks after deploy:
@@ -527,11 +520,16 @@ Phase 1:
 - Add deployment/CI configuration.
 - Validate realtime behavior manually with a real OpenAI key and supported browser.
 
+Phase 1.5:
+
+- Vercel hosting
+- LiveKit Cloud remote rooms for 2 chat participants
+
 Phase 2:
 
 - Add real user accounts.
 - Add persistent preferences.
-- Add 2-user rooms, then 3-10 participant rooms.
+- Increase remote chat rooms for 3-10 participants.
 - Introduce a room/media orchestration layer.
 
 Future:

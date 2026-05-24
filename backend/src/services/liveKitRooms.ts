@@ -55,7 +55,7 @@ const isAlreadyExistsError = (error: unknown): boolean => {
     return false;
   }
 
-  return /already exists|already_exist|exists/i.test(error.message);
+  return /\balready[\s_-]+exists\b/i.test(error.message);
 };
 
 const assertLiveKitConfig = (

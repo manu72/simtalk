@@ -42,6 +42,36 @@ describe('createLiveKitRoomService', () => {
     );
   });
 
+  it('treats duplicate LiveKit room creation as idempotent', async () => {
+    const createRoom = vi.fn(async () => {
+      throw new Error('room already exists');
+    });
+    const service = createLiveKitRoomService(createTestConfig(), {
+      now: () => new Date('2026-05-20T13:00:00.000Z'),
+      randomId: () => 'room_abcdefghijklmnopqrstuvwxyz',
+      roomService: { createRoom }
+    });
+
+    await expect(service.createRoom()).resolves.toMatchObject({
+      roomId: 'room_abcdefghijklmnopqrstuvwxyz',
+      roomUrlPath: '/rooms/room_abcdefghijklmnopqrstuvwxyz'
+    });
+  });
+
+  it('fails room creation when a non-duplicate LiveKit error mentions exists', async () => {
+    const createRoom = vi.fn(async () => {
+      throw new Error('service exists check failed');
+    });
+    const service = createLiveKitRoomService(createTestConfig(), {
+      randomId: () => 'room_abcdefghijklmnopqrstuvwxyz',
+      roomService: { createRoom }
+    });
+
+    await expect(service.createRoom()).rejects.toMatchObject({
+      kind: 'upstream_unavailable'
+    } satisfies Partial<LiveKitRoomError>);
+  });
+
   it('mints room-scoped LiveKit tokens without exposing the API secret', async () => {
     const createRoom = vi.fn(async () => ({}));
     const tokenSigner = vi.fn(async () => 'livekit.jwt');
