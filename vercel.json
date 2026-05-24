@@ -6,11 +6,11 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
-      "source": "/health",
-      "destination": "/api/health"
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ],
