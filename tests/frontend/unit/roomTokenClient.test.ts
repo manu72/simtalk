@@ -1,5 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 
+import {
+  AccessDeniedError,
+  clearStoredPassword,
+  setStoredPassword
+} from '../../../frontend/src/accessGate';
 import {
   requestRoomCreate,
   requestRoomToken,
@@ -24,7 +29,7 @@ describe('room token client', () => {
     const room = await requestRoomCreate({ apiBaseUrl: '/api', fetchImpl: fetchMock });
 
     expect(room.roomUrlPath).toBe(`/rooms/${roomId}`);
-    expect(fetchMock).toHaveBeenCalledWith('/api/rooms', { method: 'POST' });
+    expect(fetchMock).toHaveBeenCalledWith('/api/rooms', { method: 'POST', headers: {} });
   });
 
   it('requests a LiveKit participant token without browser secrets', async () => {
@@ -77,5 +82,77 @@ describe('room token client', () => {
       message: 'Invalid room id'
     });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+afterEach(() => {
+  clearStoredPassword();
+});
+
+describe('access gate header on room endpoints', () => {
+  const roomId = 'room_abcdefghijklmnopqrstuvwxyz';
+  const roomCreatePayload = {
+    roomId,
+    roomUrlPath: `/rooms/${roomId}`,
+    expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+  };
+  const roomTokenPayload = {
+    liveKitUrl: 'wss://simtalk.livekit.cloud',
+    participantToken: 'livekit.jwt',
+    roomId,
+    participantIdentity: 'participant_abcdefghijklmnop',
+    expiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString()
+  };
+  const roomTokenRequest = {
+    participantIdentity: 'participant_abcdefghijklmnop',
+    targetLanguage: 'en'
+  } as const;
+
+  it('sends X-Access-Password on requestRoomCreate when stored', async () => {
+    setStoredPassword('hunter2');
+    const fetchImpl = vi.fn(async () => Response.json(roomCreatePayload)) as unknown as typeof fetch;
+
+    await requestRoomCreate({ fetchImpl });
+
+    const [, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect((init as RequestInit).headers).toMatchObject({ 'X-Access-Password': 'hunter2' });
+  });
+
+  it('throws AccessDeniedError and clears storage when requestRoomCreate returns 401', async () => {
+    setStoredPassword('wrong');
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({ error: { code: 'unauthorized', message: 'Access denied.' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    ) as unknown as typeof fetch;
+
+    await expect(requestRoomCreate({ fetchImpl })).rejects.toBeInstanceOf(AccessDeniedError);
+    expect(window.sessionStorage.getItem('simtalk:access-password')).toBeNull();
+  });
+
+  it('sends X-Access-Password on requestRoomToken when stored', async () => {
+    setStoredPassword('hunter2');
+    const fetchImpl = vi.fn(async () => Response.json(roomTokenPayload)) as unknown as typeof fetch;
+
+    await requestRoomToken(roomId, roomTokenRequest, { fetchImpl });
+
+    const [, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect((init as RequestInit).headers).toMatchObject({ 'X-Access-Password': 'hunter2' });
+  });
+
+  it('throws AccessDeniedError and clears storage when requestRoomToken returns 401', async () => {
+    setStoredPassword('wrong');
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({ error: { code: 'unauthorized', message: 'Access denied.' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    ) as unknown as typeof fetch;
+
+    await expect(
+      requestRoomToken(roomId, roomTokenRequest, { fetchImpl })
+    ).rejects.toBeInstanceOf(AccessDeniedError);
+    expect(window.sessionStorage.getItem('simtalk:access-password')).toBeNull();
   });
 });

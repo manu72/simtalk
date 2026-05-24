@@ -12,6 +12,12 @@ import {
   type RoomTokenResponse
 } from '@simtalk/shared-types';
 
+import {
+  AccessDeniedError,
+  clearStoredPassword,
+  getStoredPassword
+} from './accessGate';
+
 type RoomTokenClientOptions = {
   readonly apiBaseUrl?: string;
   readonly fetchImpl?: typeof fetch;
@@ -33,6 +39,22 @@ const defaultApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost
 const joinUrl = (baseUrl: string, path: string): string =>
   `${baseUrl.replace(/\/+$/, '')}${path}`;
 
+const buildHeaders = (extra: Record<string, string> = {}): Record<string, string> => {
+  const headers: Record<string, string> = { ...extra };
+  const accessPassword = getStoredPassword();
+  if (accessPassword) {
+    headers['X-Access-Password'] = accessPassword;
+  }
+  return headers;
+};
+
+const handle401 = (response: Response): void => {
+  if (response.status === 401) {
+    clearStoredPassword();
+    throw new AccessDeniedError();
+  }
+};
+
 const parseApiError = async (
   response: Response,
   fallback: string
@@ -52,10 +74,15 @@ export const requestRoomCreate = async ({
 }: RoomTokenClientOptions = {}): Promise<RoomCreateResponse> => {
   let response: Response;
   try {
-    response = await fetchImpl(joinUrl(apiBaseUrl, roomCreateRoute), { method: 'POST' });
+    response = await fetchImpl(joinUrl(apiBaseUrl, roomCreateRoute), {
+      method: 'POST',
+      headers: buildHeaders()
+    });
   } catch {
     throw new RoomTokenClientError('Unable to create a remote room.', 'network_error');
   }
+
+  handle401(response);
 
   if (!response.ok) {
     throw await parseApiError(response, 'Remote room could not be created.');
@@ -95,12 +122,14 @@ export const requestRoomToken = async (
   try {
     response = await fetchImpl(joinUrl(apiBaseUrl, roomTokenRoute(parsedRoomId.data)), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: buildHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(parsedRequest.data)
     });
   } catch {
     throw new RoomTokenClientError('Unable to join the remote room.', 'network_error');
   }
+
+  handle401(response);
 
   if (!response.ok) {
     throw await parseApiError(response, 'Remote room could not be joined.');
