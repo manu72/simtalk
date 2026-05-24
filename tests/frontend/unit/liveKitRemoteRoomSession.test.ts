@@ -156,4 +156,89 @@ describe('createLiveKitRemoteRoomSession', () => {
       expect(translationSession.stop).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('stops a stale translation session whose startup was superseded by a newer track', async () => {
+    const { room, handlers } = createFakeRoom();
+    const staleSession = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    const winningSession = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
+    const pendingResolvers: Array<(session: typeof staleSession) => void> = [];
+
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+    requestRealtimeTokenMock.mockResolvedValue({
+      clientSecret: 'ek_test_client_secret',
+      expiresAt: new Date('2026-05-20T13:00:00.000Z').toISOString(),
+      sessionId: 'sess_test',
+      sessionExpiresAt: new Date('2026-05-20T13:10:00.000Z').toISOString(),
+      translationCallUrl: 'https://api.openai.com/v1/realtime/translations/calls'
+    });
+    vi.stubGlobal(
+      'MediaStream',
+      class FakeMediaStream {
+        readonly tracks: readonly MediaStreamTrack[];
+
+        constructor(tracks: readonly MediaStreamTrack[]) {
+          this.tracks = tracks;
+        }
+      }
+    );
+    createRealtimeTranslationSessionMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          pendingResolvers.push(resolve);
+        })
+    );
+
+    await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: {
+        mode: 'listener',
+        targetLanguage: 'es'
+      },
+      createRoom: () => room as never
+    });
+
+    const firstTrack = {
+      kind: 'audio',
+      source: 'microphone',
+      mediaStreamTrack: {} as MediaStreamTrack
+    };
+    const secondTrack = {
+      kind: 'audio',
+      source: 'microphone',
+      mediaStreamTrack: {} as MediaStreamTrack
+    };
+
+    handlers.get('trackSubscribed')?.(firstTrack as never, {} as never, {} as never);
+
+    await vi.waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(1);
+    });
+
+    handlers.get('trackSubscribed')?.(secondTrack as never, {} as never, {} as never);
+
+    await vi.waitFor(() => {
+      expect(createRealtimeTranslationSessionMock).toHaveBeenCalledTimes(2);
+    });
+
+    expect(pendingResolvers).toHaveLength(2);
+    const [resolveFirst, resolveSecond] = pendingResolvers;
+    if (!resolveFirst || !resolveSecond) {
+      throw new Error('expected two pending translation-session resolvers');
+    }
+    // Resolve the FIRST startup last so that the second handler's
+    // stopTranslation() (called when it began) has already invalidated the
+    // first startup's generation. The first session must be torn down rather
+    // than overwriting the second session's pointer.
+    resolveSecond(winningSession);
+    resolveFirst(staleSession);
+
+    await vi.waitFor(() => {
+      expect(staleSession.stop).toHaveBeenCalledTimes(1);
+    });
+    expect(winningSession.stop).not.toHaveBeenCalled();
+  });
 });

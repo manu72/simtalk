@@ -55,8 +55,14 @@ export const createLiveKitRemoteRoomSession = async ({
   let originalAudioTrack: RemoteAudioTrack | null = null;
   let translationSession: RealtimeTranslationSession | null = null;
   let stopped = false;
+  // Bumped whenever any caller tears down the active translation session
+  // (session.stop, TrackUnsubscribed, a new TrackSubscribed). Lets in-flight
+  // handleRemoteTrack invocations detect that their startup has been
+  // superseded across an await boundary and clean up the late session.
+  let translationStartupGeneration = 0;
 
   const stopTranslation = () => {
+    translationStartupGeneration += 1;
     try {
       translationSession?.stop();
     } catch {
@@ -88,6 +94,7 @@ export const createLiveKitRemoteRoomSession = async ({
     }
 
     stopTranslation();
+    const startupGeneration = translationStartupGeneration;
 
     if (track instanceof RemoteAudioTrack) {
       originalAudioTrack?.detach().forEach((element) => element.remove());
@@ -100,7 +107,7 @@ export const createLiveKitRemoteRoomSession = async ({
     }
 
     const realtimeToken = await requestRealtimeToken(realtimeTokenRequest);
-    if (stopped) {
+    if (stopped || startupGeneration !== translationStartupGeneration) {
       return;
     }
 
@@ -112,7 +119,7 @@ export const createLiveKitRemoteRoomSession = async ({
       onTranscriptDelta,
       onRemoteAudio: onRemoteAudioActive
     });
-    if (stopped) {
+    if (stopped || startupGeneration !== translationStartupGeneration) {
       try {
         nextTranslationSession.stop();
       } catch {
