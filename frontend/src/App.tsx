@@ -49,7 +49,14 @@ const isDevModeFromUrl = (): boolean =>
 const roomIdFromPathname = (): string | null => {
   if (typeof window === 'undefined') return null;
   const match = /^\/rooms\/([^/?#]+)$/.exec(window.location.pathname);
-  return match?.[1] ? decodeURIComponent(match[1]) : null;
+  if (!match) return null;
+  const encodedRoomId = match[1];
+  if (!encodedRoomId) return null;
+  try {
+    return decodeURIComponent(encodedRoomId);
+  } catch {
+    return null;
+  }
 };
 
 const createBrowserParticipantIdentity = (): string => {
