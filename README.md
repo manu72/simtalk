@@ -255,7 +255,12 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Set `OPENAI_API_KEY` in `backend/.env` before exercising `POST /realtime/token` against OpenAI.
+Populate `backend/.env` before starting the backend:
+
+- `OPENAI_API_KEY` is required for `POST /realtime/token`.
+- `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` are required for `POST /rooms` and `POST /rooms/:roomId/token` (Phase 1.5 remote rooms). Without these, the remote-room routes return `503 missing_server_config` and the lobby surfaces "Remote rooms are not configured".
+
+The backend dev script loads `backend/.env` via Node's native `--env-file` flag; restarting the backend is required after editing the file.
 
 Run both app packages:
 
@@ -399,10 +404,63 @@ Phase 1 target:
 - Output directory: `frontend/dist`.
 - Health check: `GET /api/health` or `/health` via Vercel rewrite.
 
+### Required Vercel environment variables
+
+Set these in **Vercel Project Settings → Environment Variables** for every environment that should serve API traffic (Production, Preview, and any Development environment that hits the deployed API). `vercel.json` intentionally does not list secret values; only the platform settings hold them. The Hono API at `api/[...route].ts` calls `createAppConfig()` which reads `process.env` — any missing variable causes the corresponding feature to return `503 missing_server_config` at request time, not at deploy time.
+
+Required for `POST /realtime/token`:
+
+| Variable | Purpose |
+|----------|---------|
+| `OPENAI_API_KEY` | Server-only OpenAI key used to mint short-lived browser client secrets. Never expose via `VITE_*`. |
+
+Required for `POST /rooms` and `POST /rooms/:roomId/token` (Phase 1.5 remote rooms):
+
+| Variable | Purpose |
+|----------|---------|
+| `LIVEKIT_URL` | LiveKit Cloud project URL, e.g. `wss://<project>.livekit.cloud`. Returned to the browser inside the room-token response so the client can connect. |
+| `LIVEKIT_API_KEY` | LiveKit API key. Server-only; never expose via `VITE_*`. |
+| `LIVEKIT_API_SECRET` | LiveKit API secret. Server-only; never expose via `VITE_*`. |
+
+Recommended (have safe defaults; override only if you have a reason):
+
+| Variable | Default | Range |
+|----------|---------|-------|
+| `APP_ENV` | `development` | free text; set to `production` in prod |
+| `PORT` | `3000` | 1–65535 (ignored on Vercel; used by self-host) |
+| `ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | comma-separated origins; **set to the deployed frontend origin in prod**, e.g. `https://simtalk.dev` |
+| `OPENAI_REALTIME_CLIENT_SECRET_URL` | OpenAI translations client-secret endpoint | full URL |
+| `OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS` | `600` | 10–7200 |
+| `OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL` | `gpt-realtime-whisper` | model name |
+| `REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS` | `60000` | 1_000–3_600_000 |
+| `REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS` | `5` | 1–100 |
+| `LIVEKIT_TOKEN_TTL_SECONDS` | `600` | 60–3600 |
+| `LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS` | `300` | 30–3600 |
+| `LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS` | `60` | 10–600 |
+| `ROOM_TOKEN_RATE_LIMIT_WINDOW_MS` | `60000` | 1_000–3_600_000 |
+| `ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS` | `10` | 1–100 |
+
+Frontend build-time variables (set in the same Vercel UI; safe to expose because they are bundled into the client):
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `VITE_API_BASE_URL` | `http://localhost:3000` (dev) | Set to `/api` for the single-project Vercel deploy. |
+
+Operational checks after deploy:
+
+```bash
+curl -i https://<your-domain>/api/health
+curl -i -X POST https://<your-domain>/api/rooms
+```
+
+The first should return `200`. The second should return `201` with a `roomId` and `roomUrlPath`. A `503 missing_server_config` from either route means the relevant API key/secret is missing or blank in Vercel project settings.
+
+Local-dev parity: the backend dev script uses Node's native `--env-file` flag (`tsx watch --env-file=.env src/server.ts`) to load `backend/.env`. There is no `dotenv` dependency. If `backend/.env` is missing the process will fail to start with a clear error — copy from `backend/.env.example` and populate the secrets locally.
+
 Current repo status:
 
 - GitHub Actions CI and Vercel deploy workflows are configured in `.github/workflows/`.
-- Vercel project config is committed in `vercel.json`.
+- Vercel project config is committed in `vercel.json` (rewrites, CSP, security headers — no secret values).
 - No Dockerfile or Cloud Run config exists.
 - Vercel project settings, password protection, domain, and secrets remain out-of-repo.
 
