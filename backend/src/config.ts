@@ -1,4 +1,5 @@
 export type AppConfig = {
+  readonly appAccessPassword: string | undefined;
   readonly appEnv: string;
   readonly port: number;
   readonly allowedOrigins: readonly string[];
@@ -50,6 +51,7 @@ const parseIntegerInRange = (
 };
 
 export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => ({
+  appAccessPassword: env.APP_ACCESS_PASSWORD?.trim() || undefined,
   appEnv: env.APP_ENV ?? 'development',
   port: parsePort(env.PORT),
   allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),

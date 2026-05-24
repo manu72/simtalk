@@ -61,4 +61,18 @@ describe('createAppConfig', () => {
     expect(config.roomTokenRateLimitWindowMs).toBe(60_000);
     expect(config.roomTokenRateLimitMaxRequests).toBe(10);
   });
+
+  describe('createAppConfig — APP_ACCESS_PASSWORD', () => {
+    it('exposes the password when set', () => {
+      const config = createAppConfig({ APP_ACCESS_PASSWORD: 'hunter2' } as NodeJS.ProcessEnv);
+      expect(config.appAccessPassword).toBe('hunter2');
+    });
+
+    it('returns undefined when the env var is empty or missing', () => {
+      expect(createAppConfig({} as NodeJS.ProcessEnv).appAccessPassword).toBeUndefined();
+      expect(
+        createAppConfig({ APP_ACCESS_PASSWORD: '   ' } as NodeJS.ProcessEnv).appAccessPassword
+      ).toBeUndefined();
+    });
+  });
 });
