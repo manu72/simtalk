@@ -488,6 +488,9 @@ export const App = () => {
       setRemoteStatus('live');
     } catch (error) {
       if (error instanceof AccessDeniedError) {
+        if (joinGenerationRef.current === joinGeneration) {
+          setRemoteStatus('idle');
+        }
         reopenAccessModal(() => void joinRemoteRoom());
         return;
       }
@@ -552,6 +555,8 @@ export const App = () => {
       if (mode === 'practice') setPracticeStage('idle');
     } catch (error) {
       if (error instanceof AccessDeniedError) {
+        setStatus('idle');
+        setView('lobby');
         reopenAccessModal(() => void launch());
         return;
       }

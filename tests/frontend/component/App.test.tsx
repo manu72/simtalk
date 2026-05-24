@@ -14,6 +14,7 @@ vi.mock('../../../frontend/src/realtimeTranslationSession', () => ({
   RealtimeTranslationSessionError: class RealtimeTranslationSessionError extends Error {}
 }));
 
+import { AccessDeniedError } from '../../../frontend/src/accessGate';
 import { App } from '../../../frontend/src/App';
 
 const tokenResponse = {
@@ -521,6 +522,34 @@ describe('access gate', () => {
 
     expect(await screen.findByText(/incorrect password/i)).toBeInTheDocument();
     expect(window.sessionStorage.getItem('simtalk:access-password')).toBeNull();
+  });
+
+  it('resets join state and retries after access denied on join room', async () => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    createLiveKitRemoteRoomSessionMock
+      .mockRejectedValueOnce(new AccessDeniedError())
+      .mockResolvedValueOnce({
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        stop: vi.fn()
+      });
+
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /join room/i }));
+    });
+
+    expect(await screen.findByText(/incorrect password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /join room/i })).not.toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'hunter2' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    });
+
+    await waitFor(() => expect(createLiveKitRemoteRoomSessionMock).toHaveBeenCalledTimes(2));
   });
 
   it('does not show the modal on launch when a password is already stored', async () => {
