@@ -58,4 +58,20 @@ describe('AccessGateModal', () => {
     renderModal({ errorMessage: 'Incorrect password. Try again.' });
     expect(screen.getByText('Incorrect password. Try again.')).toBeInTheDocument();
   });
+
+  it('submits when Enter is pressed in the password field', async () => {
+    const onSubmit = vi.fn();
+    render(
+      <AccessGateModal
+        open
+        errorMessage={null}
+        onSubmit={onSubmit}
+        onClose={vi.fn()}
+      />
+    );
+    const input = screen.getByLabelText(/password/i);
+    fireEvent.change(input, { target: { value: 'hunter2' } });
+    fireEvent.submit(input.closest('form')!);
+    expect(onSubmit).toHaveBeenCalledWith('hunter2');
+  });
 });

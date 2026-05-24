@@ -54,6 +54,7 @@ export const STButton = ({
   size = 'md',
   full = false,
   icon,
+  type = 'button',
   disabled = false,
   onMouseDown,
   onMouseUp,
@@ -69,7 +70,7 @@ export const STButton = ({
 
   return (
     <button
-      type="button"
+      type={type}
       disabled={disabled}
       onMouseDown={(event) => {
         if (!disabled) setPressed(true);
