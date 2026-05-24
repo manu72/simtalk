@@ -13,7 +13,8 @@
       "Bash(pnpm --filter @simtalk/frontend typecheck)",
       "Bash(pnpm --filter @simtalk/frontend test)",
       "Bash(pnpm test *)",
-      "mcp__plugin_context-mode_context-mode__ctx_execute"
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "Bash(pnpm typecheck:api)"
     ]
   }
 }
