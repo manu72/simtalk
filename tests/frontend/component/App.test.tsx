@@ -67,6 +67,10 @@ afterEach(() => {
 });
 
 describe('Lobby', () => {
+  beforeEach(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+  });
+
   it('renders three mode pills with Listener selected by default', () => {
     render(<App />);
     const listener = screen.getByRole('radio', { name: /listen/i });
@@ -93,10 +97,12 @@ describe('Lobby', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /remote talk/i })).toBeInTheDocument();
     });
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms', {
-      method: 'POST',
-      headers: {}
-    });
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/rooms',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ 'X-Access-Password': 'hunter2' })
+      })
+    );
   });
 
   it('generates a schema-valid fallback participant identity when crypto.randomUUID is unavailable', async () => {
@@ -175,6 +181,10 @@ describe('Lobby', () => {
 });
 
 describe('Launch flow', () => {
+  beforeEach(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+  });
+
   it('transitions from lobby to session header after a successful launch', async () => {
     mockFetch(tokenJsonResponse());
     render(<App />);
@@ -241,6 +251,10 @@ describe('Launch flow', () => {
 });
 
 describe('Session controls', () => {
+  beforeEach(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+  });
+
   it('Listener session shows Pause Listening and ending it routes to Summary', async () => {
     mockFetch(tokenJsonResponse());
     render(<App />);
@@ -451,7 +465,87 @@ describe('Session controls', () => {
   });
 });
 
+describe('access gate', () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    window.sessionStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('prompts for password on LAUNCH and stores it on submit', async () => {
+    const fetchMock = mockFetch(tokenJsonResponse());
+    createRealtimeTranslationSessionMock.mockResolvedValue({
+      stop: vi.fn(),
+      setLocalAudioEnabled: vi.fn()
+    });
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+
+    const dialog = await screen.findByRole('dialog', { name: /access required/i });
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'hunter2' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/realtime/token'),
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'X-Access-Password': 'hunter2' })
+        })
+      );
+    });
+
+    expect(window.sessionStorage.getItem('simtalk:access-password')).toBe('hunter2');
+  });
+
+  it('re-opens modal with an error when the password is wrong', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({ error: { code: 'unauthorized', message: 'Access denied.' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    fireEvent.change(await screen.findByLabelText(/password/i), { target: { value: 'wrong' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/incorrect password/i)).toBeInTheDocument();
+    expect(window.sessionStorage.getItem('simtalk:access-password')).toBeNull();
+  });
+
+  it('does not show the modal on launch when a password is already stored', async () => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+    mockFetch(tokenJsonResponse());
+    createRealtimeTranslationSessionMock.mockResolvedValue({
+      stop: vi.fn(),
+      setLocalAudioEnabled: vi.fn()
+    });
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: /access required/i })).toBeNull()
+    );
+  });
+});
+
 describe('Dev drawer', () => {
+  beforeEach(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+  });
+
   it('opens with Alt+D and surfaces sessionId after a launch', async () => {
     mockFetch(tokenJsonResponse());
     render(<App />);
