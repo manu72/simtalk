@@ -7,6 +7,11 @@ import {
   type RealtimeTokenRequest,
   type RealtimeTokenResponse
 } from '@simtalk/shared-types';
+import {
+  AccessDeniedError,
+  clearStoredPassword,
+  getStoredPassword
+} from './accessGate';
 
 type RealtimeTokenClientOptions = {
   readonly apiBaseUrl?: string;
@@ -52,9 +57,15 @@ export const requestRealtimeToken = async (
   }, realtimeTokenRequestTimeoutMs);
 
   try {
+    const accessPassword = getStoredPassword();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (accessPassword) {
+      headers['X-Access-Password'] = accessPassword;
+    }
+
     response = await fetchImpl(joinUrl(apiBaseUrl, realtimeTokenRoute), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(parsedRequest.data),
       signal: controller.signal
     });
@@ -79,6 +90,11 @@ export const requestRealtimeToken = async (
   }
 
   const payload = (await response.json().catch(() => null)) as unknown;
+
+  if (response.status === 401) {
+    clearStoredPassword();
+    throw new AccessDeniedError();
+  }
 
   if (!response.ok) {
     const parsedError = apiErrorSchema.safeParse(payload);

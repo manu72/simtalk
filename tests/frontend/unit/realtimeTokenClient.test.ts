@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  AccessDeniedError,
+  clearStoredPassword,
+  setStoredPassword
+} from '../../../frontend/src/accessGate';
+import {
   RealtimeTokenClientError,
   requestRealtimeToken
 } from '../../../frontend/src/realtimeTokenClient';
@@ -20,6 +25,10 @@ const tokenResponse = {
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+afterEach(() => {
+  clearStoredPassword();
 });
 
 describe('requestRealtimeToken', () => {
@@ -73,5 +82,43 @@ describe('requestRealtimeToken', () => {
     await expect(tokenPromise).resolves.toEqual(tokenResponse);
 
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('adds the X-Access-Password header when a password is stored', async () => {
+    setStoredPassword('hunter2');
+    const fetchImpl = vi.fn(async () => Response.json(tokenResponse)) as unknown as typeof fetch;
+
+    await requestRealtimeToken(tokenRequest, { fetchImpl });
+
+    const [, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect((init as RequestInit).headers).toMatchObject({
+      'Content-Type': 'application/json',
+      'X-Access-Password': 'hunter2'
+    });
+  });
+
+  it('omits the X-Access-Password header when no password is stored', async () => {
+    const fetchImpl = vi.fn(async () => Response.json(tokenResponse)) as unknown as typeof fetch;
+
+    await requestRealtimeToken(tokenRequest, { fetchImpl });
+
+    const [, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect((init as RequestInit).headers).not.toHaveProperty('X-Access-Password');
+  });
+
+  it('throws AccessDeniedError and clears storage on 401', async () => {
+    setStoredPassword('wrong');
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({ error: { code: 'unauthorized', message: 'Access denied.' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    ) as unknown as typeof fetch;
+
+    await expect(requestRealtimeToken(tokenRequest, { fetchImpl })).rejects.toBeInstanceOf(
+      AccessDeniedError
+    );
+
+    expect(window.sessionStorage.getItem('simtalk:access-password')).toBeNull();
   });
 });
