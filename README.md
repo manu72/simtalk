@@ -48,23 +48,23 @@ Implemented now:
 
 Phase 1 / 1.5:
 
-| Layer                                | Current technology                                               |
-| ------------------------------------ | ---------------------------------------------------------------- |
-| Frontend                             | React 19, Vite 7, TypeScript                                     |
-| UI styling                           | CSS variables, brand primitives, and component styles            |
-| Backend                              | Node.js 22+, Hono                                                |
-| Shared contracts                     | TypeScript, Zod                                                  |
-| Realtime translation                 | OpenAI `gpt-realtime-translate`                                  |
-| Browser transport                    | WebRTC                                                           |
-| Remote rooms                         | LiveKit Cloud via `livekit-client` and `livekit-server-sdk`      |
-| Package manager                      | pnpm 10.16.1                                                     |
-| Unit/component tests                 | Vitest, React Testing Library, jsdom                             |
-| E2E tests                            | Playwright                                                       |
-| CI/CD                                | GitHub Actions CI and Vercel deploy workflows                    |
-| Deployment target                    | Vercel for Phase 1 / 1.5                                         |
-| Authentication/access                | Vercel Password Protection and allowlist, configured out of repo |
-| Database                             | None in Phase 1 / 1.5                                            |
-| Server-side audio/transcript storage | None                                                             |
+| Layer                                | Current technology                                          |
+| ------------------------------------ | ----------------------------------------------------------- |
+| Frontend                             | React 19, Vite 7, TypeScript                                |
+| UI styling                           | CSS variables, brand primitives, and component styles       |
+| Backend                              | Node.js 22+, Hono                                           |
+| Shared contracts                     | TypeScript, Zod                                             |
+| Realtime translation                 | OpenAI `gpt-realtime-translate`                             |
+| Browser transport                    | WebRTC                                                      |
+| Remote rooms                         | LiveKit Cloud via `livekit-client` and `livekit-server-sdk` |
+| Package manager                      | pnpm 10.16.1                                                |
+| Unit/component tests                 | Vitest, React Testing Library, jsdom                        |
+| E2E tests                            | Playwright                                                  |
+| CI/CD                                | GitHub Actions CI and Vercel deploy workflows               |
+| Deployment target                    | Vercel for Phase 1 / 1.5                                    |
+| Authentication/access                | Custom Password Protection                                  |
+| Database                             | None in Phase 1 / 1.5                                       |
+| Server-side audio/transcript storage | None                                                        |
 
 Tailwind CSS and shadcn/ui are architecture options from earlier planning, but they are not installed in the active frontend package. `components.json`, `frontend/src/components/ui/`, and `frontend/src/lib/utils.ts` remain as scaffold remnants and are not part of the current UI path.
 
@@ -438,7 +438,7 @@ Phase 1 / 1.5 target:
 
 - One Vercel project for the frontend and thin Hono API functions mounted under `/api`.
 - Custom domain: `simtalk.dev`.
-- Vercel Password Protection for private access in Phase 1 and Phase 1.5.
+- Custom Password Protection for private access in Phase 1 and Phase 1.5.
 - Environment variables configured in Vercel project settings.
 - Build command: `pnpm --filter @simtalk/shared-types build && pnpm --filter @simtalk/frontend build`.
 - Output directory: `frontend/dist`.
