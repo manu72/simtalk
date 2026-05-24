@@ -159,6 +159,7 @@ export const App = () => {
   const localStreamRef = useRef<MediaStream | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const launchIdRef = useRef(0);
+  const launchAttemptRef = useRef(0);
 
   const revokeRecordingUrl = useCallback(() => {
     if (recordingBlobUrlRef.current) {
@@ -329,6 +330,7 @@ export const App = () => {
       try {
         tokenResponse = await requestRealtimeToken(request);
       } catch (error) {
+        if (error instanceof AccessDeniedError) throw error;
         if (!isCurrentLaunch()) return 'superseded';
         throw error;
       }
@@ -357,6 +359,7 @@ export const App = () => {
           }
         });
       } catch (error) {
+        if (error instanceof AccessDeniedError) throw error;
         if (!isCurrentLaunch()) return 'superseded';
         throw error;
       }
@@ -533,6 +536,8 @@ export const App = () => {
 
   const launch = useCallback(async () => {
     if (status === 'launching' || status === 'connecting') return;
+    const attempt = launchAttemptRef.current + 1;
+    launchAttemptRef.current = attempt;
     setErrorMessage(null);
     teardownSession();
     resetTranscriptBuffers();
@@ -551,16 +556,25 @@ export const App = () => {
         },
         { startSessionRecorder: mode === 'listener', startLocalAudioEnabled: mode !== 'practice' }
       );
-      if (result === 'superseded') return;
+      if (result === 'superseded') {
+        if (launchAttemptRef.current === attempt) {
+          setStatus('idle');
+          setView('lobby');
+        }
+        return;
+      }
       if (mode === 'practice') setPracticeStage('idle');
     } catch (error) {
       if (error instanceof AccessDeniedError) {
-        setStatus('idle');
-        setView('lobby');
+        if (launchAttemptRef.current === attempt) {
+          setStatus('idle');
+          setView('lobby');
+        }
         reopenAccessModal(() => void launch());
         return;
       }
       teardownSession();
+      if (launchAttemptRef.current !== attempt) return;
       setErrorMessage(errorMessageFor(error, 'Could not launch translation. Please try again.'));
       setStatus('error');
       setView('lobby');

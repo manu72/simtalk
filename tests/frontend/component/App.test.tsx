@@ -524,6 +524,40 @@ describe('access gate', () => {
     expect(window.sessionStorage.getItem('simtalk:access-password')).toBeNull();
   });
 
+  it('resets launch state and retries after access denied on launch with stored password', async () => {
+    window.sessionStorage.setItem('simtalk:access-password', 'wrong');
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({ error: { code: 'unauthorized', message: 'Access denied.' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    createRealtimeTranslationSessionMock.mockResolvedValue({
+      stop: vi.fn(),
+      setLocalAudioEnabled: vi.fn()
+    });
+
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /launch/i }));
+    });
+
+    expect(await screen.findByText(/incorrect password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^launch$/i })).not.toBeDisabled();
+
+    fetchMock.mockImplementation(async () => tokenJsonResponse());
+
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'hunter2' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => screen.getByRole('button', { name: /end session/i }));
+  });
+
   it('resets join state and retries after access denied on join room', async () => {
     window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
