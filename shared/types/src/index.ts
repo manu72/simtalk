@@ -109,6 +109,7 @@ export const roomTokenResponseSchema = z.object({
 export const apiErrorCodes = [
   'bad_request',
   'validation_error',
+  'unauthorized',
   'rate_limited',
   'missing_server_config',
   'openai_unavailable',

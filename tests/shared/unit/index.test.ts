@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  apiErrorCodeSchema,
   apiErrorSchema,
   conversationModes,
   healthResponseSchema,
@@ -170,5 +171,11 @@ describe('shared API contracts', () => {
       status: 'ok',
       service: 'simtalk-api'
     });
+  });
+});
+
+describe('apiErrorCodeSchema', () => {
+  it('accepts the unauthorized code', () => {
+    expect(apiErrorCodeSchema.parse('unauthorized')).toBe('unauthorized');
   });
 });
