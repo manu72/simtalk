@@ -1,5 +1,5 @@
 export type AppConfig = {
-  readonly appAccessPassword: string | undefined;
+  readonly appAccessPasswords: readonly string[];
   readonly appEnv: string;
   readonly port: number;
   readonly allowedOrigins: readonly string[];
@@ -50,18 +50,24 @@ const parseIntegerInRange = (
   return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
 };
 
+const parseAccessPasswords = (value: string | undefined): readonly string[] =>
+  value
+    ?.split(',')
+    .map((password) => password.trim())
+    .filter(Boolean) ?? [];
+
 export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => {
-  const appAccessPassword = env.APP_ACCESS_PASSWORD?.trim() || undefined;
+  const appAccessPasswords = parseAccessPasswords(env.APP_ACCESS_PASSWORD);
   const appEnv = env.APP_ENV ?? 'development';
 
-  if (!appAccessPassword && appEnv !== 'development') {
+  if (appAccessPasswords.length === 0 && appEnv !== 'development') {
     throw new Error(
-      `[config] APP_ACCESS_PASSWORD is required when APP_ENV is "${appEnv}". Set APP_ACCESS_PASSWORD before starting the backend outside development.`
+      `[config] APP_ACCESS_PASSWORD is required when APP_ENV is "${appEnv}". Set APP_ACCESS_PASSWORD (comma-separated for multiple) before starting the backend outside development.`
     );
   }
 
   return {
-    appAccessPassword,
+    appAccessPasswords,
     appEnv,
     port: parsePort(env.PORT),
     allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),

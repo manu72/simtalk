@@ -21,7 +21,7 @@ export const createApp = (
   dependencies: AppDependencies = {}
 ) => {
   const app = new Hono();
-  const accessGate = createAccessGateMiddleware(config.appAccessPassword);
+  const accessGate = createAccessGateMiddleware(config.appAccessPasswords);
 
   app.use('*', createCorsMiddleware(config));
   app.use('*', securityHeaders);
