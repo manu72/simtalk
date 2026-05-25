@@ -25,16 +25,16 @@ type LobbyProps = {
 
 const TITLES: Record<ConversationMode, { line1: string; line2?: string; tagline: string }> = {
   listener: {
-    line1: "JUST LISTEN.",
-    tagline: "Automatically translate any language.",
+    line1: "LISTEN.",
+    tagline: "Translate any language.",
   },
   turnabout: {
-    line1: "TALK TO ME.",
-    tagline: "Converse with anyone, anywhere.",
+    line1: "TALK.",
+    tagline: "Converse with anyone.",
   },
   practice: {
     line1: "PRACTICE.",
-    tagline: "Practice your skills in any language.",
+    tagline: "Practice in any language.",
   },
 };
 
