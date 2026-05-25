@@ -29,7 +29,7 @@ const TITLES: Record<ConversationMode, { line1: string; line2?: string; tagline:
     tagline: "Translate any language.",
   },
   turnabout: {
-    line1: "TALK.",
+    line1: "SIMTALK.",
     tagline: "Converse with anyone.",
   },
   practice: {

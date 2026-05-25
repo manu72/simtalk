@@ -122,18 +122,19 @@ const installBrowserRealtimeMocks = async (page: Page) => {
   });
 };
 
-test('lobby surfaces Listener by default with local and remote CTAs', async ({ page }) => {
+test('lobby surfaces Turn-about by default with local and remote CTAs', async ({ page }) => {
   await page.goto('/');
 
   const launch = page.getByRole('button', { name: /launch/i });
   await expect(launch).toBeVisible();
   await expect(page.getByRole('button', { name: /create remote room/i })).toBeVisible();
 
-  await expect(page.getByRole('radio', { name: /listen/i })).toHaveAttribute('aria-checked', 'true');
-  await expect(page.getByRole('radio', { name: /talk/i })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /talk/i })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('radio', { name: /listen/i })).toBeVisible();
   await expect(page.getByRole('radio', { name: /practice/i })).toBeVisible();
 
-  await expect(page.getByText(/we'll detect any of 70\+ languages/i)).toBeVisible();
+  await expect(page.getByText(/person a/i)).toBeVisible();
+  await expect(page.getByText(/person b/i)).toBeVisible();
 });
 
 test('Turn-about lobby shows Person A and Person B pickers, and sends pair on launch', async ({ page }) => {
@@ -160,6 +161,7 @@ test('Listener launches and exposes Pause Listening', async ({ page }) => {
   await installBrowserRealtimeMocks(page);
   await page.goto('/');
 
+  await page.getByRole('radio', { name: /listen/i }).click();
   await page.getByRole('button', { name: /launch/i }).click();
 
   await expect(page.getByRole('button', { name: /pause listening/i })).toBeVisible();

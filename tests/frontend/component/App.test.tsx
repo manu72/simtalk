@@ -72,13 +72,13 @@ describe('Lobby', () => {
     window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
   });
 
-  it('renders three mode pills with Listener selected by default', () => {
+  it('renders three mode pills with Turn-about selected by default', () => {
     render(<App />);
     const listener = screen.getByRole('radio', { name: /listen/i });
     const turnabout = screen.getByRole('radio', { name: /talk/i });
     const practice = screen.getByRole('radio', { name: /practice/i });
-    expect(listener).toHaveAttribute('aria-checked', 'true');
-    expect(turnabout).toHaveAttribute('aria-checked', 'false');
+    expect(turnabout).toHaveAttribute('aria-checked', 'true');
+    expect(listener).toHaveAttribute('aria-checked', 'false');
     expect(practice).toHaveAttribute('aria-checked', 'false');
   });
 
@@ -127,6 +127,7 @@ describe('Lobby', () => {
 
   it('Listener mode shows two language cards: a Detect (Automatic) source and a Translate-into target', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /listen/i }));
     expect(screen.getByText(/^detect$/i)).toBeInTheDocument();
     expect(screen.getByText(/^translate into$/i)).toBeInTheDocument();
     expect(screen.getByText(/^automatic$/i)).toBeInTheDocument();
@@ -153,6 +154,7 @@ describe('Lobby', () => {
   it('omits sourceLanguage in token request when launching Listener mode', async () => {
     const fetchMock = mockFetch(tokenJsonResponse());
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /listen/i }));
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /launch/i }));
@@ -259,6 +261,7 @@ describe('Session controls', () => {
   it('Listener session shows Pause Listening and ending it routes to Summary', async () => {
     mockFetch(tokenJsonResponse());
     render(<App />);
+    fireEvent.click(screen.getByRole('radio', { name: /listen/i }));
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /launch/i }));

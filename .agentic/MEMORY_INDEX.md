@@ -47,7 +47,7 @@ Human-maintained mappings from task intent to relevant subsystems, files, tests,
 - "WebRTC", "audio playback", "mic", "translate stream" → subsystem `web`. Read `frontend/src/` (hooks, services). Risk tags: `realtime`, `latency`.
 - "Listener mode", "Turn-about", "Practice mode" → subsystem `web`. Cross-check `PRD.md` modes section.
 - "Recording", "download transcript" → subsystem `web`. Risk tag: `privacy`. Recording must remain local-only and opt-in.
-- "Auth", "password protection", "allowlist" → subsystem `infra` + `api`. Phase 1 uses Vercel Password Protection; Phase 2 introduces real auth.
+- "Access gate", "password protection", "allowlist" → subsystem `api` + `web` + `infra`. Phase 1 protects paid actions with backend `APP_ACCESS_PASSWORD`/`X-Access-Password`; frontend storage/modal is UX only, not auth.
 - "Deploy", "Vercel", "Cloud Run", "CI" → subsystem `infra`. Read `.agentic/SUBSYSTEMS/infra.md`; GitHub Actions workflows are not yet present in-repo, and Vercel project settings are out-of-tree.
 - "Schema", "Zod", "request validation" → subsystem `api` + `shared`. All API boundaries validate with Zod.
 - "Rate limit", "abuse", "DoS" → subsystem `api`. Risk tag: `security`.
