@@ -55,6 +55,7 @@ type CreateRemoteRoomSessionOptions = {
   readonly onRemoteParticipantChange?: (info: RemoteParticipantInfo | null) => void;
   readonly onRemoteMicMuteChange?: (muted: boolean) => void;
   readonly onRemoteSpeakingChange?: (speaking: boolean) => void;
+  readonly initialYouHear?: string;
 };
 
 const remoteParticipantsCount = (room: Room): number => room.remoteParticipants.size;
@@ -76,7 +77,8 @@ export const createLiveKitRemoteRoomSession = async ({
   onRemoteVideoTrackChange,
   onRemoteParticipantChange,
   onRemoteMicMuteChange,
-  onRemoteSpeakingChange
+  onRemoteSpeakingChange,
+  initialYouHear
 }: CreateRemoteRoomSessionOptions): Promise<RemoteRoomSession> => {
   const roomToken = await requestRoomToken(roomId, roomTokenRequest);
   const room = createRoom();
@@ -312,6 +314,13 @@ export const createLiveKitRemoteRoomSession = async ({
   try {
     await room.connect(roomToken.liveKitUrl, roomToken.participantToken);
     await room.localParticipant.setMicrophoneEnabled(true);
+    if (initialYouHear) {
+      try {
+        await room.localParticipant.setAttributes({ youHear: initialYouHear });
+      } catch {
+        // Attribute push is best-effort; don't fail the join.
+      }
+    }
     onLocalMicMuteChange?.(false);
     const firstRemote = Array.from(room.remoteParticipants.values())[0];
     if (firstRemote) setRemoteParticipant(firstRemote);

@@ -33,7 +33,8 @@ const createFakeRoom = () => {
   const room = {
     remoteParticipants: new Map(),
     localParticipant: {
-      setMicrophoneEnabled: vi.fn(async () => undefined)
+      setMicrophoneEnabled: vi.fn(async () => undefined),
+      setAttributes: vi.fn(async () => undefined)
     },
     connect: vi.fn(async () => undefined),
     disconnect: vi.fn(),
@@ -184,6 +185,24 @@ describe('createLiveKitRemoteRoomSession', () => {
     await vi.waitFor(() => {
       expect(translationSession.stop).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('pushes the initial youHear attribute on connect', async () => {
+    const { room } = createFakeRoom();
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+
+    await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: { mode: 'listener', targetLanguage: 'es' },
+      initialYouHear: 'es',
+      createRoom: () => room as never
+    });
+
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledWith({ youHear: 'es' });
   });
 
   it('stops a stale translation session whose startup was superseded by a newer track', async () => {
