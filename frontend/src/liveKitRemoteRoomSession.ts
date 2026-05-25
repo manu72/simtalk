@@ -29,6 +29,7 @@ export type RemoteRoomSession = {
   readonly setOriginalAudioMuted: (muted: boolean) => void;
   readonly setCameraEnabled: (enabled: boolean) => Promise<void>;
   readonly setMicrophoneEnabled: (enabled: boolean) => Promise<void>;
+  readonly setLocalYouHear: (bcp47: string) => void;
   readonly stop: () => void;
 };
 
@@ -87,6 +88,7 @@ export const createLiveKitRemoteRoomSession = async ({
   let originalAudioTrack: RemoteAudioTrack | null = null;
   let translationSession: RealtimeTranslationSession | null = null;
   let stopped = false;
+  let lastPublishedYouHear: string | null = initialYouHear ?? null;
   // Bumped whenever any caller tears down the active translation session
   // (session.stop, TrackUnsubscribed, a new TrackSubscribed). Lets in-flight
   // handleRemoteTrack invocations detect that their startup has been
@@ -369,12 +371,23 @@ export const createLiveKitRemoteRoomSession = async ({
     }
   };
 
+  const setLocalYouHear = (bcp47: string): void => {
+    if (stopped) return;
+    if (!bcp47) return;
+    if (bcp47 === lastPublishedYouHear) return;
+    lastPublishedYouHear = bcp47;
+    void room.localParticipant.setAttributes({ youHear: bcp47 }).catch(() => {
+      // best-effort
+    });
+  };
+
   return {
     room,
     participantIdentity: roomToken.participantIdentity,
     setOriginalAudioMuted,
     setCameraEnabled,
     setMicrophoneEnabled,
+    setLocalYouHear,
     stop: stopRoomSession
   };
 };

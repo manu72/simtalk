@@ -205,6 +205,33 @@ describe('createLiveKitRemoteRoomSession', () => {
     expect(room.localParticipant.setAttributes).toHaveBeenCalledWith({ youHear: 'es' });
   });
 
+  it('exposes setLocalYouHear that republishes the attribute', async () => {
+    const { room } = createFakeRoom();
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+
+    const session = await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: { mode: 'listener', targetLanguage: 'es' },
+      initialYouHear: 'es',
+      createRoom: () => room as never
+    });
+
+    room.localParticipant.setAttributes.mockClear();
+    session.setLocalYouHear('tl');
+
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledWith({ youHear: 'tl' });
+
+    session.setLocalYouHear('tl'); // duplicate — should no-op
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledTimes(1);
+
+    session.setLocalYouHear(''); // empty — should no-op
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledTimes(1);
+  });
+
   it('stops a stale translation session whose startup was superseded by a newer track', async () => {
     const { room, handlers } = createFakeRoom();
     const staleSession = { stop: vi.fn(), setLocalAudioEnabled: vi.fn() };
