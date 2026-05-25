@@ -1,30 +1,30 @@
 # api (backend)
 
-> Status: planned. Code not yet implemented at init time. Update this file once `backend/` lands.
-
 ## Purpose
 
 Small Node/Hono service that authorises sessions, validates input (mode + languages), mints short-lived OpenAI Realtime Translate ephemeral tokens, enforces CORS / rate limits / security headers, and exposes a health check. It does NOT proxy audio or transcripts.
 
 ## Source-of-truth files
 
-- `backend/package.json` — Unknown (not yet present).
-- `backend/src/routes/` — Unknown. Expected: `health`, realtime token route.
-- `backend/src/services/` — Unknown. Expected: OpenAI client wrapper, session policy, rate limiter.
-- `backend/src/schemas/` — Unknown. Zod request/response schemas.
-- `backend/src/middleware/` — Unknown. Auth gate, CORS, security headers, rate limit.
-- `backend/.env.example` — Unknown. Variables documented in `README.md`.
+- `backend/src/app.ts` — route and middleware wiring.
+- `backend/src/routes/` — health, realtime token, and room token API surface.
+- `backend/src/services/` — OpenAI and room service wrappers.
+- `backend/src/middleware/` — access gate, CORS, security headers, and rate limiting.
+- `backend/src/config.ts` and `backend/.env.example` — environment contract, including `APP_ACCESS_PASSWORD`.
+- `shared/types/src/index.ts` — Zod request/response contracts.
 - `System_Architecture.md` §4, §5 — security controls and runtime flow.
 
 ## Public contracts
 
-- `POST /<realtime-token-route>` (path TBD): request validated by Zod (mode, source/target language). Response: short-lived ephemeral token + session metadata. Token TTL must be short.
-- `GET /health` (path TBD): liveness check, no secrets in payload.
-- All requests share a JSON envelope and a typed error shape (TBD in `shared/types/`).
+- `POST /realtime/token`: request validated by Zod (mode, source/target language). Response: short-lived ephemeral token + session metadata. Token TTL must be short.
+- Room routes under `/rooms` issue LiveKit room/session tokens for remote-room flows.
+- `GET /health`: liveness check, no secrets in payload.
+- API responses use shared Zod contracts and typed error shapes from `shared/types/src/index.ts`.
 
 ## Invariants
 
 - `OPENAI_API_KEY` is read only on the server; it MUST NOT be returned to clients in any form.
+- `APP_ACCESS_PASSWORD` is required outside development and protects paid action routes via `X-Access-Password`; `GET /health` remains public.
 - Every request to the token endpoint is validated with Zod before any OpenAI call.
 - CORS is restricted to the configured `ALLOWED_ORIGINS` (`simtalk.app` in production, plus local dev).
 - The token endpoint is rate-limited per client. Limits are conservative by default.
@@ -43,9 +43,9 @@ Small Node/Hono service that authorises sessions, validates input (mode + langua
 
 ## Tests
 
-- Vitest unit tests for services, schemas, middleware at `backend/src/**/*.test.ts` — Unknown.
-- Vitest integration tests for routes (token issuance, health, error envelopes) at `backend/src/**/*.int.test.ts` or `tests/` — Unknown.
-- Run with `pnpm test` from the backend workspace once configured.
+- Vitest unit tests for services, config, schemas, and middleware under `tests/backend/unit/`.
+- Vitest integration tests for routes and middleware under `tests/backend/integration/`.
+- Run from the repo root with `pnpm test` so shared types build first.
 
 ## Related subsystems
 
@@ -56,6 +56,7 @@ Small Node/Hono service that authorises sessions, validates input (mode + langua
 ## Do-not-do rules
 
 - Do not return `OPENAI_API_KEY`, full session state, or non-redacted upstream errors to the client.
+- Do not treat frontend access-gate state as authorization; backend middleware must enforce protected routes.
 - Do not log transcript content, audio, ephemeral tokens, or PII.
 - Do not add a database, ORM, or persistent store in Phase 1.
 - Do not relax CORS to `*` even in development without a decision entry.

@@ -9,7 +9,7 @@ SimTalk is a realtime speech-to-speech translation web app that lets people who 
 ## Stack
 
 - Languages: TypeScript
-- Frameworks: React 19 + Vite 7 (frontend), Hono (backend), Tailwind CSS + shadcn/ui (UI), Zod (schema validation)
+- Frameworks: React 19 + Vite 7 (frontend), Hono (backend), custom CSS tokens/native controls (UI), Zod (schema validation)
 - Runtime: Node.js 22+, modern evergreen browsers (WebRTC required)
 - Package manager: pnpm 10+
 - Realtime: OpenAI `gpt-realtime-translate` via `/v1/realtime/translations` over browser WebRTC
@@ -18,14 +18,14 @@ SimTalk is a realtime speech-to-speech translation web app that lets people who 
 ## Architecture (high level)
 
 - Browser owns mic capture, WebRTC session to OpenAI, transcript rendering, optional local-only recording. See `.agentic/SUBSYSTEMS/web.md`.
-- Node/Hono backend mints short-lived OpenAI ephemeral realtime tokens, validates mode/language requests, enforces CORS and rate limits. No transcript or audio passes through it. See `.agentic/SUBSYSTEMS/api.md`.
+- Node/Hono backend enforces the Phase 1 access gate, mints short-lived OpenAI ephemeral realtime tokens, validates mode/language requests, and enforces CORS/rate limits. No transcript or audio passes through it. See `.agentic/SUBSYSTEMS/api.md`.
 - OpenAI Realtime Translate handles speech recognition, translation, audio synthesis, and transcript deltas. The browser connects directly via WebRTC after the backend issues a token.
 - Phase 1 has no database and no server-side transcript storage. Local recordings stay in the browser.
 - Phase 2 (out of current scope) moves backend to Google Cloud Run, adds Supabase Auth + Postgres, and a multi-user room layer (likely LiveKit).
 
 ## Deployment
 
-- Phase 1: Vercel (frontend + standalone Node/Hono backend), custom domain `simtalk.app`, Vercel Password Protection + single-user allowlist.
+- Phase 1: Vercel (frontend + standalone Node/Hono backend), custom domain `simtalk.app`, Vercel Password Protection plus app-level `APP_ACCESS_PASSWORD` for protected actions.
 - Phase 2: Google Cloud Run services (`simtalk-api`, `simtalk-realtime`, `simtalk-worker`), HTTPS load balancer, managed secrets.
 
 ## Major subsystems
@@ -42,13 +42,14 @@ SimTalk is a realtime speech-to-speech translation web app that lets people who 
 - `PRD.md` — product scope, modes, non-goals, success metrics.
 - `System_Architecture.md` — Phase 1/2 architecture, security controls, runtime flow.
 - `README.md` — repo conventions, commands, env vars, decision log.
-- `backend/src/routes/` (planned) — API surface, including the realtime token endpoint.
-- `backend/src/schemas/` (planned) — Zod request/response contracts.
-- `shared/types/` (planned) — types shared between frontend and backend.
+- `backend/src/routes/` — API surface, including realtime and room token endpoints.
+- `backend/src/middleware/accessGate.ts` — app-level shared-password gate for protected Phase 1 actions.
+- `shared/types/` — Zod contracts shared between frontend and backend.
 
 ## Key constraints
 
 - OpenAI API key MUST never reach the browser. The browser only ever sees short-lived ephemeral tokens.
+- `APP_ACCESS_PASSWORD` is required outside development; frontend storage is UX only and backend middleware is the enforcement boundary.
 - No server-side storage of audio or transcript content in Phase 1. Local recording is opt-in, off by default, browser-only.
 - Strict CORS limited to `simtalk.app` (and local dev origins). Rate-limit the token endpoint.
 - Required security headers: CSP, HSTS, X-Frame-Options / frame-ancestors, Referrer-Policy.

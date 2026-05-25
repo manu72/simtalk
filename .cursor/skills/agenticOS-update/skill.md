@@ -24,6 +24,7 @@ Do NOT use for routine code changes.
    - Keep entries short. Prefer one-liners with links to source-of-truth files.
 3. Re-run: `python3 scripts/agentic/validate_memory.py`. Resolve warnings.
 4. Never auto-overwrite curated files. Generated artifacts (per `generated_artifacts` in `.agentic/CONFIG/agentic.json`) may be regenerated freely.
+5. Do NOT update CODEMAP.json if the only change is generated_at datetime. 
 
 ## Anti-bloat rules
 

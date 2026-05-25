@@ -85,8 +85,8 @@ const getParticipantIdentityForRoom = (roomId: string): string => {
 
 export const App = () => {
   // Lobby state
-  const [mode, setMode] = useState<ConversationMode>('listener');
-  const [source, setSource] = useState<Language>(AUTO_LANGUAGE);
+  const [mode, setMode] = useState<ConversationMode>('turnabout');
+  const [source, setSource] = useState<Language>(findLanguage('en'));
   const [target, setTarget] = useState<Language>(findLanguage('es'));
 
   // Remote room state stays browser-local. sessionStorage is used only for reload identity continuity.
@@ -951,6 +951,8 @@ export const App = () => {
             if (next !== 'listener' && isAutoLanguage(source)) {
               const fallback = findLanguage('en');
               setSource(fallback.bcp47 === target.bcp47 ? findLanguage('es') : fallback);
+            } else if (next === 'listener' && !isAutoLanguage(source)) {
+              setSource(AUTO_LANGUAGE);
             }
             setMode(next);
             setErrorMessage(null);

@@ -1,28 +1,28 @@
 # web (frontend)
 
-> Status: planned. Code not yet implemented at init time. Update this file once `frontend/` lands.
-
 ## Purpose
 
 Browser-side application that captures microphone audio, establishes a WebRTC session with OpenAI Realtime Translate, plays translated audio, renders source/translated transcripts, and (optionally) records locally.
 
 ## Source-of-truth files
 
-- `frontend/package.json` — Unknown (not yet present).
-- `frontend/vite.config.*` — Unknown.
-- `frontend/src/` — Unknown. Expected: components, mode UIs, WebRTC hook/service, transcript renderer.
+- `frontend/src/App.tsx` — top-level mode, session, access-gate, and room flow orchestration.
+- `frontend/src/realtimeTranslationSession.ts` — browser WebRTC session lifecycle with OpenAI Realtime Translate.
+- `frontend/src/accessGate.ts` and `frontend/src/components/screens/AccessGateModal.tsx` — local access-gate UX and session storage.
+- `frontend/src/realtimeTokenClient.ts` and `frontend/src/roomTokenClient.ts` — token clients that attach `X-Access-Password` when present.
 - `PRD.md` — mode specifications.
 - `System_Architecture.md` §2, §6 — browser responsibilities and per-mode behaviour.
 
 ## Public contracts
 
-- Calls the backend session-token endpoint (path TBD; expect Zod-validated request/response). Unknown until `api.md` defines it.
+- Calls backend token endpoints such as `POST /realtime/token` and room token routes using Zod-validated shared contracts.
 - Establishes WebRTC peer connection directly with OpenAI Realtime Translate using the ephemeral token. Reference: `gpt-realtime-translate` docs and `/v1/realtime/translations`.
 - Consumes translated audio frames and transcript deltas from OpenAI; emits no audio or transcripts back to the SimTalk backend.
 
 ## Invariants
 
 - The browser MUST NOT receive or store the OpenAI API key. It only ever holds short-lived ephemeral tokens.
+- The access-gate password in `sessionStorage` is UX convenience only; backend middleware is the enforcement boundary.
 - Translated audio playback latency target: time-to-first-audio < 2 seconds (PRD success metric).
 - Recording is OFF by default. If enabled, audio and transcripts stay in browser memory or local file blobs only.
 - Refreshing the page MUST clear unsaved session data; nothing persists to a server.
@@ -40,8 +40,8 @@ Browser-side application that captures microphone audio, establishes a WebRTC se
 
 ## Tests
 
-- Unit/component: Vitest + React Testing Library at `frontend/src/**/*.test.ts(x)` — Unknown until tests exist.
-- E2E: Playwright at `tests/` covering mic permission flow, WebRTC session start, mode switching, recording/download. Unknown.
+- Unit/component: Vitest + React Testing Library under `tests/frontend/`.
+- E2E: Playwright under `tests/e2e/`; gated flows preload the access password in session storage when needed.
 
 ## Related subsystems
 

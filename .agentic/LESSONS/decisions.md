@@ -67,3 +67,11 @@ Durable architectural and design decisions only. Not every change.
 - Decision: Phase 1 deploys both frontend and backend to Vercel under `simtalk.app`. Phase 2 moves backend services to Google Cloud Run (`simtalk-api`, `simtalk-realtime`, `simtalk-worker`).
 - Consequences: Two deployment targets across the product lifecycle; backend is intentionally kept thin and portable to make the migration cheap.
 - Alternatives considered: Stay on Vercel for Phase 2 (rejected: room/media orchestration fits Cloud Run better); start on Cloud Run today (rejected: too much overhead for an MVP).
+
+## 2026-05-24 — Protect paid actions with a backend access gate
+
+- Date: 2026-05-24
+- Context: Phase 1 remains private, but launch and remote-room token flows need app-level protection in addition to deployment-level password protection.
+- Decision: Use a temporary shared-password gate enforced by backend `APP_ACCESS_PASSWORD` and the `X-Access-Password` request header; frontend session storage and modal prompts are UX only.
+- Consequences: Protected actions fail closed outside development when the password is not configured. This is not a user auth model and must be replaced before public or multi-user use.
+- Alternatives considered: Rely only on Vercel Password Protection (too coarse for API calls); add full auth now (too much Phase 1 scope).
