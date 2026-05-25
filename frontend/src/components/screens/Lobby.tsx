@@ -29,12 +29,12 @@ const TITLES: Record<ConversationMode, { line1: string; line2?: string; tagline:
     tagline: "Automatically translate any language.",
   },
   turnabout: {
-    line1: "TALK TO ANYONE.",
-    tagline: "Two languages, one phone.",
+    line1: "TALK TO ME.",
+    tagline: "Converse with anyone, anywhere.",
   },
   practice: {
     line1: "PRACTICE.",
-    tagline: "Practice your language skills.",
+    tagline: "Practice your skills in any language.",
   },
 };
 
@@ -71,7 +71,13 @@ export const Lobby = ({
       <div style={{ marginTop: 8, display: "flex", alignItems: "flex-start", gap: 16 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <span
-            style={{ fontSize: 12, fontWeight: 800, opacity: 0.85, textTransform: "uppercase", letterSpacing: "0.10em" }}
+            style={{
+              fontSize: 12,
+              fontWeight: 800,
+              opacity: 0.85,
+              textTransform: "uppercase",
+              letterSpacing: "0.10em",
+            }}
           >
             Realtime translation
           </span>
@@ -146,7 +152,7 @@ export const Lobby = ({
               alignItems: "center",
               justifyContent: "center",
               opacity: isAutoLanguage(source) ? 0.4 : 1,
-              cursor: isAutoLanguage(source) ? "not-allowed" : "pointer"
+              cursor: isAutoLanguage(source) ? "not-allowed" : "pointer",
             }}
           >
             <STIcon name={mode === "turnabout" ? "swap" : "arrow-right"} size={20} color={ST.white} />
@@ -167,9 +173,7 @@ export const Lobby = ({
             }}
           >
             <STIcon name="headphones" size={14} color={ST.white} />
-            {isAutoLanguage(source)
-              ? "We'll detect any of 70+ languages."
-              : `Locked to ${source.name} input.`}
+            {isAutoLanguage(source) ? "We'll detect any of 70+ languages." : `Locked to ${source.name} input.`}
           </p>
         ) : null}
       </div>
@@ -225,9 +229,7 @@ export const Lobby = ({
           setPicker(null);
         }}
         onClose={() => setPicker(null)}
-        title={
-          mode === "turnabout" ? "PICK PERSON A" : mode === "listener" ? "DETECT FROM" : "PICK YOUR LANGUAGE"
-        }
+        title={mode === "turnabout" ? "PICK PERSON A" : mode === "listener" ? "DETECT FROM" : "PICK YOUR LANGUAGE"}
         languages={mode === "listener" ? [AUTO_LANGUAGE, ...LANGUAGES] : LANGUAGES}
       />
       <LanguagePickerSheet
