@@ -88,14 +88,23 @@ export const Lobby = ({
           </div>
           <p style={{ fontSize: 15, fontWeight: 600, marginTop: 12, opacity: 0.9, maxWidth: 320 }}>{titles.tagline}</p>
         </div>
-        <img
-          src="/rocket-logo_100x132.png"
-          alt=""
-          aria-hidden="true"
-          width={100}
-          height={132}
-          style={{ flexShrink: 0, width: 100, height: "auto", marginTop: 4 }}
-        />
+        <a
+          href="/"
+          aria-label="SimTalk home"
+          onClick={(e) => {
+            if (window.location.pathname === "/") e.preventDefault();
+          }}
+          style={{ flexShrink: 0, marginTop: 4, lineHeight: 0 }}
+        >
+          <img
+            src="/rocket-logo_100x132.png"
+            alt=""
+            aria-hidden="true"
+            width={100}
+            height={132}
+            style={{ width: 100, height: "auto" }}
+          />
+        </a>
       </div>
 
       <div style={{ marginTop: 24 }}>

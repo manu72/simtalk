@@ -59,14 +59,16 @@ export const Summary = ({
             <br />
           </STTitle>
         </div>
-        <img
-          src="/rocket-logo_100x132.png"
-          alt=""
-          aria-hidden="true"
-          width={80}
-          height={106}
-          style={{ flexShrink: 0, width: 80, height: "auto" }}
-        />
+        <a href="/" aria-label="SimTalk home" style={{ flexShrink: 0, lineHeight: 0 }}>
+          <img
+            src="/rocket-logo_100x132.png"
+            alt=""
+            aria-hidden="true"
+            width={80}
+            height={106}
+            style={{ width: 80, height: "auto" }}
+          />
+        </a>
       </div>
 
       <STCard tone="white" padding={20}>

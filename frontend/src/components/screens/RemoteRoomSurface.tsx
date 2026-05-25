@@ -93,14 +93,16 @@ export const RemoteRoomSurface = ({
               </STTitle>
             </div>
           </div>
-          <img
-            src="/rocket-logo_100x132.png"
-            alt=""
-            aria-hidden="true"
-            width={100}
-            height={132}
-            style={{ flexShrink: 0, width: 100, height: 'auto', marginTop: 4 }}
-          />
+          <a href="/" aria-label="SimTalk home" style={{ flexShrink: 0, marginTop: 4, lineHeight: 0 }}>
+            <img
+              src="/rocket-logo_100x132.png"
+              alt=""
+              aria-hidden="true"
+              width={100}
+              height={132}
+              style={{ width: 100, height: 'auto' }}
+            />
+          </a>
         </div>
 
         <STCard tone="white" padding={18}>
