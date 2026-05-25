@@ -8,12 +8,15 @@ type LangCardProps = {
   readonly label: string;
   readonly lang: Language;
   readonly onPick: () => void;
+  readonly disabled?: boolean;
 };
 
-export const LangCard = ({ label, lang, onPick }: LangCardProps) => (
+export const LangCard = ({ label, lang, onPick, disabled = false }: LangCardProps) => (
   <button
     type="button"
     onClick={onPick}
+    disabled={disabled}
+    aria-disabled={disabled || undefined}
     style={{
       flex: 1,
       minWidth: 0,
@@ -21,20 +24,28 @@ export const LangCard = ({ label, lang, onPick }: LangCardProps) => (
       border: `3px solid ${ST.navy}`,
       borderRadius: 22,
       padding: '14px 14px 16px',
-      boxShadow: `0 6px 0 0 ${ST.navy}`,
+      boxShadow: disabled ? 'none' : `0 6px 0 0 ${ST.navy}`,
       textAlign: 'left',
       color: ST.navy,
       display: 'flex',
       flexDirection: 'column',
       gap: 8,
-      fontFamily: FONT_BODY
+      fontFamily: FONT_BODY,
+      opacity: disabled ? 0.55 : 1,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      transform: disabled ? 'translateY(2px)' : undefined
     }}
   >
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.7 }}>
         {label}
       </span>
-      <STIcon name="caret-right" size={14} color={ST.navy} style={{ opacity: 0.5 }} />
+      <STIcon
+        name="caret-right"
+        size={14}
+        color={ST.navy}
+        style={{ opacity: disabled ? 0 : 0.5 }}
+      />
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div

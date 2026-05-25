@@ -51,6 +51,7 @@ export const RemoteRoomSurface = ({
 }: RemoteRoomSurfaceProps) => {
   const [picker, setPicker] = useState<'source' | 'target' | null>(null);
   const isLive = status === 'live';
+  const languagesLocked = status !== 'idle';
 
   return (
     <main
@@ -178,9 +179,41 @@ export const RemoteRoomSurface = ({
           </div>
         </STCard>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <LangCard label="They speak" lang={source} onPick={() => setPicker('source')} />
-          <LangCard label="You hear" lang={target} onPick={() => setPicker('target')} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <LangCard
+              label="They speak"
+              lang={source}
+              disabled={languagesLocked}
+              onPick={() => {
+                if (languagesLocked) return;
+                setPicker('source');
+              }}
+            />
+            <LangCard
+              label="You hear"
+              lang={target}
+              disabled={languagesLocked}
+              onPick={() => {
+                if (languagesLocked) return;
+                setPicker('target');
+              }}
+            />
+          </div>
+          {languagesLocked ? (
+            <p
+              role="note"
+              style={{
+                margin: 0,
+                fontSize: 12,
+                fontWeight: 600,
+                opacity: 0.75,
+                textAlign: 'center'
+              }}
+            >
+              Leave the room to change languages.
+            </p>
+          ) : null}
         </div>
 
         <STCard tone="glass" padding={18}>
@@ -251,11 +284,16 @@ export const RemoteRoomSurface = ({
           </div>
         </STCard>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {!isLive ? (
-            <STButton variant="primary" size="lg" full onClick={onJoin} disabled={status === 'joining'} icon="mic">
-              {status === 'joining' ? 'Joining...' : 'Join Room'}
-            </STButton>
+            <>
+              <STButton variant="primary" size="lg" full onClick={onJoin} disabled={status === 'joining'} icon="mic">
+                {status === 'joining' ? 'Joining...' : 'Join Room'}
+              </STButton>
+              <STButton variant="dark" size="md" full onClick={onLeave} icon="x" disabled={status === 'joining'}>
+                Cancel
+              </STButton>
+            </>
           ) : (
             <>
               <STButton variant="secondary" size="md" full onClick={onToggleOriginalAudio} icon="headphones">

@@ -83,6 +83,44 @@ const getParticipantIdentityForRoom = (roomId: string): string => {
   return createBrowserParticipantIdentity();
 };
 
+const REMOTE_SOURCE_STORAGE_KEY = 'simtalk.remoteRoom.sourceLanguage';
+const REMOTE_TARGET_STORAGE_KEY = 'simtalk.remoteRoom.targetLanguage';
+
+const readStoredLanguage = (key: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredLanguage = (key: string, value: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // localStorage may be unavailable (private mode, quota). Persistence is best-effort.
+  }
+};
+
+const initialRemoteSource = (): Language => {
+  const stored = readStoredLanguage(REMOTE_SOURCE_STORAGE_KEY);
+  if (stored === null) return AUTO_LANGUAGE;
+  if (stored === '') return AUTO_LANGUAGE;
+  const match = LANGUAGES.find((lang) => lang.bcp47 === stored);
+  return match ?? AUTO_LANGUAGE;
+};
+
+const initialRemoteTarget = (): Language => {
+  const stored = readStoredLanguage(REMOTE_TARGET_STORAGE_KEY);
+  if (stored) {
+    const match = LANGUAGES.find((lang) => lang.bcp47 === stored);
+    if (match) return match;
+  }
+  return findLanguage('es');
+};
+
 export const App = () => {
   // Lobby state
   const [mode, setMode] = useState<ConversationMode>('turnabout');
@@ -91,8 +129,16 @@ export const App = () => {
 
   // Remote room state stays browser-local. sessionStorage is used only for reload identity continuity.
   const [remoteRoomId, setRemoteRoomId] = useState<string | null>(() => roomIdFromPathname());
-  const [remoteSource, setRemoteSource] = useState<Language>(AUTO_LANGUAGE);
-  const [remoteTarget, setRemoteTarget] = useState<Language>(findLanguage('es'));
+  const [remoteSource, setRemoteSource] = useState<Language>(initialRemoteSource);
+  const [remoteTarget, setRemoteTarget] = useState<Language>(initialRemoteTarget);
+
+  useEffect(() => {
+    writeStoredLanguage(REMOTE_SOURCE_STORAGE_KEY, remoteSource.bcp47);
+  }, [remoteSource]);
+
+  useEffect(() => {
+    writeStoredLanguage(REMOTE_TARGET_STORAGE_KEY, remoteTarget.bcp47);
+  }, [remoteTarget]);
   const [remoteStatus, setRemoteStatus] = useState<RemoteRoomStatus>('idle');
   const [remoteErrorMessage, setRemoteErrorMessage] = useState<string | null>(null);
   const [remoteTranslatedCaption, setRemoteTranslatedCaption] = useState('');
