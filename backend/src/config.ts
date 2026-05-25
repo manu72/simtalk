@@ -1,4 +1,5 @@
 export type AppConfig = {
+  readonly appAccessPassword: string | undefined;
   readonly appEnv: string;
   readonly port: number;
   readonly allowedOrigins: readonly string[];
@@ -49,59 +50,71 @@ const parseIntegerInRange = (
   return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
 };
 
-export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => ({
-  appEnv: env.APP_ENV ?? 'development',
-  port: parsePort(env.PORT),
-  allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
-  openAiApiKey: env.OPENAI_API_KEY?.trim() || undefined,
-  openAiRealtimeClientSecretUrl:
-    env.OPENAI_REALTIME_CLIENT_SECRET_URL?.trim() || defaultOpenAiRealtimeClientSecretUrl,
-  realtimeClientSecretTtlSeconds: parseIntegerInRange(
-    env.OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS,
-    600,
-    10,
-    7200
-  ),
-  realtimeTokenRateLimitWindowMs: parseIntegerInRange(
-    env.REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS,
-    60_000,
-    1_000,
-    3_600_000
-  ),
-  realtimeTokenRateLimitMaxRequests: parseIntegerInRange(
-    env.REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS,
-    5,
-    1,
-    100
-  ),
-  realtimeInputTranscriptionModel:
-    env.OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL?.trim() || defaultRealtimeInputTranscriptionModel,
-  liveKitUrl: env.LIVEKIT_URL?.trim() || undefined,
-  liveKitApiKey: env.LIVEKIT_API_KEY?.trim() || undefined,
-  liveKitApiSecret: env.LIVEKIT_API_SECRET?.trim() || undefined,
-  liveKitTokenTtlSeconds: parseIntegerInRange(env.LIVEKIT_TOKEN_TTL_SECONDS, 600, 60, 3600),
-  liveKitRoomEmptyTimeoutSeconds: parseIntegerInRange(
-    env.LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS,
-    300,
-    30,
-    3600
-  ),
-  liveKitRoomDepartureTimeoutSeconds: parseIntegerInRange(
-    env.LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS,
-    60,
-    10,
-    600
-  ),
-  roomTokenRateLimitWindowMs: parseIntegerInRange(
-    env.ROOM_TOKEN_RATE_LIMIT_WINDOW_MS,
-    60_000,
-    1_000,
-    3_600_000
-  ),
-  roomTokenRateLimitMaxRequests: parseIntegerInRange(
-    env.ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS,
-    10,
-    1,
-    100
-  )
-});
+export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => {
+  const appAccessPassword = env.APP_ACCESS_PASSWORD?.trim() || undefined;
+  const appEnv = env.APP_ENV ?? 'development';
+
+  if (!appAccessPassword && appEnv !== 'development') {
+    throw new Error(
+      `[config] APP_ACCESS_PASSWORD is required when APP_ENV is "${appEnv}". Set APP_ACCESS_PASSWORD before starting the backend outside development.`
+    );
+  }
+
+  return {
+    appAccessPassword,
+    appEnv,
+    port: parsePort(env.PORT),
+    allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
+    openAiApiKey: env.OPENAI_API_KEY?.trim() || undefined,
+    openAiRealtimeClientSecretUrl:
+      env.OPENAI_REALTIME_CLIENT_SECRET_URL?.trim() || defaultOpenAiRealtimeClientSecretUrl,
+    realtimeClientSecretTtlSeconds: parseIntegerInRange(
+      env.OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS,
+      600,
+      10,
+      7200
+    ),
+    realtimeTokenRateLimitWindowMs: parseIntegerInRange(
+      env.REALTIME_TOKEN_RATE_LIMIT_WINDOW_MS,
+      60_000,
+      1_000,
+      3_600_000
+    ),
+    realtimeTokenRateLimitMaxRequests: parseIntegerInRange(
+      env.REALTIME_TOKEN_RATE_LIMIT_MAX_REQUESTS,
+      5,
+      1,
+      100
+    ),
+    realtimeInputTranscriptionModel:
+      env.OPENAI_REALTIME_INPUT_TRANSCRIPTION_MODEL?.trim() || defaultRealtimeInputTranscriptionModel,
+    liveKitUrl: env.LIVEKIT_URL?.trim() || undefined,
+    liveKitApiKey: env.LIVEKIT_API_KEY?.trim() || undefined,
+    liveKitApiSecret: env.LIVEKIT_API_SECRET?.trim() || undefined,
+    liveKitTokenTtlSeconds: parseIntegerInRange(env.LIVEKIT_TOKEN_TTL_SECONDS, 600, 60, 3600),
+    liveKitRoomEmptyTimeoutSeconds: parseIntegerInRange(
+      env.LIVEKIT_ROOM_EMPTY_TIMEOUT_SECONDS,
+      300,
+      30,
+      3600
+    ),
+    liveKitRoomDepartureTimeoutSeconds: parseIntegerInRange(
+      env.LIVEKIT_ROOM_DEPARTURE_TIMEOUT_SECONDS,
+      60,
+      10,
+      600
+    ),
+    roomTokenRateLimitWindowMs: parseIntegerInRange(
+      env.ROOM_TOKEN_RATE_LIMIT_WINDOW_MS,
+      60_000,
+      1_000,
+      3_600_000
+    ),
+    roomTokenRateLimitMaxRequests: parseIntegerInRange(
+      env.ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS,
+      10,
+      1,
+      100
+    )
+  };
+};

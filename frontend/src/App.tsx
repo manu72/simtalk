@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } from '@simtalk/shared-types';
 
+import { AccessDeniedError, getStoredPassword, setStoredPassword } from './accessGate';
 import { AUTO_LANGUAGE, findLanguage, LANGUAGES, isAutoLanguage, type Language } from './components/brand/languages';
+import { AccessGateModal } from './components/screens/AccessGateModal';
 import { Lobby } from './components/screens/Lobby';
 import { ListenerSurface } from './components/screens/ListenerSurface';
 import { TurnaboutSurface, type ConversationTurn } from './components/screens/TurnaboutSurface';
@@ -145,6 +147,11 @@ export const App = () => {
   // Dev drawer
   const [devOpen, setDevOpen] = useState(false);
 
+  // Access gate
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [accessError, setAccessError] = useState<string | null>(null);
+  const pendingAccessActionRef = useRef<(() => void) | null>(null);
+
   // Refs to session lifecycle
   const sessionRef = useRef<RealtimeTranslationSession | null>(null);
   const remoteSessionRef = useRef<RemoteRoomSession | null>(null);
@@ -152,6 +159,7 @@ export const App = () => {
   const localStreamRef = useRef<MediaStream | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const launchIdRef = useRef(0);
+  const launchAttemptRef = useRef(0);
 
   const revokeRecordingUrl = useCallback(() => {
     if (recordingBlobUrlRef.current) {
@@ -322,6 +330,7 @@ export const App = () => {
       try {
         tokenResponse = await requestRealtimeToken(request);
       } catch (error) {
+        if (error instanceof AccessDeniedError) throw error;
         if (!isCurrentLaunch()) return 'superseded';
         throw error;
       }
@@ -350,6 +359,7 @@ export const App = () => {
           }
         });
       } catch (error) {
+        if (error instanceof AccessDeniedError) throw error;
         if (!isCurrentLaunch()) return 'superseded';
         throw error;
       }
@@ -371,6 +381,37 @@ export const App = () => {
     return fallback;
   }, []);
 
+  const requireAccess = useCallback((action: () => void) => {
+    if (getStoredPassword()) {
+      action();
+      return;
+    }
+    pendingAccessActionRef.current = action;
+    setAccessError(null);
+    setAccessModalOpen(true);
+  }, []);
+
+  const reopenAccessModal = useCallback((action: () => void) => {
+    pendingAccessActionRef.current = action;
+    setAccessError('Incorrect password. Try again.');
+    setAccessModalOpen(true);
+  }, []);
+
+  const handleAccessSubmit = useCallback((password: string) => {
+    setStoredPassword(password);
+    setAccessModalOpen(false);
+    setAccessError(null);
+    const action = pendingAccessActionRef.current;
+    pendingAccessActionRef.current = null;
+    action?.();
+  }, []);
+
+  const handleAccessClose = useCallback(() => {
+    setAccessModalOpen(false);
+    setAccessError(null);
+    pendingAccessActionRef.current = null;
+  }, []);
+
   const createRemoteRoom = useCallback(async () => {
     if (isCreatingRoom) return;
     setIsCreatingRoom(true);
@@ -382,11 +423,15 @@ export const App = () => {
       setRemoteStatus('idle');
       setRemoteErrorMessage(null);
     } catch (error) {
+      if (error instanceof AccessDeniedError) {
+        reopenAccessModal(() => void createRemoteRoom());
+        return;
+      }
       setErrorMessage(errorMessageFor(error, 'Could not create a remote room. Please try again.'));
     } finally {
       setIsCreatingRoom(false);
     }
-  }, [errorMessageFor, isCreatingRoom]);
+  }, [errorMessageFor, isCreatingRoom, reopenAccessModal]);
 
   const joinRemoteRoom = useCallback(async () => {
     if (!remoteRoomId || remoteStatus === 'joining') return;
@@ -445,6 +490,13 @@ export const App = () => {
       session.setOriginalAudioMuted(remoteOriginalAudioMuted);
       setRemoteStatus('live');
     } catch (error) {
+      if (error instanceof AccessDeniedError) {
+        if (joinGenerationRef.current === joinGeneration) {
+          setRemoteStatus('idle');
+        }
+        reopenAccessModal(() => void joinRemoteRoom());
+        return;
+      }
       if (joinGenerationRef.current !== joinGeneration) return;
       teardownRemoteRoom();
       setRemoteStatus('error');
@@ -457,7 +509,8 @@ export const App = () => {
     remoteOriginalAudioMuted,
     remoteStatus,
     errorMessageFor,
-    teardownRemoteRoom
+    teardownRemoteRoom,
+    reopenAccessModal
   ]);
 
   const leaveRemoteRoom = useCallback(() => {
@@ -483,6 +536,8 @@ export const App = () => {
 
   const launch = useCallback(async () => {
     if (status === 'launching' || status === 'connecting') return;
+    const attempt = launchAttemptRef.current + 1;
+    launchAttemptRef.current = attempt;
     setErrorMessage(null);
     teardownSession();
     resetTranscriptBuffers();
@@ -501,10 +556,25 @@ export const App = () => {
         },
         { startSessionRecorder: mode === 'listener', startLocalAudioEnabled: mode !== 'practice' }
       );
-      if (result === 'superseded') return;
+      if (result === 'superseded') {
+        if (launchAttemptRef.current === attempt) {
+          setStatus('idle');
+          setView('lobby');
+        }
+        return;
+      }
       if (mode === 'practice') setPracticeStage('idle');
     } catch (error) {
+      if (error instanceof AccessDeniedError) {
+        if (launchAttemptRef.current === attempt) {
+          setStatus('idle');
+          setView('lobby');
+        }
+        reopenAccessModal(() => void launch());
+        return;
+      }
       teardownSession();
+      if (launchAttemptRef.current !== attempt) return;
       setErrorMessage(errorMessageFor(error, 'Could not launch translation. Please try again.'));
       setStatus('error');
       setView('lobby');
@@ -518,7 +588,8 @@ export const App = () => {
     resetTranscriptBuffers,
     revokeRecordingUrl,
     errorMessageFor,
-    startSessionWithRequest
+    startSessionWithRequest,
+    reopenAccessModal
   ]);
 
   const endSession = useCallback(() => {
@@ -830,25 +901,31 @@ export const App = () => {
     const roomUrl = new URL(`/rooms/${remoteRoomId}`, window.location.origin).toString();
 
     return (
-      <RemoteRoomSurface
-        roomId={remoteRoomId}
-        roomUrl={roomUrl}
-        source={remoteSource}
-        target={remoteTarget}
-        status={remoteStatus}
-        participantCount={remoteParticipantCount}
-        translatedCaption={remoteTranslatedCaption}
-        originalAudioMuted={remoteOriginalAudioMuted}
-        errorMessage={remoteErrorMessage}
-        onChangeSource={setRemoteSource}
-        onChangeTarget={setRemoteTarget}
-        onJoin={() => {
-          void joinRemoteRoom();
-        }}
-        onLeave={leaveRemoteRoom}
-        onToggleOriginalAudio={toggleOriginalAudio}
-        onCopyLink={copyRemoteRoomLink}
-      />
+      <>
+        <RemoteRoomSurface
+          roomId={remoteRoomId}
+          roomUrl={roomUrl}
+          source={remoteSource}
+          target={remoteTarget}
+          status={remoteStatus}
+          participantCount={remoteParticipantCount}
+          translatedCaption={remoteTranslatedCaption}
+          originalAudioMuted={remoteOriginalAudioMuted}
+          errorMessage={remoteErrorMessage}
+          onChangeSource={setRemoteSource}
+          onChangeTarget={setRemoteTarget}
+          onJoin={() => requireAccess(() => void joinRemoteRoom())}
+          onLeave={leaveRemoteRoom}
+          onToggleOriginalAudio={toggleOriginalAudio}
+          onCopyLink={copyRemoteRoomLink}
+        />
+        <AccessGateModal
+          open={accessModalOpen}
+          errorMessage={accessError}
+          onSubmit={handleAccessSubmit}
+          onClose={handleAccessClose}
+        />
+      </>
     );
   }
 
@@ -881,10 +958,8 @@ export const App = () => {
           onChangeSource={setSource}
           onChangeTarget={setTarget}
           onSwap={swapLanguages}
-          onLaunch={launch}
-          onCreateRoom={() => {
-            void createRemoteRoom();
-          }}
+          onLaunch={() => requireAccess(() => void launch())}
+          onCreateRoom={() => requireAccess(() => void createRemoteRoom())}
         />
       ) : null}
 
@@ -962,6 +1037,13 @@ export const App = () => {
           onNewSession={newSession}
         />
       ) : null}
+
+      <AccessGateModal
+        open={accessModalOpen}
+        errorMessage={accessError}
+        onSubmit={handleAccessSubmit}
+        onClose={handleAccessClose}
+      />
 
       <TranscriptSheet
         open={transcriptSheetOpen}

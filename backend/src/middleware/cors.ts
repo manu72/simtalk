@@ -3,7 +3,7 @@ import type { MiddlewareHandler } from 'hono';
 import type { AppConfig } from '../config.js';
 
 const allowedMethods = 'GET,POST,OPTIONS';
-const allowedHeaders = 'Content-Type,Authorization';
+const allowedHeaders = 'Content-Type,Authorization,X-Access-Password';
 
 export const createCorsMiddleware =
   (config: AppConfig): MiddlewareHandler =>

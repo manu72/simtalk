@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { apiErrorSchema } from '@simtalk/shared-types';
 
 import { createAppConfig, type AppConfig } from './config.js';
+import { createAccessGateMiddleware } from './middleware/accessGate.js';
 import { createCorsMiddleware } from './middleware/cors.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
 import { healthRoute } from './routes/health.js';
@@ -20,11 +21,16 @@ export const createApp = (
   dependencies: AppDependencies = {}
 ) => {
   const app = new Hono();
+  const accessGate = createAccessGateMiddleware(config.appAccessPassword);
 
   app.use('*', createCorsMiddleware(config));
   app.use('*', securityHeaders);
 
   app.route('/health', healthRoute);
+
+  app.use('/realtime/*', accessGate);
+  app.use('/rooms/*', accessGate);
+
   app.route('/realtime', createRealtimeRoute(config, dependencies));
   app.route('/rooms', createRoomsRoute(config, dependencies));
 

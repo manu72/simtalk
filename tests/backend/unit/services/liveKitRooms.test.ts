@@ -9,6 +9,7 @@ import {
 const createTestConfig = (overrides: NodeJS.ProcessEnv = {}) =>
   createAppConfig({
     APP_ENV: 'test',
+    APP_ACCESS_PASSWORD: 'test-access-password',
     LIVEKIT_URL: 'wss://simtalk.livekit.cloud',
     LIVEKIT_API_KEY: 'lk_test_key',
     LIVEKIT_API_SECRET: 'lk_test_secret',
