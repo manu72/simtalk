@@ -56,6 +56,7 @@ type CreateRemoteRoomSessionOptions = {
   readonly onRemoteParticipantChange?: (info: RemoteParticipantInfo | null) => void;
   readonly onRemoteMicMuteChange?: (muted: boolean) => void;
   readonly onRemoteSpeakingChange?: (speaking: boolean) => void;
+  readonly onRemoteYouHearChange?: (youHear: string | null) => void;
   readonly initialYouHear?: string;
 };
 
@@ -79,6 +80,7 @@ export const createLiveKitRemoteRoomSession = async ({
   onRemoteParticipantChange,
   onRemoteMicMuteChange,
   onRemoteSpeakingChange,
+  onRemoteYouHearChange,
   initialYouHear
 }: CreateRemoteRoomSessionOptions): Promise<RemoteRoomSession> => {
   const roomToken = await requestRoomToken(roomId, roomTokenRequest);
@@ -89,6 +91,7 @@ export const createLiveKitRemoteRoomSession = async ({
   let translationSession: RealtimeTranslationSession | null = null;
   let stopped = false;
   let lastPublishedYouHear: string | null = initialYouHear ?? null;
+  let lastRemoteYouHear: string | null = null;
   // Bumped whenever any caller tears down the active translation session
   // (session.stop, TrackUnsubscribed, a new TrackSubscribed). Lets in-flight
   // handleRemoteTrack invocations detect that their startup has been
@@ -96,6 +99,12 @@ export const createLiveKitRemoteRoomSession = async ({
   let translationStartupGeneration = 0;
   let activeRemoteParticipant: RemoteParticipant | null = null;
   let activeRemoteVideoTrack: RemoteVideoTrack | null = null;
+
+  const emitRemoteYouHear = (value: string | null) => {
+    if (value === lastRemoteYouHear) return;
+    lastRemoteYouHear = value;
+    onRemoteYouHearChange?.(value);
+  };
 
   const describeParticipant = (participant: RemoteParticipant): RemoteParticipantInfo => ({
     identity: participant.identity,
@@ -109,6 +118,7 @@ export const createLiveKitRemoteRoomSession = async ({
     if (!participant) {
       onRemoteMicMuteChange?.(true);
       onRemoteSpeakingChange?.(false);
+      emitRemoteYouHear(null);
       return;
     }
     const micPub =
@@ -117,6 +127,8 @@ export const createLiveKitRemoteRoomSession = async ({
         : undefined;
     onRemoteMicMuteChange?.(micPub ? micPub.isMuted : true);
     onRemoteSpeakingChange?.(Boolean(participant.isSpeaking));
+    const youHear = participant.attributes?.youHear;
+    emitRemoteYouHear(typeof youHear === 'string' && youHear.length > 0 ? youHear : null);
   };
 
   const setRemoteVideoTrack = (track: RemoteVideoTrack | null) => {
@@ -311,7 +323,13 @@ export const createLiveKitRemoteRoomSession = async ({
     .on(RoomEvent.TrackUnmuted, handleTrackUnmuted)
     .on(RoomEvent.ActiveSpeakersChanged, handleActiveSpeakers)
     .on(RoomEvent.ParticipantConnected, handleParticipantConnected)
-    .on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
+    .on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
+    .on(RoomEvent.ParticipantAttributesChanged, (changed, participant) => {
+      if (participant !== activeRemoteParticipant) return;
+      if (!('youHear' in changed)) return;
+      const next = changed.youHear;
+      emitRemoteYouHear(typeof next === 'string' && next.length > 0 ? next : null);
+    });
 
   try {
     await room.connect(roomToken.liveKitUrl, roomToken.participantToken);
