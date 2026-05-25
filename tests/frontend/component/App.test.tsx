@@ -609,53 +609,27 @@ describe('access gate', () => {
   });
 });
 
-describe('Remote room language pickers', () => {
+describe('Remote room language summary', () => {
   beforeEach(() => {
     window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
   });
 
-  it('disables the They speak and You hear pickers while the room is live', async () => {
+  it('renders the They speak and You hear summary cards as disabled (locked to Lobby selection)', () => {
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
     render(<App />);
-
-    const theySpeakBefore = screen.getByRole('button', { name: /they speak/i });
-    const youHearBefore = screen.getByRole('button', { name: /you hear/i });
-    expect(theySpeakBefore).not.toBeDisabled();
-    expect(youHearBefore).not.toBeDisabled();
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /join room/i }));
-    });
-
-    await waitFor(() => expect(createLiveKitRemoteRoomSessionMock).toHaveBeenCalled());
 
     expect(screen.getByRole('button', { name: /they speak/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /you hear/i })).toBeDisabled();
-    expect(screen.getByText(/leave the room to change languages/i)).toBeInTheDocument();
+    expect(screen.getByText(/languages are set on the lobby/i)).toBeInTheDocument();
   });
 
-  it('persists the selected target language to localStorage and rehydrates it on next mount', async () => {
-    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
-    const { unmount } = render(<App />);
-
-    const youHear = screen.getByRole('button', { name: /you hear/i });
-    fireEvent.click(youHear);
-    // LanguagePickerSheet should now be open. Filter to English then pick.
-    const filterInput = await screen.findByLabelText(/filter languages/i);
-    fireEvent.change(filterInput, { target: { value: 'english' } });
-    const englishOption = await screen.findByRole('button', { name: /EN\s*·\s*English/i });
-    fireEvent.click(englishOption);
-
-    await waitFor(() =>
-      expect(window.localStorage.getItem('simtalk.remoteRoom.targetLanguage')).toBe('en')
-    );
-
-    unmount();
+  it('rehydrates the stored target language on next mount', () => {
+    window.localStorage.setItem('simtalk.remoteRoom.targetLanguage', 'en');
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
     render(<App />);
 
-    const youHearAfter = screen.getByRole('button', { name: /you hear/i });
-    expect(youHearAfter).toHaveTextContent(/english/i);
+    const youHear = screen.getByRole('button', { name: /you hear/i });
+    expect(youHear).toHaveTextContent(/english/i);
   });
 });
 

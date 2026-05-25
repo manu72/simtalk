@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { LocalVideoTrack, RemoteVideoTrack } from 'livekit-client';
+
 import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } from '@simtalk/shared-types';
 
 import { AccessDeniedError, getStoredPassword, setStoredPassword } from './accessGate';
@@ -144,6 +146,13 @@ export const App = () => {
   const [remoteTranslatedCaption, setRemoteTranslatedCaption] = useState('');
   const [remoteParticipantCount, setRemoteParticipantCount] = useState(0);
   const [remoteOriginalAudioMuted, setRemoteOriginalAudioMuted] = useState(true);
+  const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null);
+  const [remoteVideoTrack, setRemoteVideoTrack] = useState<RemoteVideoTrack | null>(null);
+  const [localMicMuted, setLocalMicMuted] = useState(false);
+  const [localCameraEnabled, setLocalCameraEnabled] = useState(false);
+  const [remoteMicMuted, setRemoteMicMuted] = useState(true);
+  const [remoteIsSpeaking, setRemoteIsSpeaking] = useState(false);
+  const [remoteDisplayName, setRemoteDisplayName] = useState<string | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   // App flow
@@ -257,6 +266,13 @@ export const App = () => {
     remoteSessionRef.current = null;
     setRemoteParticipantCount(0);
     setRemoteTranslatedCaption('');
+    setLocalVideoTrack(null);
+    setRemoteVideoTrack(null);
+    setLocalMicMuted(false);
+    setLocalCameraEnabled(false);
+    setRemoteMicMuted(true);
+    setRemoteIsSpeaking(false);
+    setRemoteDisplayName(null);
   }, []);
 
   useEffect(() => {
@@ -466,6 +482,8 @@ export const App = () => {
       const room = await requestRoomCreate();
       window.history.pushState({}, '', room.roomUrlPath);
       setRemoteRoomId(room.roomId);
+      setRemoteSource(source);
+      setRemoteTarget(target);
       setRemoteStatus('idle');
       setRemoteErrorMessage(null);
     } catch (error) {
@@ -477,7 +495,7 @@ export const App = () => {
     } finally {
       setIsCreatingRoom(false);
     }
-  }, [errorMessageFor, isCreatingRoom, reopenAccessModal]);
+  }, [errorMessageFor, isCreatingRoom, reopenAccessModal, source, target]);
 
   const joinRemoteRoom = useCallback(async () => {
     if (!remoteRoomId || remoteStatus === 'joining') return;
@@ -518,6 +536,27 @@ export const App = () => {
           if (!isCurrentJoin()) return;
           setRemoteStatus('error');
           setRemoteErrorMessage(message);
+        },
+        onLocalVideoTrackChange: (track) => {
+          if (isCurrentJoin()) setLocalVideoTrack(track);
+        },
+        onLocalMicMuteChange: (muted) => {
+          if (isCurrentJoin()) setLocalMicMuted(muted);
+        },
+        onLocalCameraEnabledChange: (enabled) => {
+          if (isCurrentJoin()) setLocalCameraEnabled(enabled);
+        },
+        onRemoteVideoTrackChange: (track) => {
+          if (isCurrentJoin()) setRemoteVideoTrack(track);
+        },
+        onRemoteParticipantChange: (info) => {
+          if (isCurrentJoin()) setRemoteDisplayName(info?.displayName ?? null);
+        },
+        onRemoteMicMuteChange: (muted) => {
+          if (isCurrentJoin()) setRemoteMicMuted(muted);
+        },
+        onRemoteSpeakingChange: (speaking) => {
+          if (isCurrentJoin()) setRemoteIsSpeaking(speaking);
         }
       });
       if (!isCurrentJoin()) {
@@ -534,6 +573,11 @@ export const App = () => {
         session.participantIdentity
       );
       session.setOriginalAudioMuted(remoteOriginalAudioMuted);
+      try {
+        await session.setCameraEnabled(true);
+      } catch {
+        // Camera permission denied or unavailable; UI stays on avatar fallback.
+      }
       setRemoteStatus('live');
     } catch (error) {
       if (error instanceof AccessDeniedError) {
@@ -574,6 +618,22 @@ export const App = () => {
       return next;
     });
   }, []);
+
+  const toggleLocalMic = useCallback(() => {
+    const session = remoteSessionRef.current;
+    if (!session) return;
+    void session.setMicrophoneEnabled(localMicMuted).catch(() => {
+      // setMicrophoneEnabled invokes onMicrophoneError; UI surfaces via existing state.
+    });
+  }, [localMicMuted]);
+
+  const toggleLocalCamera = useCallback(() => {
+    const session = remoteSessionRef.current;
+    if (!session) return;
+    void session.setCameraEnabled(!localCameraEnabled).catch(() => {
+      // setCameraEnabled invokes onCameraError; UI surfaces via existing state.
+    });
+  }, [localCameraEnabled]);
 
   const copyRemoteRoomLink = useCallback(() => {
     if (!remoteRoomId) return;
@@ -958,11 +1018,19 @@ export const App = () => {
           translatedCaption={remoteTranslatedCaption}
           originalAudioMuted={remoteOriginalAudioMuted}
           errorMessage={remoteErrorMessage}
-          onChangeSource={setRemoteSource}
-          onChangeTarget={setRemoteTarget}
+          localDisplayName="You"
+          remoteDisplayName={remoteDisplayName}
+          localVideoTrack={localVideoTrack}
+          remoteVideoTrack={remoteVideoTrack}
+          localMicMuted={localMicMuted}
+          localCameraEnabled={localCameraEnabled}
+          remoteMicMuted={remoteMicMuted}
+          remoteIsSpeaking={remoteIsSpeaking}
           onJoin={() => requireAccess(() => void joinRemoteRoom())}
           onLeave={leaveRemoteRoom}
           onToggleOriginalAudio={toggleOriginalAudio}
+          onToggleLocalMic={toggleLocalMic}
+          onToggleLocalCamera={toggleLocalCamera}
           onCopyLink={copyRemoteRoomLink}
         />
         <AccessGateModal
