@@ -74,23 +74,33 @@ export const RemoteRoomSurface = ({
           gap: 20
         }}
       >
-        <div>
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 800,
-              opacity: 0.85,
-              textTransform: 'uppercase',
-              letterSpacing: '0.10em'
-            }}
-          >
-            Private two-person room
-          </span>
-          <div style={{ marginTop: 10 }}>
-            <STTitle id="remote-room-title" as="h1" size={56} stroke={4} shadow={6}>
-              Remote Talk.
-            </STTitle>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                opacity: 0.85,
+                textTransform: 'uppercase',
+                letterSpacing: '0.10em'
+              }}
+            >
+              Private two-person room
+            </span>
+            <div style={{ marginTop: 10 }}>
+              <STTitle id="remote-room-title" as="h1" size={56} stroke={4} shadow={6}>
+                Remote Talk.
+              </STTitle>
+            </div>
           </div>
+          <img
+            src="/rocket-logo_100x132.png"
+            alt=""
+            aria-hidden="true"
+            width={100}
+            height={132}
+            style={{ flexShrink: 0, width: 100, height: 'auto', marginTop: 4 }}
+          />
         </div>
 
         <STCard tone="white" padding={18}>

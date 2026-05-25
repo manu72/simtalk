@@ -68,24 +68,34 @@ export const Lobby = ({
         margin: "0 auto",
       }}
     >
-      <div style={{ marginTop: 8 }}>
-        <span
-          style={{ fontSize: 12, fontWeight: 800, opacity: 0.85, textTransform: "uppercase", letterSpacing: "0.10em" }}
-        >
-          Realtime translation
-        </span>
-        <div style={{ marginTop: 10 }}>
-          <STTitle as="h1" size={56} stroke={4} shadow={6}>
-            {titles.line1}
-            {titles.line2 ? (
-              <>
-                <br />
-                {titles.line2}
-              </>
-            ) : null}
-          </STTitle>
+      <div style={{ marginTop: 8, display: "flex", alignItems: "flex-start", gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span
+            style={{ fontSize: 12, fontWeight: 800, opacity: 0.85, textTransform: "uppercase", letterSpacing: "0.10em" }}
+          >
+            Realtime translation
+          </span>
+          <div style={{ marginTop: 10 }}>
+            <STTitle as="h1" size={56} stroke={4} shadow={6}>
+              {titles.line1}
+              {titles.line2 ? (
+                <>
+                  <br />
+                  {titles.line2}
+                </>
+              ) : null}
+            </STTitle>
+          </div>
+          <p style={{ fontSize: 15, fontWeight: 600, marginTop: 12, opacity: 0.9, maxWidth: 320 }}>{titles.tagline}</p>
         </div>
-        <p style={{ fontSize: 15, fontWeight: 600, marginTop: 12, opacity: 0.9, maxWidth: 320 }}>{titles.tagline}</p>
+        <img
+          src="/rocket-logo_100x132.png"
+          alt=""
+          aria-hidden="true"
+          width={100}
+          height={132}
+          style={{ flexShrink: 0, width: 100, height: "auto", marginTop: 4 }}
+        />
       </div>
 
       <div style={{ marginTop: 24 }}>

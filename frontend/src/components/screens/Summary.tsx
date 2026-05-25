@@ -52,10 +52,22 @@ export const Summary = ({
         gap: 20,
       }}
     >
-      <STTitle as="h1" size={44} stroke={3} shadow={5}>
-        Session Ended.
-        <br />
-      </STTitle>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <STTitle as="h1" size={44} stroke={3} shadow={5}>
+            Session Ended.
+            <br />
+          </STTitle>
+        </div>
+        <img
+          src="/rocket-logo_100x132.png"
+          alt=""
+          aria-hidden="true"
+          width={80}
+          height={106}
+          style={{ flexShrink: 0, width: 80, height: "auto" }}
+        />
+      </div>
 
       <STCard tone="white" padding={20}>
         <div
