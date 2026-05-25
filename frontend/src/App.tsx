@@ -133,6 +133,21 @@ export const App = () => {
   const [remoteRoomId, setRemoteRoomId] = useState<string | null>(() => roomIdFromPathname());
   const [remoteSource, setRemoteSource] = useState<Language>(initialRemoteSource);
   const [remoteTarget, setRemoteTarget] = useState<Language>(initialRemoteTarget);
+  // Partner's published `youHear` BCP-47 (LiveKit participant attribute).
+  // Null when no partner is connected or the partner hasn't published yet.
+  const [remotePartnerYouHear, setRemotePartnerYouHear] = useState<string | null>(null);
+
+  // Mirror the partner's YOU HEAR language into our THEY SPEAK card.
+  // No partner -> Automatic. Unknown bcp47 is left as-is to avoid clobbering
+  // the user's current source with a fallback.
+  useEffect(() => {
+    if (remotePartnerYouHear === null) {
+      setRemoteSource(AUTO_LANGUAGE);
+      return;
+    }
+    const match = LANGUAGES.find((lang) => lang.bcp47 === remotePartnerYouHear);
+    if (match) setRemoteSource(match);
+  }, [remotePartnerYouHear]);
 
   useEffect(() => {
     writeStoredLanguage(REMOTE_SOURCE_STORAGE_KEY, remoteSource.bcp47);
@@ -273,6 +288,7 @@ export const App = () => {
     setRemoteMicMuted(true);
     setRemoteIsSpeaking(false);
     setRemoteDisplayName(null);
+    setRemotePartnerYouHear(null);
   }, []);
 
   useEffect(() => {
@@ -557,6 +573,9 @@ export const App = () => {
         },
         onRemoteSpeakingChange: (speaking) => {
           if (isCurrentJoin()) setRemoteIsSpeaking(speaking);
+        },
+        onRemoteYouHearChange: (value) => {
+          if (isCurrentJoin()) setRemotePartnerYouHear(value);
         }
       });
       if (!isCurrentJoin()) {

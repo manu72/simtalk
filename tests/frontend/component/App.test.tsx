@@ -645,6 +645,52 @@ describe('Remote room language pickers', () => {
   });
 });
 
+describe('Remote room language mirroring', () => {
+  beforeEach(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+  });
+
+  it('mirrors partner youHear into THEY SPEAK and resets to Automatic on leave', async () => {
+    let capturedOnRemoteYouHearChange: ((v: string | null) => void) | undefined;
+    createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
+      capturedOnRemoteYouHearChange = opts.onRemoteYouHearChange;
+      return {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        setCameraEnabled: vi.fn(async () => undefined),
+        setMicrophoneEnabled: vi.fn(async () => undefined),
+        setLocalYouHear: vi.fn(),
+        stop: vi.fn()
+      };
+    });
+
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(capturedOnRemoteYouHearChange).toBeDefined());
+    // After join completes the UI transitions to the live surface. The remote
+    // VideoTile's language pill exposes the partner's source language as its
+    // BCP-47 code (e.g. "TL", "AUTO") — that is the user-visible mirror of
+    // remoteSource.
+    await screen.findByText('AUTO');
+
+    await act(async () => {
+      capturedOnRemoteYouHearChange!('tl');
+    });
+    expect(await screen.findByText('TL')).toBeInTheDocument();
+    expect(screen.queryByText('AUTO')).not.toBeInTheDocument();
+
+    await act(async () => {
+      capturedOnRemoteYouHearChange!(null);
+    });
+    expect(await screen.findByText('AUTO')).toBeInTheDocument();
+    expect(screen.queryByText('TL')).not.toBeInTheDocument();
+  });
+});
+
 describe('Dev drawer', () => {
   beforeEach(() => {
     window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
