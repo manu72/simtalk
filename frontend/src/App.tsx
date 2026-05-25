@@ -1032,6 +1032,8 @@ export const App = () => {
           onToggleLocalMic={toggleLocalMic}
           onToggleLocalCamera={toggleLocalCamera}
           onCopyLink={copyRemoteRoomLink}
+          onChangeSource={setRemoteSource}
+          onChangeTarget={setRemoteTarget}
         />
         <AccessGateModal
           open={accessModalOpen}

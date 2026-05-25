@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import type { LocalVideoTrack, RemoteVideoTrack } from 'livekit-client';
 
 import { STIcon } from '../brand/Icons';
-import { LangCard } from '../brand/LanguagePicker';
-import { type Language } from '../brand/languages';
+import { LangCard, LanguagePickerSheet } from '../brand/LanguagePicker';
+import { LANGUAGES, type Language } from '../brand/languages';
 import { FONT_BODY, FONT_DISPLAY, ST, STButton, STCard, STTitle } from '../brand/primitives';
 import { VideoTile } from '../brand/VideoTile';
 
@@ -32,6 +33,8 @@ type RemoteRoomSurfaceProps = {
   readonly onToggleLocalMic: () => void;
   readonly onToggleLocalCamera: () => void;
   readonly onCopyLink: () => void;
+  readonly onChangeSource: (lang: Language) => void;
+  readonly onChangeTarget: (lang: Language) => void;
 };
 
 const STATUS_LABELS: Record<RemoteRoomStatus, string> = {
@@ -124,9 +127,12 @@ export const RemoteRoomSurface = ({
   onToggleOriginalAudio,
   onToggleLocalMic,
   onToggleLocalCamera,
-  onCopyLink
+  onCopyLink,
+  onChangeSource,
+  onChangeTarget
 }: RemoteRoomSurfaceProps) => {
   const isLive = status === 'live';
+  const [picker, setPicker] = useState<'source' | 'target' | null>(null);
 
   if (isLive) {
     const totalInRoom = Math.min(2, participantCount + 1);
@@ -420,23 +426,9 @@ export const RemoteRoomSurface = ({
         </div>
       </STCard>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <LangCard label="They speak" lang={source} disabled onPick={() => {}} />
-          <LangCard label="You hear" lang={target} disabled onPick={() => {}} />
-        </div>
-        <p
-          role="note"
-          style={{
-            margin: 0,
-            fontSize: 12,
-            fontWeight: 600,
-            opacity: 0.75,
-            textAlign: 'center'
-          }}
-        >
-          Languages are set on the Lobby. Leave the room to change them.
-        </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <LangCard label="They speak" lang={source} onPick={() => setPicker('source')} />
+        <LangCard label="You hear" lang={target} onPick={() => setPicker('target')} />
       </div>
 
       <STCard tone="glass" padding={18}>
@@ -535,6 +527,28 @@ export const RemoteRoomSurface = ({
           Cancel
         </STButton>
       </div>
+
+      <LanguagePickerSheet
+        open={picker === 'source'}
+        value={source}
+        onPick={(lang) => {
+          onChangeSource(lang);
+          setPicker(null);
+        }}
+        onClose={() => setPicker(null)}
+        title="THEY SPEAK"
+        languages={LANGUAGES}
+      />
+      <LanguagePickerSheet
+        open={picker === 'target'}
+        value={target}
+        onPick={(lang) => {
+          onChangeTarget(lang);
+          setPicker(null);
+        }}
+        onClose={() => setPicker(null)}
+        title="YOU HEAR"
+      />
     </PageShell>
   );
 };

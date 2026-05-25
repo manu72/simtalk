@@ -609,27 +609,39 @@ describe('access gate', () => {
   });
 });
 
-describe('Remote room language summary', () => {
+describe('Remote room language pickers', () => {
   beforeEach(() => {
     window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
   });
 
-  it('renders the They speak and You hear summary cards as disabled (locked to Lobby selection)', () => {
+  it('keeps the They speak and You hear pickers enabled before joining', () => {
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
     render(<App />);
 
-    expect(screen.getByRole('button', { name: /they speak/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /you hear/i })).toBeDisabled();
-    expect(screen.getByText(/languages are set on the lobby/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /they speak/i })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /you hear/i })).not.toBeDisabled();
   });
 
-  it('rehydrates the stored target language on next mount', () => {
-    window.localStorage.setItem('simtalk.remoteRoom.targetLanguage', 'en');
+  it('persists the selected target language to localStorage and rehydrates it on next mount', async () => {
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    const { unmount } = render(<App />);
+
+    const youHear = screen.getByRole('button', { name: /you hear/i });
+    fireEvent.click(youHear);
+    const filterInput = await screen.findByLabelText(/filter languages/i);
+    fireEvent.change(filterInput, { target: { value: 'english' } });
+    const englishOption = await screen.findByRole('button', { name: /EN\s*·\s*English/i });
+    fireEvent.click(englishOption);
+
+    await waitFor(() =>
+      expect(window.localStorage.getItem('simtalk.remoteRoom.targetLanguage')).toBe('en')
+    );
+
+    unmount();
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
     render(<App />);
 
-    const youHear = screen.getByRole('button', { name: /you hear/i });
-    expect(youHear).toHaveTextContent(/english/i);
+    expect(screen.getByRole('button', { name: /you hear/i })).toHaveTextContent(/english/i);
   });
 });
 
