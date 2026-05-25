@@ -58,14 +58,14 @@ const Pill = ({
     style={{
       display: 'inline-flex',
       alignItems: 'center',
-      gap: 6,
+      gap: 4,
       background: bg,
       color: fg,
       border: `2px solid ${ST.navy}`,
       borderRadius: 999,
-      padding: '4px 10px',
+      padding: '3px 8px',
       fontFamily: FONT_DISPLAY,
-      fontSize: 12,
+      fontSize: 10,
       letterSpacing: '0.04em',
       lineHeight: 1,
       whiteSpace: 'nowrap'
@@ -108,8 +108,8 @@ export const VideoTile = ({
       style={{
         position: 'relative',
         width: '100%',
-        aspectRatio: '4 / 3',
-        borderRadius: 22,
+        aspectRatio: '16 / 9',
+        borderRadius: 18,
         border: `3px solid ${ST.navy}`,
         boxShadow: `0 6px 0 0 ${ST.navy}`,
         overflow: 'hidden',
@@ -152,14 +152,14 @@ export const VideoTile = ({
         >
           <div
             style={{
-              width: 96,
-              height: 96,
+              width: 64,
+              height: 64,
               borderRadius: 999,
               background: TONE_AVATAR_BG[tone],
               border: `3px solid ${ST.white}`,
               color: ST.white,
               fontFamily: FONT_DISPLAY,
-              fontSize: 44,
+              fontSize: 30,
               lineHeight: 1,
               display: 'flex',
               alignItems: 'center',
@@ -177,13 +177,13 @@ export const VideoTile = ({
         aria-hidden="true"
         style={{
           position: 'absolute',
-          top: 14,
-          right: 14,
-          width: 10,
-          height: 10,
+          top: 8,
+          right: 8,
+          width: 8,
+          height: 8,
           borderRadius: 999,
           background: cornerDotColor,
-          boxShadow: isSpeaking ? `0 0 14px ${ST.cyan}` : 'none'
+          boxShadow: isSpeaking ? `0 0 12px ${ST.cyan}` : 'none'
         }}
       />
 
@@ -191,11 +191,11 @@ export const VideoTile = ({
       <div
         style={{
           position: 'absolute',
-          left: 14,
-          bottom: 14,
+          left: 8,
+          bottom: 8,
           display: 'flex',
           alignItems: 'center',
-          gap: 8
+          gap: 6
         }}
       >
         <Pill bg={TONE_NAME_PILL_BG[tone]} fg={TONE_NAME_PILL_FG[tone]}>
@@ -213,8 +213,8 @@ export const VideoTile = ({
       <div
         style={{
           position: 'absolute',
-          right: 14,
-          bottom: 14
+          right: 8,
+          bottom: 8
         }}
       >
         {isLocal ? (
@@ -223,12 +223,12 @@ export const VideoTile = ({
             onClick={onToggleMic}
             aria-label={isMicMuted ? 'Unmute microphone' : 'Mute microphone'}
             style={{
-              width: 36,
-              height: 36,
+              width: 28,
+              height: 28,
               borderRadius: 999,
               background: ST.white,
               border: `2px solid ${ST.navy}`,
-              boxShadow: `0 3px 0 0 ${ST.navy}`,
+              boxShadow: `0 2px 0 0 ${ST.navy}`,
               color: ST.navy,
               display: 'inline-flex',
               alignItems: 'center',
@@ -236,14 +236,14 @@ export const VideoTile = ({
               cursor: 'pointer'
             }}
           >
-            <STIcon name={isMicMuted ? 'mic-off' : 'mic'} size={18} color={ST.navy} />
+            <STIcon name={isMicMuted ? 'mic-off' : 'mic'} size={14} color={ST.navy} />
           </button>
         ) : (
           <span
             aria-label={isMicMuted ? 'Remote microphone muted' : 'Remote audio active'}
             style={{
-              width: 36,
-              height: 36,
+              width: 28,
+              height: 28,
               borderRadius: 999,
               background: isMicMuted ? ST.white : ST.pink,
               border: `2px solid ${ST.navy}`,
@@ -255,7 +255,7 @@ export const VideoTile = ({
           >
             <STIcon
               name={isMicMuted ? 'mic-off' : 'audio-bars'}
-              size={18}
+              size={14}
               color={isMicMuted ? ST.navy : ST.white}
             />
           </span>

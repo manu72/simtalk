@@ -139,17 +139,13 @@ export const RemoteRoomSurface = ({
       <PageShell>
         <Header />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 16 }}>
-          <VideoTile
-            tone="teal"
-            displayName={remoteName}
-            language={source}
-            isLocal={false}
-            isMicMuted={remoteMicMuted}
-            isSpeaking={remoteIsSpeaking}
-            videoTrack={remoteVideoTrack}
-            waiting={remoteDisplayName === null}
-          />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+            gap: 10
+          }}
+        >
           <VideoTile
             tone="pink"
             displayName={localDisplayName || 'You'}
@@ -159,6 +155,16 @@ export const RemoteRoomSurface = ({
             isSpeaking={false}
             videoTrack={localVideoTrack}
             onToggleMic={onToggleLocalMic}
+          />
+          <VideoTile
+            tone="teal"
+            displayName={remoteName}
+            language={source}
+            isLocal={false}
+            isMicMuted={remoteMicMuted}
+            isSpeaking={remoteIsSpeaking}
+            videoTrack={remoteVideoTrack}
+            waiting={remoteDisplayName === null}
           />
         </div>
 
