@@ -284,11 +284,16 @@ export const RemoteRoomSurface = ({
           </div>
         </STCard>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {!isLive ? (
-            <STButton variant="primary" size="lg" full onClick={onJoin} disabled={status === 'joining'} icon="mic">
-              {status === 'joining' ? 'Joining...' : 'Join Room'}
-            </STButton>
+            <>
+              <STButton variant="primary" size="lg" full onClick={onJoin} disabled={status === 'joining'} icon="mic">
+                {status === 'joining' ? 'Joining...' : 'Join Room'}
+              </STButton>
+              <STButton variant="dark" size="md" full onClick={onLeave} icon="x" disabled={status === 'joining'}>
+                Cancel
+              </STButton>
+            </>
           ) : (
             <>
               <STButton variant="secondary" size="md" full onClick={onToggleOriginalAudio} icon="headphones">
