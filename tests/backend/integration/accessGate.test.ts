@@ -140,4 +140,20 @@ describe('access gate integration', () => {
       'APP_ACCESS_PASSWORD is required when APP_ENV is "test"'
     );
   });
+
+  it('accepts any password from a comma-separated allow-list', async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse(openAiSuccessPayload));
+    const app = createApp(
+      createAppConfig({ ...baseEnv, APP_ACCESS_PASSWORD: 'Password1,XpasswordX' }),
+      { fetch: fetchMock }
+    );
+
+    const first = await app.request(realtimeRequest({ 'X-Access-Password': 'Password1' }));
+    const second = await app.request(realtimeRequest({ 'X-Access-Password': 'XpasswordX' }));
+    const rejected = await app.request(realtimeRequest({ 'X-Access-Password': 'revoked' }));
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(rejected.status).toBe(401);
+  });
 });

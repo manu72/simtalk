@@ -19,7 +19,7 @@ const createJsonResponse = (body: unknown, status = 200): Response =>
   });
 
 const createTestConfig = (overrides: Partial<AppConfig> = {}): AppConfig => ({
-  appAccessPassword: undefined,
+  appAccessPasswords: [],
   appEnv: 'test',
   port: 3000,
   allowedOrigins: ['http://localhost:5173'],

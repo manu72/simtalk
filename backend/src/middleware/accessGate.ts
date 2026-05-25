@@ -8,14 +8,16 @@ const ACCESS_HEADER = 'x-access-password';
 
 const sha256 = (value: string): Buffer => createHash('sha256').update(value, 'utf8').digest();
 
-export const createAccessGateMiddleware = (password: string | undefined): MiddlewareHandler => {
-  if (!password) {
+export const createAccessGateMiddleware = (
+  passwords: readonly string[]
+): MiddlewareHandler => {
+  if (passwords.length === 0) {
     return async (_c, next) => {
       await next();
     };
   }
 
-  const expectedHash = sha256(password);
+  const expectedHashes = passwords.map(sha256);
 
   return async (c, next) => {
     const provided = c.req.raw.headers.get(ACCESS_HEADER);
@@ -30,7 +32,9 @@ export const createAccessGateMiddleware = (password: string | undefined): Middle
     }
 
     const providedHash = sha256(provided);
-    if (!timingSafeEqual(providedHash, expectedHash)) {
+    const matched = expectedHashes.some((expected) => timingSafeEqual(providedHash, expected));
+
+    if (!matched) {
       return c.json(
         apiErrorSchema.parse({
           error: { code: 'unauthorized', message: 'Access denied.' }

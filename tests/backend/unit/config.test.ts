@@ -63,16 +63,23 @@ describe('createAppConfig', () => {
   });
 
   describe('createAppConfig — APP_ACCESS_PASSWORD', () => {
-    it('exposes the password when set', () => {
+    it('exposes a single password as a one-item list', () => {
       const config = createAppConfig({ APP_ACCESS_PASSWORD: 'hunter2' } as NodeJS.ProcessEnv);
-      expect(config.appAccessPassword).toBe('hunter2');
+      expect(config.appAccessPasswords).toEqual(['hunter2']);
     });
 
-    it('returns undefined when the env var is empty or missing', () => {
-      expect(createAppConfig({} as NodeJS.ProcessEnv).appAccessPassword).toBeUndefined();
+    it('parses comma-separated passwords and trims whitespace', () => {
+      const config = createAppConfig({
+        APP_ACCESS_PASSWORD: 'Password1, XpasswordX ,thirdPass'
+      } as NodeJS.ProcessEnv);
+      expect(config.appAccessPasswords).toEqual(['Password1', 'XpasswordX', 'thirdPass']);
+    });
+
+    it('returns an empty list when the env var is empty or missing', () => {
+      expect(createAppConfig({} as NodeJS.ProcessEnv).appAccessPasswords).toEqual([]);
       expect(
-        createAppConfig({ APP_ACCESS_PASSWORD: '   ' } as NodeJS.ProcessEnv).appAccessPassword
-      ).toBeUndefined();
+        createAppConfig({ APP_ACCESS_PASSWORD: '   ,  ,' } as NodeJS.ProcessEnv).appAccessPasswords
+      ).toEqual([]);
     });
   });
 });
