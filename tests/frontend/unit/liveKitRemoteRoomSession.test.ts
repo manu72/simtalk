@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { RoomEvent } from 'livekit-client';
 
 const requestRoomTokenMock = vi.hoisted(() => vi.fn());
 const requestRealtimeTokenMock = vi.hoisted(() => vi.fn());
@@ -33,7 +34,8 @@ const createFakeRoom = () => {
   const room = {
     remoteParticipants: new Map(),
     localParticipant: {
-      setMicrophoneEnabled: vi.fn(async () => undefined)
+      setMicrophoneEnabled: vi.fn(async () => undefined),
+      setAttributes: vi.fn(async () => undefined)
     },
     connect: vi.fn(async () => undefined),
     disconnect: vi.fn(),
@@ -184,6 +186,102 @@ describe('createLiveKitRemoteRoomSession', () => {
     await vi.waitFor(() => {
       expect(translationSession.stop).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('pushes the initial youHear attribute on connect', async () => {
+    const { room } = createFakeRoom();
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+
+    await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: { mode: 'listener', targetLanguage: 'es' },
+      initialYouHear: 'es',
+      createRoom: () => room as never
+    });
+
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledWith({ youHear: 'es' });
+  });
+
+  it('exposes setLocalYouHear that republishes the attribute', async () => {
+    const { room } = createFakeRoom();
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+
+    const session = await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: { mode: 'listener', targetLanguage: 'es' },
+      initialYouHear: 'es',
+      createRoom: () => room as never
+    });
+
+    room.localParticipant.setAttributes.mockClear();
+    session.setLocalYouHear('tl');
+
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledWith({ youHear: 'tl' });
+
+    session.setLocalYouHear('tl'); // duplicate — should no-op
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledTimes(1);
+
+    session.setLocalYouHear(''); // empty — should no-op
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledTimes(1);
+  });
+
+  it('seeds onRemoteYouHearChange from a partner already in the room', async () => {
+    const { room } = createFakeRoom();
+    const fakePartner = { identity: 'p2', name: 'Bob', attributes: { youHear: 'tl' } };
+    room.remoteParticipants.set('p2', fakePartner);
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+    const onRemoteYouHearChange = vi.fn();
+
+    await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: { mode: 'listener', targetLanguage: 'es' },
+      createRoom: () => room as never,
+      onRemoteYouHearChange
+    });
+
+    expect(onRemoteYouHearChange).toHaveBeenCalledWith('tl');
+  });
+
+  it('fires onRemoteYouHearChange when a partner updates attributes and on disconnect', async () => {
+    const { room, handlers } = createFakeRoom();
+    requestRoomTokenMock.mockResolvedValue(roomTokenResponse);
+    const onRemoteYouHearChange = vi.fn();
+
+    await createLiveKitRemoteRoomSession({
+      roomId,
+      roomTokenRequest: {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        targetLanguage: 'es'
+      },
+      realtimeTokenRequest: { mode: 'listener', targetLanguage: 'es' },
+      createRoom: () => room as never,
+      onRemoteYouHearChange
+    });
+
+    const partner = { identity: 'p2', name: 'Bob', attributes: {} as Record<string, string> };
+    handlers.get(RoomEvent.ParticipantConnected)?.(partner as never);
+
+    partner.attributes.youHear = 'en';
+    handlers
+      .get(RoomEvent.ParticipantAttributesChanged)
+      ?.({ youHear: 'en' } as never, partner as never);
+
+    expect(onRemoteYouHearChange).toHaveBeenLastCalledWith('en');
+
+    handlers.get(RoomEvent.ParticipantDisconnected)?.(partner as never);
+    expect(onRemoteYouHearChange).toHaveBeenLastCalledWith(null);
   });
 
   it('stops a stale translation session whose startup was superseded by a newer track', async () => {

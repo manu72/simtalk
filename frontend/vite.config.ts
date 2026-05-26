@@ -16,7 +16,8 @@ export default defineConfig({
         new URL('./node_modules/@testing-library/react', import.meta.url)
       ),
       react: fileURLToPath(new URL('./node_modules/react', import.meta.url)),
-      'react-dom': fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
+      'react-dom': fileURLToPath(new URL('./node_modules/react-dom', import.meta.url)),
+      'livekit-client': fileURLToPath(new URL('./node_modules/livekit-client', import.meta.url))
     }
   },
   server: {

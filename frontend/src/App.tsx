@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { LocalVideoTrack, RemoteVideoTrack } from 'livekit-client';
+
 import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } from '@simtalk/shared-types';
 
 import { AccessDeniedError, getStoredPassword, setStoredPassword } from './accessGate';
@@ -131,6 +133,21 @@ export const App = () => {
   const [remoteRoomId, setRemoteRoomId] = useState<string | null>(() => roomIdFromPathname());
   const [remoteSource, setRemoteSource] = useState<Language>(initialRemoteSource);
   const [remoteTarget, setRemoteTarget] = useState<Language>(initialRemoteTarget);
+  // Partner's published `youHear` BCP-47 (LiveKit participant attribute).
+  // Null when no partner is connected or the partner hasn't published yet.
+  const [remotePartnerYouHear, setRemotePartnerYouHear] = useState<string | null>(null);
+
+  // Mirror the partner's YOU HEAR language into our THEY SPEAK card.
+  // No partner -> Automatic. Unknown bcp47 is left as-is to avoid clobbering
+  // the user's current source with a fallback.
+  useEffect(() => {
+    if (remotePartnerYouHear === null) {
+      setRemoteSource(AUTO_LANGUAGE);
+      return;
+    }
+    const match = LANGUAGES.find((lang) => lang.bcp47 === remotePartnerYouHear);
+    if (match) setRemoteSource(match);
+  }, [remotePartnerYouHear]);
 
   useEffect(() => {
     writeStoredLanguage(REMOTE_SOURCE_STORAGE_KEY, remoteSource.bcp47);
@@ -144,6 +161,13 @@ export const App = () => {
   const [remoteTranslatedCaption, setRemoteTranslatedCaption] = useState('');
   const [remoteParticipantCount, setRemoteParticipantCount] = useState(0);
   const [remoteOriginalAudioMuted, setRemoteOriginalAudioMuted] = useState(true);
+  const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null);
+  const [remoteVideoTrack, setRemoteVideoTrack] = useState<RemoteVideoTrack | null>(null);
+  const [localMicMuted, setLocalMicMuted] = useState(false);
+  const [localCameraEnabled, setLocalCameraEnabled] = useState(false);
+  const [remoteMicMuted, setRemoteMicMuted] = useState(true);
+  const [remoteIsSpeaking, setRemoteIsSpeaking] = useState(false);
+  const [remoteDisplayName, setRemoteDisplayName] = useState<string | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   // App flow
@@ -207,6 +231,17 @@ export const App = () => {
   const launchIdRef = useRef(0);
   const launchAttemptRef = useRef(0);
 
+  // Publish the local user's YOU HEAR language as a LiveKit attribute so the
+  // partner's THEY SPEAK card can mirror it. Initial value is pushed via
+  // `initialYouHear` during connect; this effect handles mid-session changes
+  // and is deduped inside the session.
+  useEffect(() => {
+    const session = remoteSessionRef.current;
+    if (!session) return;
+    if (remoteStatus !== 'live' && remoteStatus !== 'joining') return;
+    session.setLocalYouHear(remoteTarget.bcp47);
+  }, [remoteTarget, remoteStatus]);
+
   const revokeRecordingUrl = useCallback(() => {
     if (recordingBlobUrlRef.current) {
       URL.revokeObjectURL(recordingBlobUrlRef.current);
@@ -257,6 +292,14 @@ export const App = () => {
     remoteSessionRef.current = null;
     setRemoteParticipantCount(0);
     setRemoteTranslatedCaption('');
+    setLocalVideoTrack(null);
+    setRemoteVideoTrack(null);
+    setLocalMicMuted(false);
+    setLocalCameraEnabled(false);
+    setRemoteMicMuted(true);
+    setRemoteIsSpeaking(false);
+    setRemoteDisplayName(null);
+    setRemotePartnerYouHear(null);
   }, []);
 
   useEffect(() => {
@@ -466,6 +509,8 @@ export const App = () => {
       const room = await requestRoomCreate();
       window.history.pushState({}, '', room.roomUrlPath);
       setRemoteRoomId(room.roomId);
+      setRemoteSource(source);
+      setRemoteTarget(target);
       setRemoteStatus('idle');
       setRemoteErrorMessage(null);
     } catch (error) {
@@ -477,7 +522,7 @@ export const App = () => {
     } finally {
       setIsCreatingRoom(false);
     }
-  }, [errorMessageFor, isCreatingRoom, reopenAccessModal]);
+  }, [errorMessageFor, isCreatingRoom, reopenAccessModal, source, target]);
 
   const joinRemoteRoom = useCallback(async () => {
     if (!remoteRoomId || remoteStatus === 'joining') return;
@@ -490,7 +535,15 @@ export const App = () => {
     try {
       const isCurrentJoin = () => joinGenerationRef.current === joinGeneration;
       const participantIdentity = getParticipantIdentityForRoom(remoteRoomId);
-      const hintedSourceLanguage = isAutoLanguage(remoteSource) ? undefined : remoteSource.bcp47;
+      // Omit the source hint when it is AUTO or when it would equal the
+      // target language. Sending source == target violates the Zod refinement
+      // on both token request schemas; treating same-language as "auto-detect"
+      // keeps the request valid without ever rewriting the user's chosen
+      // YOU HEAR language (partner-mirrored or otherwise).
+      const hintedSourceLanguage =
+        isAutoLanguage(remoteSource) || remoteSource.bcp47 === remoteTarget.bcp47
+          ? undefined
+          : remoteSource.bcp47;
       const session = await createLiveKitRemoteRoomSession({
         roomId: remoteRoomId,
         roomTokenRequest: {
@@ -503,6 +556,7 @@ export const App = () => {
           sourceLanguage: hintedSourceLanguage,
           targetLanguage: remoteTarget.bcp47
         },
+        initialYouHear: remoteTarget.bcp47,
         onParticipantCountChange: (count) => {
           if (isCurrentJoin()) setRemoteParticipantCount(count);
         },
@@ -518,6 +572,30 @@ export const App = () => {
           if (!isCurrentJoin()) return;
           setRemoteStatus('error');
           setRemoteErrorMessage(message);
+        },
+        onLocalVideoTrackChange: (track) => {
+          if (isCurrentJoin()) setLocalVideoTrack(track);
+        },
+        onLocalMicMuteChange: (muted) => {
+          if (isCurrentJoin()) setLocalMicMuted(muted);
+        },
+        onLocalCameraEnabledChange: (enabled) => {
+          if (isCurrentJoin()) setLocalCameraEnabled(enabled);
+        },
+        onRemoteVideoTrackChange: (track) => {
+          if (isCurrentJoin()) setRemoteVideoTrack(track);
+        },
+        onRemoteParticipantChange: (info) => {
+          if (isCurrentJoin()) setRemoteDisplayName(info?.displayName ?? null);
+        },
+        onRemoteMicMuteChange: (muted) => {
+          if (isCurrentJoin()) setRemoteMicMuted(muted);
+        },
+        onRemoteSpeakingChange: (speaking) => {
+          if (isCurrentJoin()) setRemoteIsSpeaking(speaking);
+        },
+        onRemoteYouHearChange: (value) => {
+          if (isCurrentJoin()) setRemotePartnerYouHear(value);
         }
       });
       if (!isCurrentJoin()) {
@@ -534,6 +612,11 @@ export const App = () => {
         session.participantIdentity
       );
       session.setOriginalAudioMuted(remoteOriginalAudioMuted);
+      try {
+        await session.setCameraEnabled(true);
+      } catch {
+        // Camera permission denied or unavailable; UI stays on avatar fallback.
+      }
       setRemoteStatus('live');
     } catch (error) {
       if (error instanceof AccessDeniedError) {
@@ -574,6 +657,22 @@ export const App = () => {
       return next;
     });
   }, []);
+
+  const toggleLocalMic = useCallback(() => {
+    const session = remoteSessionRef.current;
+    if (!session) return;
+    void session.setMicrophoneEnabled(localMicMuted).catch(() => {
+      // setMicrophoneEnabled invokes onMicrophoneError; UI surfaces via existing state.
+    });
+  }, [localMicMuted]);
+
+  const toggleLocalCamera = useCallback(() => {
+    const session = remoteSessionRef.current;
+    if (!session) return;
+    void session.setCameraEnabled(!localCameraEnabled).catch(() => {
+      // setCameraEnabled invokes onCameraError; UI surfaces via existing state.
+    });
+  }, [localCameraEnabled]);
 
   const copyRemoteRoomLink = useCallback(() => {
     if (!remoteRoomId) return;
@@ -935,14 +1034,6 @@ export const App = () => {
     }
   }, [source, target]);
 
-  useEffect(() => {
-    if (isAutoLanguage(remoteSource)) return;
-    if (remoteSource.bcp47 === remoteTarget.bcp47) {
-      const other = LANGUAGES.find((lang) => lang.bcp47 !== remoteSource.bcp47);
-      if (other) setRemoteTarget(other);
-    }
-  }, [remoteSource, remoteTarget]);
-
   if (remoteRoomId) {
     const roomUrl = new URL(`/rooms/${remoteRoomId}`, window.location.origin).toString();
 
@@ -958,12 +1049,22 @@ export const App = () => {
           translatedCaption={remoteTranslatedCaption}
           originalAudioMuted={remoteOriginalAudioMuted}
           errorMessage={remoteErrorMessage}
-          onChangeSource={setRemoteSource}
-          onChangeTarget={setRemoteTarget}
+          localDisplayName="You"
+          remoteDisplayName={remoteDisplayName}
+          localVideoTrack={localVideoTrack}
+          remoteVideoTrack={remoteVideoTrack}
+          localMicMuted={localMicMuted}
+          localCameraEnabled={localCameraEnabled}
+          remoteMicMuted={remoteMicMuted}
+          remoteIsSpeaking={remoteIsSpeaking}
           onJoin={() => requireAccess(() => void joinRemoteRoom())}
           onLeave={leaveRemoteRoom}
           onToggleOriginalAudio={toggleOriginalAudio}
+          onToggleLocalMic={toggleLocalMic}
+          onToggleLocalCamera={toggleLocalCamera}
           onCopyLink={copyRemoteRoomLink}
+          onChangeSource={setRemoteSource}
+          onChangeTarget={setRemoteTarget}
         />
         <AccessGateModal
           open={accessModalOpen}

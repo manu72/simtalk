@@ -54,6 +54,7 @@ beforeEach(() => {
   createLiveKitRemoteRoomSessionMock.mockResolvedValue({
     participantIdentity: 'participant_abcdefghijklmnop',
     setOriginalAudioMuted: vi.fn(),
+    setLocalYouHear: vi.fn(),
     stop: vi.fn()
   });
   createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
@@ -571,6 +572,7 @@ describe('access gate', () => {
       .mockResolvedValueOnce({
         participantIdentity: 'participant_abcdefghijklmnop',
         setOriginalAudioMuted: vi.fn(),
+        setLocalYouHear: vi.fn(),
         stop: vi.fn()
       });
 
@@ -614,24 +616,12 @@ describe('Remote room language pickers', () => {
     window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
   });
 
-  it('disables the They speak and You hear pickers while the room is live', async () => {
+  it('keeps the They speak and You hear pickers enabled before joining', () => {
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
     render(<App />);
 
-    const theySpeakBefore = screen.getByRole('button', { name: /they speak/i });
-    const youHearBefore = screen.getByRole('button', { name: /you hear/i });
-    expect(theySpeakBefore).not.toBeDisabled();
-    expect(youHearBefore).not.toBeDisabled();
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /join room/i }));
-    });
-
-    await waitFor(() => expect(createLiveKitRemoteRoomSessionMock).toHaveBeenCalled());
-
-    expect(screen.getByRole('button', { name: /they speak/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /you hear/i })).toBeDisabled();
-    expect(screen.getByText(/leave the room to change languages/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /they speak/i })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /you hear/i })).not.toBeDisabled();
   });
 
   it('persists the selected target language to localStorage and rehydrates it on next mount', async () => {
@@ -640,7 +630,6 @@ describe('Remote room language pickers', () => {
 
     const youHear = screen.getByRole('button', { name: /you hear/i });
     fireEvent.click(youHear);
-    // LanguagePickerSheet should now be open. Filter to English then pick.
     const filterInput = await screen.findByLabelText(/filter languages/i);
     fireEvent.change(filterInput, { target: { value: 'english' } });
     const englishOption = await screen.findByRole('button', { name: /EN\s*·\s*English/i });
@@ -654,8 +643,121 @@ describe('Remote room language pickers', () => {
     window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
     render(<App />);
 
-    const youHearAfter = screen.getByRole('button', { name: /you hear/i });
-    expect(youHearAfter).toHaveTextContent(/english/i);
+    expect(screen.getByRole('button', { name: /you hear/i })).toHaveTextContent(/english/i);
+  });
+});
+
+describe('Remote room language mirroring', () => {
+  beforeEach(() => {
+    window.sessionStorage.setItem('simtalk:access-password', 'hunter2');
+  });
+
+  it('mirrors partner youHear into THEY SPEAK and resets to Automatic on leave', async () => {
+    let capturedOnRemoteYouHearChange: ((v: string | null) => void) | undefined;
+    createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
+      capturedOnRemoteYouHearChange = opts.onRemoteYouHearChange;
+      return {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        setCameraEnabled: vi.fn(async () => undefined),
+        setMicrophoneEnabled: vi.fn(async () => undefined),
+        setLocalYouHear: vi.fn(),
+        stop: vi.fn()
+      };
+    });
+
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(capturedOnRemoteYouHearChange).toBeDefined());
+    // After join completes the UI transitions to the live surface. The remote
+    // VideoTile's language pill exposes the partner's source language as its
+    // BCP-47 code (e.g. "TL", "AUTO") — that is the user-visible mirror of
+    // remoteSource.
+    await screen.findByText('AUTO');
+
+    await act(async () => {
+      capturedOnRemoteYouHearChange!('tl');
+    });
+    expect(await screen.findByText('TL')).toBeInTheDocument();
+    expect(screen.queryByText('AUTO')).not.toBeInTheDocument();
+
+    await act(async () => {
+      capturedOnRemoteYouHearChange!(null);
+    });
+    expect(await screen.findByText('AUTO')).toBeInTheDocument();
+    expect(screen.queryByText('TL')).not.toBeInTheDocument();
+  });
+
+  it('never overwrites remoteTarget when partner youHear matches it', async () => {
+    // Regression: the partner mirror used to feed remoteSource into an
+    // anti-collision effect that would silently rewrite remoteTarget — i.e.
+    // the user's chosen YOU HEAR language — and broadcast that involuntary
+    // change back out via session.setLocalYouHear.
+    let capturedOnRemoteYouHearChange: ((v: string | null) => void) | undefined;
+    const setLocalYouHear = vi.fn();
+    createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
+      capturedOnRemoteYouHearChange = opts.onRemoteYouHearChange;
+      opts.onRemoteYouHearChange?.(null);
+      return {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        setCameraEnabled: vi.fn(async () => undefined),
+        setMicrophoneEnabled: vi.fn(async () => undefined),
+        setLocalYouHear,
+        stop: vi.fn()
+      };
+    });
+
+    // Pre-set the user's target to English so the partner's 'en' collides.
+    window.localStorage.setItem('simtalk.remoteRoom.targetLanguage', 'en');
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(setLocalYouHear).toHaveBeenCalledWith('en'));
+    setLocalYouHear.mockClear();
+
+    // Partner mirrors back the same youHear the local user already chose.
+    await act(async () => {
+      capturedOnRemoteYouHearChange!('en');
+    });
+
+    // The user-chosen target must not change, so nothing new gets published.
+    expect(setLocalYouHear).not.toHaveBeenCalled();
+    // Both video tiles legitimately show EN (THEY SPEAK = English, YOU HEAR
+    // = English) — neither side has been silently rewritten.
+    expect(screen.getAllByText('EN')).toHaveLength(2);
+  });
+
+  it('pushes remoteTarget into the session as youHear', async () => {
+    const setLocalYouHear = vi.fn();
+    createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
+      // Replay the initial sync the session would have done so the live UI
+      // settles before we assert.
+      opts.onRemoteYouHearChange?.(null);
+      return {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        setCameraEnabled: vi.fn(async () => undefined),
+        setMicrophoneEnabled: vi.fn(async () => undefined),
+        setLocalYouHear,
+        stop: vi.fn()
+      };
+    });
+
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(setLocalYouHear).toHaveBeenCalledWith('es'));
   });
 });
 

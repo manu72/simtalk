@@ -22,7 +22,10 @@ export type IconName =
   | 'globe'
   | 'flip'
   | 'dots'
-  | 'info';
+  | 'info'
+  | 'video'
+  | 'video-off'
+  | 'audio-bars';
 
 const PATHS: Record<IconName, string> = {
   mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 1 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a1 1 0 1 0-2 0 9 9 0 0 0 8 8.95V22a1 1 0 1 0 2 0v-1.05A9 9 0 0 0 21 12a1 1 0 1 0-2 0 7 7 0 1 1-14 0Z',
@@ -52,7 +55,13 @@ const PATHS: Record<IconName, string> = {
     'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7 9h-3.1a14 14 0 0 0-1.3-5A8 8 0 0 1 19 11Zm-7-7c1.3 0 2.9 2.7 3.3 7H8.7c.4-4.3 2-7 3.3-7ZM5 11a8 8 0 0 1 4.4-5 14 14 0 0 0-1.3 5H5Zm0 2h3.1a14 14 0 0 0 1.3 5A8 8 0 0 1 5 13Zm7 7c-1.3 0-2.9-2.7-3.3-7h6.6c-.4 4.3-2 7-3.3 7Zm2.6-2a14 14 0 0 0 1.3-5H19a8 8 0 0 1-4.4 5Z',
   flip: 'M3 12h6l-2-2 1.4-1.4L13 13l-4.6 4.4L7 16l2-2H3v-2Zm18 0h-6l2-2-1.4-1.4L11 13l4.6 4.4L17 16l-2-2h6v-2Z',
   dots: 'M5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
-  info: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-6h2v6Zm0-8h-2V7h2v2Z'
+  info: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-6h2v6Zm0-8h-2V7h2v2Z',
+  video:
+    'M4 6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2.5l4 3v-9l-4 3V8a2 2 0 0 0-2-2H4Z',
+  'video-off':
+    'M3 3.7 4.3 2.4l18.3 18.3-1.3 1.3-2.4-2.4a2 2 0 0 1-1 .4H4a2 2 0 0 1-2-2V8a2 2 0 0 1 1.1-1.8L3 6V3.7Zm17 2.3v4l4-3v9l-4-3v.5l-9-9H14a2 2 0 0 1 2 2v.7l4-2.7Z',
+  'audio-bars':
+    'M3 10h3v4H3v-4Zm6-4h3v12H9V6Zm6 2h3v8h-3V8Z'
 };
 
 export type STIconProps = Omit<SVGProps<SVGSVGElement>, 'children'> & {
