@@ -11,16 +11,16 @@ emits a JSON context bundle to stdout. Also writes the bundle to
 
 Routing priority (first-match wins per stage; later stages add more):
 
-    1. Explicit user-named files / paths / symbols / endpoints.
-    2. Graph traversal from explicit anchors (1-hop imports both ways).
-    3. Graph search against task terms (node name / summary / tags / path).
-    4. Dependency / impact expansion (1-hop on top-scored graph hits).
-    5. Related tests via ``test_discovery`` patterns.
-    6. Operational memory overlays (PROJECT_BRIEF, MEMORY_INDEX, SUBSYSTEMS).
-    7. Risk overlays from ``high_risk_patterns``.
-    8. CODEMAP fallback (only if graph unavailable + ``graph.fallback`` allows).
-    9. Filesystem fallback when neither graph nor CODEMAP can resolve.
-    10. Stop conditions when evidence is insufficient.
+    1. Explicit user-named files / paths resolved against the filesystem
+       (always runs first so the bundle cap can't crowd them out).
+    2. Graph: explicit user-named anchors (file / config / symbol nodes).
+    3. Graph traversal from anchors (1-hop imports both ways).
+    4. Graph search against task terms (node name / summary / tags / path).
+    5. CODEMAP fallback (only if graph unavailable + ``graph.fallback`` allows).
+    6. Related tests via ``test_discovery`` patterns.
+    7. Operational memory overlays (PROJECT_BRIEF, MEMORY_INDEX, SUBSYSTEMS).
+    8. Risk overlays from ``high_risk_patterns``.
+    9. Stop conditions when evidence is insufficient.
 
 Standard library only. Idempotent. Writes only to .agentic/CONTEXT/.
 """
@@ -328,9 +328,49 @@ def _expand_dependencies(
 # ---------------------------------------------------------------------------
 
 
+def _glob_to_regex(pattern: str) -> re.Pattern[str]:
+    """Translate a POSIX-style glob to a regex.
+
+    Honours ``**`` as a zero-or-more path-segment wildcard. Plain ``*`` and
+    ``?`` match within a single segment (do not cross ``/``). Anchored to the
+    full string. The result is cached per process via ``functools`` semantics
+    of compiled patterns being cheap to reuse.
+    """
+    out: list[str] = []
+    i = 0
+    n = len(pattern)
+    while i < n:
+        if pattern[i : i + 3] == "**/":
+            out.append("(?:.*/)?")
+            i += 3
+        elif pattern[i : i + 3] == "/**" and (i + 3 == n or pattern[i + 3] == "/"):
+            out.append("(?:/.*)?")
+            i += 3
+        elif pattern[i : i + 2] == "**":
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    return re.compile("^" + "".join(out) + "$")
+
+
 def _glob_match(pattern: str, path: str) -> bool:
-    """Match using fnmatch with `**` honoured as multi-segment wildcard."""
-    return fnmatch.fnmatchcase(path, pattern.replace("**", "*"))
+    """Match a repo-relative POSIX path against a glob with ``**`` support.
+
+    Falls back to the legacy ``fnmatch`` substitution if the regex translator
+    raises (defensive — should never happen on the patterns we ship).
+    """
+    try:
+        return _glob_to_regex(pattern).match(path) is not None
+    except re.error:
+        return fnmatch.fnmatchcase(path, pattern.replace("**", "*"))
 
 
 def _risk_tags_for(paths: list[str], high_risk_patterns: list[dict[str, Any]]) -> set[str]:
@@ -393,37 +433,77 @@ def _subsystem_keyword_overlay(
     return out
 
 
+def _is_test_path(path: str, test_discovery: list[str]) -> bool:
+    """Decide if a repo-relative path looks like a test file.
+
+    Honours the configured ``test_discovery`` globs when supplied; otherwise
+    falls back to simple ``tests/`` heuristics. Used to skip test files when
+    deriving source-stem keys, so a stem like ``realtime`` from
+    ``tests/.../realtime.test.ts`` doesn't bleed into test discovery.
+    """
+    if test_discovery:
+        return any(_glob_match(pat, path) for pat in test_discovery)
+    return path.startswith("tests/") or "/tests/" in path or "/test_" in path
+
+
 def _related_tests_for(
     selected_paths: list[str], test_discovery: list[str]
 ) -> list[str]:
-    """For each non-test selected source path, find sibling tests that match.
+    """For each non-test selected source path, find tests that match.
 
-    Strategy: scan ``tests/`` and ``__tests__`` for filenames that contain the
-    stem of any selected source path. Cap output at MAX_SELECTED_PATHS.
+    Walks the repo (pruning common build/dependency dirs), filters files via
+    the configured ``test_discovery`` globs (``**/__tests__/**``,
+    ``**/*.test.*``, etc.), and keeps those whose stem contains the stem of
+    any selected source path. Caps output at ``MAX_SELECTED_PATHS``. Falls
+    back to scanning ``tests/`` only when no test patterns are configured.
     """
-    out: list[str] = []
     stems: set[str] = set()
+    selected_set = set(selected_paths)
     for p in selected_paths:
-        if "tests/" in p or "/test_" in p or p.startswith("tests/"):
+        if _is_test_path(p, test_discovery):
             continue
-        stems.add(PurePosixPath(p).stem)
+        stems.add(PurePosixPath(p).stem.lower())
     if not stems:
+        return []
+
+    out: list[str] = []
+
+    def _consider(rel: str) -> bool:
+        if rel in selected_set or rel in out:
+            return False
+        if test_discovery and not any(_glob_match(pat, rel) for pat in test_discovery):
+            return False
+        base = PurePosixPath(rel).stem.lower()
+        if not any(stem in base for stem in stems):
+            return False
+        out.append(rel)
+        return len(out) >= MAX_SELECTED_PATHS
+
+    if test_discovery:
+        for dirpath, dirnames, filenames in os.walk(REPO_ROOT):
+            rel_dir = Path(dirpath).relative_to(REPO_ROOT).as_posix()
+            if rel_dir.startswith(".") and rel_dir not in {".", ".github"}:
+                dirnames[:] = []
+                continue
+            dirnames[:] = sorted(
+                d
+                for d in dirnames
+                if d not in PRUNED_SCAN_DIRS and not d.endswith(".egg-info")
+            )
+            for fn in sorted(filenames):
+                rel = (Path(dirpath) / fn).relative_to(REPO_ROOT).as_posix()
+                if _consider(rel):
+                    return out
         return out
 
-    test_roots = [REPO_ROOT / "tests"]
-    for root in test_roots:
-        if not root.is_dir():
-            continue
-        for path in root.rglob("*"):
+    test_root = REPO_ROOT / "tests"
+    if test_root.is_dir():
+        for path in test_root.rglob("*"):
             if not path.is_file():
                 continue
             rel = path.relative_to(REPO_ROOT).as_posix()
-            base = path.stem.lower()
-            if any(stem.lower() in base for stem in stems):
-                if rel not in out:
-                    out.append(rel)
-                if len(out) >= MAX_SELECTED_PATHS:
-                    return out
+            if _consider(rel):
+                return out
     return out
 
 
@@ -621,6 +701,17 @@ def main(argv: list[str]) -> int:
         if sub:
             selected_subsystems.add(sub)
 
+    # Priority 1 (documented routing contract): user-named files / paths.
+    # Resolve these against the filesystem BEFORE graph or codemap routing so
+    # explicitly named paths always survive the bundle cap, even when they are
+    # not represented in the knowledge graph (new file, doc, config, generated
+    # artifact) and even when the graph is unavailable.
+    fs_anchor_paths = _filesystem_anchors(task)
+    for p in fs_anchor_paths:
+        _add_path(p, "user-named filesystem path")
+    if fs_anchor_paths:
+        has_explicit_anchors = True
+
     if graph_available and graph is not None:
         idx = _index_graph(graph)
 
@@ -689,12 +780,6 @@ def main(argv: list[str]) -> int:
         for p in codemap_paths:
             _add_path(p, codemap_reasons.get(p, "codemap fallback"))
         selected_subsystems |= codemap_subs
-
-    # 9. Filesystem fallback (only when nothing has resolved).
-    if not selected_paths:
-        for p in _filesystem_anchors(task):
-            _add_path(p, "filesystem anchor (last-resort)")
-            has_explicit_anchors = True
 
     # 6/7. Subsystem-keyword overlay (soft hint, additive).
     selected_subsystems |= _subsystem_keyword_overlay(task_tokens, subsystem_keywords)

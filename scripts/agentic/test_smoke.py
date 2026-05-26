@@ -142,6 +142,84 @@ class RouteTaskSmoke(unittest.TestCase):
         self.assertFalse(bundle["fallback_active"])
         self.assertEqual(bundle["graph_source"], graph_path)
 
+    def test_user_named_path_not_in_graph_is_anchored(self) -> None:
+        # ``package.json`` exists on disk but the understand-anything graph
+        # indexes source-code nodes; this exercises the priority-1 filesystem
+        # anchor pass so a user-named file is added even if it isn't a graph
+        # node and even if graph keyword search would otherwise saturate the
+        # bundle.
+        bundle = self._run("review package.json to align with the workspace settings")
+        self.assertIn("package.json", bundle["selected_paths"])
+        reason = bundle["selection_reasons"]["package.json"]
+        self.assertTrue(
+            reason.startswith("user-named"),
+            f"package.json should be user-named, got: {reason!r}",
+        )
+
+
+class RelatedTestsUnit(unittest.TestCase):
+    """Unit tests for ``_related_tests_for`` glob-driven discovery."""
+
+    def setUp(self) -> None:
+        self.route = _load_module("agentic_route_task", "route_task.py")
+
+    def test_uses_test_discovery_globs_when_provided(self) -> None:
+        # Given a single explicit source path, the configured globs should
+        # surface its ``*.test.ts`` sibling without scanning the whole
+        # ``tests/`` tree by substring (regression for Item 3).
+        cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        with _CwdRepoRoot():
+            related = self.route._related_tests_for(
+                ["frontend/src/realtimeTokenClient.ts"], cfg.get("test_discovery") or []
+            )
+        self.assertIn("tests/frontend/unit/realtimeTokenClient.test.ts", related)
+
+    def test_falls_back_to_tests_dir_when_no_patterns(self) -> None:
+        # With no globs configured, behaviour degrades to scanning ``tests/``
+        # only (preserves the previous behaviour as a safety net).
+        with _CwdRepoRoot():
+            related = self.route._related_tests_for(
+                ["frontend/src/realtimeTokenClient.ts"], []
+            )
+        self.assertIn("tests/frontend/unit/realtimeTokenClient.test.ts", related)
+
+    def test_skips_test_files_as_sources(self) -> None:
+        # When the selected path is itself a test, its stem must not be used
+        # to discover further tests — otherwise stems like ``realtime`` from
+        # ``realtime.test.ts`` would seed unrelated matches.
+        cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        with _CwdRepoRoot():
+            related = self.route._related_tests_for(
+                ["tests/backend/integration/routes/realtime.test.ts"],
+                cfg.get("test_discovery") or [],
+            )
+        self.assertEqual(related, [])
+
+
+class GlobMatchUnit(unittest.TestCase):
+    """Unit tests for the glob translator used by routing overlays."""
+
+    def setUp(self) -> None:
+        self.route = _load_module("agentic_route_task", "route_task.py")
+
+    def test_double_star_matches_top_level(self) -> None:
+        # The legacy ``**``→``*`` substitution failed to match top-level
+        # paths because ``*/auth/*`` requires a non-empty prefix. The new
+        # translator treats ``**/`` as "zero or more path segments".
+        self.assertTrue(self.route._glob_match("**/auth/**", "auth/login.ts"))
+        self.assertTrue(self.route._glob_match("**/auth/**", "backend/auth/login.ts"))
+
+    def test_double_star_test_globs(self) -> None:
+        self.assertTrue(self.route._glob_match("**/*.test.*", "tests/foo.test.ts"))
+        self.assertTrue(
+            self.route._glob_match("**/__tests__/**", "frontend/src/__tests__/x.ts")
+        )
+        self.assertFalse(self.route._glob_match("**/*.test.*", "src/foo.ts"))
+
+    def test_single_star_does_not_cross_segments(self) -> None:
+        self.assertFalse(self.route._glob_match("*.ts", "a/b.ts"))
+        self.assertTrue(self.route._glob_match("*.ts", "b.ts"))
+
 
 class UpdateMemorySmoke(unittest.TestCase):
     def test_runs_and_writes_marker(self) -> None:
