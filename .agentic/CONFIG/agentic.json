@@ -9,7 +9,6 @@
   "paths": {
     "memory_root": ".agentic",
     "scripts_root": "scripts/agentic",
-    "codemap": ".agentic/CODEMAP.json",
     "context_cache": ".agentic/CONTEXT/last_context.json"
   },
   "freshness_rules": {
@@ -70,8 +69,6 @@
       "view",
       "react",
       "vite",
-      "tailwind",
-      "shadcn",
       "frontend",
       "browser",
       "transcript",
@@ -95,17 +92,6 @@
       "zod",
       "middleware"
     ],
-    "realtime": [
-      "realtime",
-      "webrtc",
-      "openai",
-      "gpt-realtime-translate",
-      "translation",
-      "translate",
-      "audio",
-      "stream",
-      "session"
-    ],
     "shared": ["shared", "types", "contract", "dto"],
     "tests": [
       "test",
@@ -128,23 +114,10 @@
       "dockerfile",
       "env",
       "environment"
-    ],
-    "security": [
-      "security",
-      "secret",
-      "auth",
-      "password",
-      "csrf",
-      "csp",
-      "hsts",
-      "header",
-      "rate-limit",
-      "allowlist"
-    ],
-    "privacy": ["privacy", "recording", "download", "local-only"]
+    ]
   },
   "generated_artifacts": [
-    ".agentic/CODEMAP.json",
-    ".agentic/CONTEXT/last_context.json"
+    ".agentic/CONTEXT/last_context.json",
+    ".agentic/CONTEXT/last_update_ref"
   ]
 }

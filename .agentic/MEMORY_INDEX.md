@@ -53,9 +53,9 @@ See `.agentic/GRAPH_INDEX.md`.
 
 ## Memory freshness
 
-- Last refreshed: 2026-05-26T03:51:00Z
-- Files refreshed this run: PROJECT_BRIEF.md, MEMORY_INDEX.md, SUBSYSTEMS/{README,web,api,shared,tests,infra}.md
-- Bootstrap mode: migration (v1 legacy memory → v2 managed/human regions)
+- Last refreshed: 2026-05-26T04:39:02Z
+- Files refreshed this run: .agentic/CONFIG/agentic.json, .agentic/GRAPH_INDEX.md, .agentic/MEMORY_INDEX.md, .cursor/skills/agenticOS-context/skill.md, .cursor/skills/agenticOS-update/skill.md, scripts/agentic/README.md, scripts/agentic/route_task.py, scripts/agentic/test_build_codemap.py, scripts/agentic/test_route_task.py, scripts/agentic/test_update_memory.py, scripts/agentic/test_validate_memory.py, scripts/agentic/update_memory.py, scripts/agentic/validate_memory.py, scripts/agentic/test_smoke.py
+- Source: scripts/agentic/update_memory.py
 <!-- agentic:managed:end -->
 
 <!-- human:notes:start -->
