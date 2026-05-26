@@ -54,6 +54,7 @@ beforeEach(() => {
   createLiveKitRemoteRoomSessionMock.mockResolvedValue({
     participantIdentity: 'participant_abcdefghijklmnop',
     setOriginalAudioMuted: vi.fn(),
+    setLocalYouHear: vi.fn(),
     stop: vi.fn()
   });
   createRealtimeTranslationSessionMock.mockResolvedValue({ stop: vi.fn(), setLocalAudioEnabled: vi.fn() });
@@ -571,6 +572,7 @@ describe('access gate', () => {
       .mockResolvedValueOnce({
         participantIdentity: 'participant_abcdefghijklmnop',
         setOriginalAudioMuted: vi.fn(),
+        setLocalYouHear: vi.fn(),
         stop: vi.fn()
       });
 
@@ -688,6 +690,31 @@ describe('Remote room language mirroring', () => {
     });
     expect(await screen.findByText('AUTO')).toBeInTheDocument();
     expect(screen.queryByText('TL')).not.toBeInTheDocument();
+  });
+
+  it('pushes remoteTarget into the session as youHear', async () => {
+    const setLocalYouHear = vi.fn();
+    createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
+      // Replay the initial sync the session would have done so the live UI
+      // settles before we assert.
+      opts.onRemoteYouHearChange?.(null);
+      return {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        setCameraEnabled: vi.fn(async () => undefined),
+        setMicrophoneEnabled: vi.fn(async () => undefined),
+        setLocalYouHear,
+        stop: vi.fn()
+      };
+    });
+
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(setLocalYouHear).toHaveBeenCalledWith('es'));
   });
 });
 

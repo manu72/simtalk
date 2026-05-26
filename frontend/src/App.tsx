@@ -231,6 +231,17 @@ export const App = () => {
   const launchIdRef = useRef(0);
   const launchAttemptRef = useRef(0);
 
+  // Publish the local user's YOU HEAR language as a LiveKit attribute so the
+  // partner's THEY SPEAK card can mirror it. Initial value is pushed via
+  // `initialYouHear` during connect; this effect handles mid-session changes
+  // and is deduped inside the session.
+  useEffect(() => {
+    const session = remoteSessionRef.current;
+    if (!session) return;
+    if (remoteStatus !== 'live' && remoteStatus !== 'joining') return;
+    session.setLocalYouHear(remoteTarget.bcp47);
+  }, [remoteTarget, remoteStatus]);
+
   const revokeRecordingUrl = useCallback(() => {
     if (recordingBlobUrlRef.current) {
       URL.revokeObjectURL(recordingBlobUrlRef.current);
@@ -537,6 +548,7 @@ export const App = () => {
           sourceLanguage: hintedSourceLanguage,
           targetLanguage: remoteTarget.bcp47
         },
+        initialYouHear: remoteTarget.bcp47,
         onParticipantCountChange: (count) => {
           if (isCurrentJoin()) setRemoteParticipantCount(count);
         },
