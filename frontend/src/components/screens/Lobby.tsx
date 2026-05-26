@@ -104,7 +104,7 @@ export const Lobby = ({
         >
           <img
             src="/rocket-logo_100x132.png"
-            alt="SimTalk rocketship logo"
+            alt=""
             aria-hidden="true"
             width={72}
             height={96}

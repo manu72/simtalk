@@ -870,6 +870,58 @@ describe('Remote room name prompt', () => {
       | undefined;
     expect(call?.[0].roomTokenRequest.displayName).toBe('Cached');
   });
+
+  it('closes the name modal and drops the queued join when the active room changes mid-flow', async () => {
+    // Regression: the queued name action captures joinRemoteRoom for the
+    // room that was active when the modal opened. If the user navigates to a
+    // different room (popstate) or back to the lobby while the modal is open
+    // and then submits, the captured closure would join the wrong room and
+    // the typed name would be persisted under the new room's storage key.
+    // The remoteRoomId effect must reset name-gating state.
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    const dialog = await screen.findByRole('dialog', { name: /choose a name for this room/i });
+    expect(dialog).toBeInTheDocument();
+
+    await act(async () => {
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    expect(
+      screen.queryByRole('dialog', { name: /choose a name for this room/i })
+    ).toBeNull();
+    expect(createLiveKitRemoteRoomSessionMock).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem(TEST_REMOTE_ROOM_DISPLAY_NAME_KEY)).toBeNull();
+  });
+
+  it('reloads the cached display name for a different room after popstate', async () => {
+    const otherRoomId = 'room_zyxwvutsrqponmlkjihgfedcba';
+    const otherRoomKey = `simtalk.room.${otherRoomId}.displayName`;
+    window.sessionStorage.setItem(TEST_REMOTE_ROOM_DISPLAY_NAME_KEY, 'Alice');
+    window.sessionStorage.setItem(otherRoomKey, 'Bob');
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      window.history.pushState({}, '', `/rooms/${otherRoomId}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+
+    await waitFor(() => expect(createLiveKitRemoteRoomSessionMock).toHaveBeenCalled());
+    const call = createLiveKitRemoteRoomSessionMock.mock.calls[0] as
+      | [{ roomId: string; roomTokenRequest: { displayName?: string } }]
+      | undefined;
+    expect(call?.[0].roomId).toBe(otherRoomId);
+    expect(call?.[0].roomTokenRequest.displayName).toBe('Bob');
+    window.sessionStorage.removeItem(otherRoomKey);
+  });
 });
 
 describe('Dev drawer', () => {

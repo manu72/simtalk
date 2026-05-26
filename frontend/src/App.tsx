@@ -262,6 +262,17 @@ export const App = () => {
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const pendingNameActionRef = useRef<((displayName: string) => void) | null>(null);
 
+  // Reset name-gating state whenever the active room changes (createRemoteRoom,
+  // popstate across rooms, or leaveRemoteRoom). Without this, an open name
+  // modal could submit and execute a queued join whose closure was captured
+  // against the previous remoteRoomId — joining the wrong room while the typed
+  // name is persisted under the new room's storage key.
+  useEffect(() => {
+    pendingNameActionRef.current = null;
+    setNameModalOpen(false);
+    setLocalDisplayName(remoteRoomId ? readStoredRemoteDisplayName(remoteRoomId) : null);
+  }, [remoteRoomId]);
+
   // Refs to session lifecycle
   const sessionRef = useRef<RealtimeTranslationSession | null>(null);
   const remoteSessionRef = useRef<RemoteRoomSession | null>(null);
