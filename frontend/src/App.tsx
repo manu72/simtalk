@@ -535,7 +535,15 @@ export const App = () => {
     try {
       const isCurrentJoin = () => joinGenerationRef.current === joinGeneration;
       const participantIdentity = getParticipantIdentityForRoom(remoteRoomId);
-      const hintedSourceLanguage = isAutoLanguage(remoteSource) ? undefined : remoteSource.bcp47;
+      // Omit the source hint when it is AUTO or when it would equal the
+      // target language. Sending source == target violates the Zod refinement
+      // on both token request schemas; treating same-language as "auto-detect"
+      // keeps the request valid without ever rewriting the user's chosen
+      // YOU HEAR language (partner-mirrored or otherwise).
+      const hintedSourceLanguage =
+        isAutoLanguage(remoteSource) || remoteSource.bcp47 === remoteTarget.bcp47
+          ? undefined
+          : remoteSource.bcp47;
       const session = await createLiveKitRemoteRoomSession({
         roomId: remoteRoomId,
         roomTokenRequest: {
@@ -1025,14 +1033,6 @@ export const App = () => {
       if (other) setTarget(other);
     }
   }, [source, target]);
-
-  useEffect(() => {
-    if (isAutoLanguage(remoteSource)) return;
-    if (remoteSource.bcp47 === remoteTarget.bcp47) {
-      const other = LANGUAGES.find((lang) => lang.bcp47 !== remoteSource.bcp47);
-      if (other) setRemoteTarget(other);
-    }
-  }, [remoteSource, remoteTarget]);
 
   if (remoteRoomId) {
     const roomUrl = new URL(`/rooms/${remoteRoomId}`, window.location.origin).toString();

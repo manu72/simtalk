@@ -692,6 +692,49 @@ describe('Remote room language mirroring', () => {
     expect(screen.queryByText('TL')).not.toBeInTheDocument();
   });
 
+  it('never overwrites remoteTarget when partner youHear matches it', async () => {
+    // Regression: the partner mirror used to feed remoteSource into an
+    // anti-collision effect that would silently rewrite remoteTarget — i.e.
+    // the user's chosen YOU HEAR language — and broadcast that involuntary
+    // change back out via session.setLocalYouHear.
+    let capturedOnRemoteYouHearChange: ((v: string | null) => void) | undefined;
+    const setLocalYouHear = vi.fn();
+    createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
+      capturedOnRemoteYouHearChange = opts.onRemoteYouHearChange;
+      opts.onRemoteYouHearChange?.(null);
+      return {
+        participantIdentity: 'participant_abcdefghijklmnop',
+        setOriginalAudioMuted: vi.fn(),
+        setCameraEnabled: vi.fn(async () => undefined),
+        setMicrophoneEnabled: vi.fn(async () => undefined),
+        setLocalYouHear,
+        stop: vi.fn()
+      };
+    });
+
+    // Pre-set the user's target to English so the partner's 'en' collides.
+    window.localStorage.setItem('simtalk.remoteRoom.targetLanguage', 'en');
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(setLocalYouHear).toHaveBeenCalledWith('en'));
+    setLocalYouHear.mockClear();
+
+    // Partner mirrors back the same youHear the local user already chose.
+    await act(async () => {
+      capturedOnRemoteYouHearChange!('en');
+    });
+
+    // The user-chosen target must not change, so nothing new gets published.
+    expect(setLocalYouHear).not.toHaveBeenCalled();
+    // Both video tiles legitimately show EN (THEY SPEAK = English, YOU HEAR
+    // = English) — neither side has been silently rewritten.
+    expect(screen.getAllByText('EN')).toHaveLength(2);
+  });
+
   it('pushes remoteTarget into the session as youHear', async () => {
     const setLocalYouHear = vi.fn();
     createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
