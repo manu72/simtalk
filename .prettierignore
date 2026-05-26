@@ -9,5 +9,5 @@ test-results/
 .cache/
 .cursor/
 .agentic/
-.agentic/CONTEXT/
+.understand-anything/
 pnpm-lock.yaml
