@@ -33,8 +33,9 @@ import json
 import os
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterable
+from typing import Any
 
 REPO_ROOT = Path.cwd()
 CONFIG_PATH = REPO_ROOT / ".agentic" / "CONFIG" / "agentic.json"

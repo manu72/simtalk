@@ -106,9 +106,9 @@ export const Lobby = ({
             src="/rocket-logo_100x132.png"
             alt=""
             aria-hidden="true"
-            width={73}
+            width={72}
             height={96}
-            style={{ width: 73, height: "auto" }}
+            style={{ width: 72, height: "auto" }}
           />
         </a>
       </div>
