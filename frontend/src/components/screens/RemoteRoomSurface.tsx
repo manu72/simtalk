@@ -3,7 +3,13 @@ import type { LocalVideoTrack, RemoteVideoTrack } from 'livekit-client';
 
 import { STIcon } from '../brand/Icons';
 import { LangCard, LanguagePickerSheet } from '../brand/LanguagePicker';
-import { LANGUAGES, type Language } from '../brand/languages';
+import { AUTO_LANGUAGE, LANGUAGES, type Language } from '../brand/languages';
+
+// AUTO ("Automatic" / language detection) is offered as a THEY SPEAK option
+// so a single user can prepare a room before the partner arrives without
+// committing to a specific source language. YOU HEAR stays restricted to
+// concrete languages (translated audio always has a destination).
+const SOURCE_LANGUAGES: ReadonlyArray<Language> = [AUTO_LANGUAGE, ...LANGUAGES];
 import { FONT_BODY, FONT_DISPLAY, ST, STButton, STCard, STTitle } from '../brand/primitives';
 import { VideoTile } from '../brand/VideoTile';
 
@@ -537,7 +543,7 @@ export const RemoteRoomSurface = ({
         }}
         onClose={() => setPicker(null)}
         title="THEY SPEAK"
-        languages={LANGUAGES}
+        languages={SOURCE_LANGUAGES}
       />
       <LanguagePickerSheet
         open={picker === 'target'}
