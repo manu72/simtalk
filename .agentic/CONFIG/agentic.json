@@ -1,10 +1,23 @@
 {
-  "version": 1,
+  "version": 2,
+  "graph": {
+    "provider": "understand-anything",
+    "path": ".understand-anything/knowledge-graph.json",
+    "required": true,
+    "fallback": "codemap"
+  },
   "paths": {
     "memory_root": ".agentic",
     "scripts_root": "scripts/agentic",
-    "codemap": ".agentic/CODEMAP.json",
     "context_cache": ".agentic/CONTEXT/last_context.json"
+  },
+  "freshness_rules": {
+    "graph_max_age_hours": 168,
+    "memory_max_age_days": 30
+  },
+  "validation": {
+    "require_region_markers": true,
+    "sample_path_check_count": 5
   },
   "ignore_globs": [
     "**/node_modules/**",
@@ -20,8 +33,13 @@
     "**/*.lock",
     "**/coverage/**",
     "**/.vercel/**",
+    "**/.pnpm-store/**",
+    "**/.pnpm/**",
+    "**/.vite/**",
+    "**/.pytest_cache/**",
     "**/playwright-report/**",
-    "**/test-results/**"
+    "**/test-results/**",
+    "**/.DS_Store"
   ],
   "test_discovery": [
     "**/tests/**",
@@ -51,8 +69,6 @@
       "view",
       "react",
       "vite",
-      "tailwind",
-      "shadcn",
       "frontend",
       "browser",
       "transcript",
@@ -76,17 +92,6 @@
       "zod",
       "middleware"
     ],
-    "realtime": [
-      "realtime",
-      "webrtc",
-      "openai",
-      "gpt-realtime-translate",
-      "translation",
-      "translate",
-      "audio",
-      "stream",
-      "session"
-    ],
     "shared": ["shared", "types", "contract", "dto"],
     "tests": [
       "test",
@@ -109,23 +114,10 @@
       "dockerfile",
       "env",
       "environment"
-    ],
-    "security": [
-      "security",
-      "secret",
-      "auth",
-      "password",
-      "csrf",
-      "csp",
-      "hsts",
-      "header",
-      "rate-limit",
-      "allowlist"
-    ],
-    "privacy": ["privacy", "recording", "download", "local-only"]
+    ]
   },
   "generated_artifacts": [
-    ".agentic/CODEMAP.json",
-    ".agentic/CONTEXT/last_context.json"
+    ".agentic/CONTEXT/last_context.json",
+    ".agentic/CONTEXT/last_update_ref"
   ]
 }

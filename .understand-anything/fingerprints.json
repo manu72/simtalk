@@ -1,0 +1,5167 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "f268e0736a87c27bf4a08ceb6306e879c3e45708",
+  "generatedAt": "2026-05-26T06:52:24.421Z",
+  "files": {
+    ".agentic/CODEMAP.json": {
+      "filePath": ".agentic/CODEMAP.json",
+      "contentHash": "a147a38e112ac1d580ad6f58be9aed75ac00b127e424c9844ec892c1d861d8be",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4094,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/CONFIG/agentic.json": {
+      "filePath": ".agentic/CONFIG/agentic.json",
+      "contentHash": "66b32478d5f8bff446c2a9bf2579bcb560a4533562c2cc95949feb4dcf853eab",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/GRAPH_INDEX.md": {
+      "filePath": ".agentic/GRAPH_INDEX.md",
+      "contentHash": "26944ce58752da3b62418bfc83ad199e0f36703ae13f10d2c96c54e7b6609d87",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/LESSONS/decisions.md": {
+      "filePath": ".agentic/LESSONS/decisions.md",
+      "contentHash": "c28ca40816b3186219c1382b7f87f8491f862e93f7ad59e3bb4b7fa693abe0cc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/LESSONS/incidents.md": {
+      "filePath": ".agentic/LESSONS/incidents.md",
+      "contentHash": "69c15141e2f1c1965dd395b1fc305cda9ee1e79520c7557477d50dbcc50d6a2a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/MEMORY_INDEX.md": {
+      "filePath": ".agentic/MEMORY_INDEX.md",
+      "contentHash": "0f63864adbdc24a8379e7668c8bc1183985ca7c6a5be544761460bf1763cbbac",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/PROJECT_BRIEF.md": {
+      "filePath": ".agentic/PROJECT_BRIEF.md",
+      "contentHash": "baf56118f40cbb911c6beccd8c9c6448a6db7abee6e199e7ca8165b17b8e4bbe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/SUBSYSTEMS/api.md": {
+      "filePath": ".agentic/SUBSYSTEMS/api.md",
+      "contentHash": "721c57f3be2b94d2f0da7c2ad11e846157f9140dae61edf667586e3b0c48b302",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/SUBSYSTEMS/infra.md": {
+      "filePath": ".agentic/SUBSYSTEMS/infra.md",
+      "contentHash": "7b967b327dea879759e92b3ee18bf661853e53d091d2c463257067604ea42cda",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/SUBSYSTEMS/README.md": {
+      "filePath": ".agentic/SUBSYSTEMS/README.md",
+      "contentHash": "7d4cbc0874fd15d5fef573443ac92bee26130ee2ca6680c7c5989ba842982c4d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/SUBSYSTEMS/shared.md": {
+      "filePath": ".agentic/SUBSYSTEMS/shared.md",
+      "contentHash": "cf55d223bf37be7bc349a9228bdd5c330ee683ce2bf24e4d88df6ac8d60679b5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/SUBSYSTEMS/tests.md": {
+      "filePath": ".agentic/SUBSYSTEMS/tests.md",
+      "contentHash": "a4187d952222fefc214b84055a86ce902d0475dae7e3c089a1231c934997af19",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/SUBSYSTEMS/web.md": {
+      "filePath": ".agentic/SUBSYSTEMS/web.md",
+      "contentHash": "7182fcb8381fa25c48f08ca2cbdb2039e98c9e0bcc34f58f572161f1534d7705",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 85,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/settings.local.json": {
+      "filePath": ".claude/settings.local.json",
+      "contentHash": "d09c2169f563e25b199ec375793e27f47e725ea9c40124de03dc50d88aee758a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    ".cursor/plans/phase_one_implementation_efb87251.plan.md": {
+      "filePath": ".cursor/plans/phase_one_implementation_efb87251.plan.md",
+      "contentHash": "844f527c4d298a74237ea640c7eadb5c491fa5df1c02f9a50bfe5e24e1da835d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    ".cursor/plans/simtalk_deployment_rooms_b4ffca08.plan.md": {
+      "filePath": ".cursor/plans/simtalk_deployment_rooms_b4ffca08.plan.md",
+      "contentHash": "7de21bfc00bd6e4b02f154196914313ce05ffb4eb7207eed46f029f78e00579b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 361,
+      "hasStructuralAnalysis": true
+    },
+    ".cursor/skills/test-structure/SKILL.md": {
+      "filePath": ".cursor/skills/test-structure/SKILL.md",
+      "contentHash": "68cdb7d087cac8b28c345d609a201a51948071859a5dbefc498c86bb2376e6aa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/ci.yml": {
+      "filePath": ".github/workflows/ci.yml",
+      "contentHash": "feb55b1d360b46e2736a7e4b67f824159eb086024f62f9ce3d6edfbdb538cf34",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 57,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/vercel-deploy.yml": {
+      "filePath": ".github/workflows/vercel-deploy.yml",
+      "contentHash": "adf46286d786ed3f28e7e92386028586633a11b247f9c33eaa3a8c6431f2510d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 116,
+      "hasStructuralAnalysis": true
+    },
+    ".prettierignore": {
+      "filePath": ".prettierignore",
+      "contentHash": "88844f86847a2340c124a6f5e9f68e3b588a6db1fd79af7855020ffa2c8c3d76",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "868b9e48a4789deac89f442c0c78f06811b2cf47d3fc005be5143ad3ad981f06",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/fingerprints.json": {
+      "filePath": ".understand-anything/fingerprints.json",
+      "contentHash": "df28bae56381f329af95c2dece15f3de22f0f71022ecb9eb2d0abff8d38ad2cf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4852,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/knowledge-graph.json": {
+      "filePath": ".understand-anything/knowledge-graph.json",
+      "contentHash": "35a65cbe31c618ef23bdd2b8a42a2bb4e562ff62c8883ce232a69e192237141e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6681,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/meta.json": {
+      "filePath": ".understand-anything/meta.json",
+      "contentHash": "7dfe0b824bac347d88bf18dfbdfcce6de42453e7a76cd68834b6bdb7130ba507",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/tmp/changed-files.txt": {
+      "filePath": ".understand-anything/tmp/changed-files.txt",
+      "contentHash": "93cc7a79469b8ffcac86ea68c3d9458e2f50813ac89cb996efc3875263afc1c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "agentic_os_plan_v2.md": {
+      "filePath": "agentic_os_plan_v2.md",
+      "contentHash": "ba4dcba9d25fb1072b3ab5bc09ce50d5ceb3ce7961f7d157736b2d2b8fe25403",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 942,
+      "hasStructuralAnalysis": true
+    },
+    "api/index.ts": {
+      "filePath": "api/index.ts",
+      "contentHash": "a12b87474f96d9eab1133f27a9f56cadfee0589ee9fab8802e9638a1515a78a0",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@hono/node-server",
+          "specifiers": [
+            "getRequestListener"
+          ]
+        },
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "../backend/src/app.js",
+          "specifiers": [
+            "createApp"
+          ]
+        }
+      ],
+      "exports": [
+        "app"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "api/tsconfig.json": {
+      "filePath": "api/tsconfig.json",
+      "contentHash": "01d0082ec208bd06cad9f1c6a3b7aded9bbd9ea67a5ec93994d7845e88ce66bd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "backend/.env.example": {
+      "filePath": "backend/.env.example",
+      "contentHash": "dec1f78fa9ce8ea5757f52e3d34d3b96783c542eab8a0973793d618f711a665b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "backend/package.json": {
+      "filePath": "backend/package.json",
+      "contentHash": "419e04b690533bb812bc8dafb44fc7bb6091c0987b304fef60b131ad4a3e26b0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/app.ts": {
+      "filePath": "backend/src/app.ts",
+      "contentHash": "dbcee141069110e4b60a600f006690a76fa485f892ea67b0929d2826ea893781",
+      "functions": [
+        {
+          "name": "createApp",
+          "params": [
+            "config",
+            "dependencies"
+          ],
+          "exported": true,
+          "lineCount": 49
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema"
+          ]
+        },
+        {
+          "source": "./config.js",
+          "specifiers": [
+            "createAppConfig",
+            "AppConfig"
+          ]
+        },
+        {
+          "source": "./middleware/accessGate.js",
+          "specifiers": [
+            "createAccessGateMiddleware"
+          ]
+        },
+        {
+          "source": "./middleware/cors.js",
+          "specifiers": [
+            "createCorsMiddleware"
+          ]
+        },
+        {
+          "source": "./middleware/securityHeaders.js",
+          "specifiers": [
+            "securityHeaders"
+          ]
+        },
+        {
+          "source": "./routes/health.js",
+          "specifiers": [
+            "healthRoute"
+          ]
+        },
+        {
+          "source": "./routes/realtime.js",
+          "specifiers": [
+            "createRealtimeRoute"
+          ]
+        },
+        {
+          "source": "./routes/rooms.js",
+          "specifiers": [
+            "createRoomsRoute"
+          ]
+        },
+        {
+          "source": "./services/liveKitRooms.js",
+          "specifiers": [
+            "createLiveKitRoomService"
+          ]
+        }
+      ],
+      "exports": [
+        "createApp",
+        "app"
+      ],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/config.ts": {
+      "filePath": "backend/src/config.ts",
+      "contentHash": "f9d0e3fecf7179fc6bb183ba5e4e826beb56170c02a220280abf6d558994b888",
+      "functions": [
+        {
+          "name": "parseAllowedOrigins",
+          "params": [
+            "value"
+          ],
+          "returnType": "readonly string[]",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "parsePort",
+          "params": [
+            "value"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "parseIntegerInRange",
+          "params": [
+            "value",
+            "fallback",
+            "min",
+            "max"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "parseAccessPasswords",
+          "params": [
+            "value"
+          ],
+          "returnType": "readonly string[]",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "createAppConfig",
+          "params": [
+            "env"
+          ],
+          "returnType": "AppConfig",
+          "exported": true,
+          "lineCount": 68
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "createAppConfig"
+      ],
+      "totalLines": 127,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/middleware/accessGate.ts": {
+      "filePath": "backend/src/middleware/accessGate.ts",
+      "contentHash": "19b3a5ba29b5eab3025df3021abaac35a561e74aa50126bffacbb1be2be4a60d",
+      "functions": [
+        {
+          "name": "sha256",
+          "params": [
+            "value"
+          ],
+          "returnType": "Buffer",
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "createAccessGateMiddleware",
+          "params": [
+            "passwords"
+          ],
+          "returnType": "MiddlewareHandler",
+          "exported": true,
+          "lineCount": 38
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:crypto",
+          "specifiers": [
+            "createHash",
+            "timingSafeEqual"
+          ]
+        },
+        {
+          "source": "hono",
+          "specifiers": [
+            "MiddlewareHandler"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema"
+          ]
+        }
+      ],
+      "exports": [
+        "createAccessGateMiddleware"
+      ],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/middleware/cors.ts": {
+      "filePath": "backend/src/middleware/cors.ts",
+      "contentHash": "3ebaa3d9ee4b0f822251d4bd287dfcda61e5e313bfb130f84eba25f0cd1df21e",
+      "functions": [
+        {
+          "name": "createCorsMiddleware",
+          "params": [
+            "config"
+          ],
+          "returnType": "MiddlewareHandler",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "MiddlewareHandler"
+          ]
+        },
+        {
+          "source": "../config.js",
+          "specifiers": [
+            "AppConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "createCorsMiddleware"
+      ],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/middleware/rateLimit.ts": {
+      "filePath": "backend/src/middleware/rateLimit.ts",
+      "contentHash": "16539f839b526faa5bc1c433f0223931500e9a42cfbd47d91655bc6b0cb10b22",
+      "functions": [
+        {
+          "name": "clientKeyFromHeaders",
+          "params": [
+            "headers"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "pruneEntries",
+          "params": [
+            "entries",
+            "now",
+            "maxEntries"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "createRateLimitMiddleware",
+          "params": [
+            "{\n  maxRequests,\n  windowMs,\n  maxEntries = 1_000\n}"
+          ],
+          "returnType": "MiddlewareHandler",
+          "exported": true,
+          "lineCount": 36
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "MiddlewareHandler"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema"
+          ]
+        }
+      ],
+      "exports": [
+        "createRateLimitMiddleware"
+      ],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/middleware/securityHeaders.ts": {
+      "filePath": "backend/src/middleware/securityHeaders.ts",
+      "contentHash": "3c65a04d870e9ef1a23b2077d247c44b8b03885fc77240ee6bd430f7bbda3002",
+      "functions": [
+        {
+          "name": "securityHeaders",
+          "params": [
+            "c",
+            "next"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "MiddlewareHandler"
+          ]
+        }
+      ],
+      "exports": [
+        "securityHeaders"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/routes/health.ts": {
+      "filePath": "backend/src/routes/health.ts",
+      "contentHash": "10b0926669b11698637679c601c475c15bd668e4ab2d9ba24e77bd46e119699c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "healthResponseSchema"
+          ]
+        }
+      ],
+      "exports": [
+        "healthRoute"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/routes/realtime.ts": {
+      "filePath": "backend/src/routes/realtime.ts",
+      "contentHash": "b836cdb04ed9b391b0cc516c52e29f453343e6f5ac021c25fd213614d2fb037c",
+      "functions": [
+        {
+          "name": "createRequestId",
+          "params": [],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "createRealtimeRoute",
+          "params": [
+            "config",
+            "dependencies"
+          ],
+          "exported": true,
+          "lineCount": 81
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:crypto",
+          "specifiers": [
+            "randomUUID"
+          ]
+        },
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema",
+            "realtimeTokenRequestSchema"
+          ]
+        },
+        {
+          "source": "../config.js",
+          "specifiers": [
+            "AppConfig"
+          ]
+        },
+        {
+          "source": "../middleware/rateLimit.js",
+          "specifiers": [
+            "createRateLimitMiddleware"
+          ]
+        },
+        {
+          "source": "../services/openAiRealtime.js",
+          "specifiers": [
+            "createOpenAiRealtimeService",
+            "OpenAiRealtimeError"
+          ]
+        }
+      ],
+      "exports": [
+        "createRealtimeRoute"
+      ],
+      "totalLines": 103,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/routes/rooms.ts": {
+      "filePath": "backend/src/routes/rooms.ts",
+      "contentHash": "1132ac62f35a18fc9fbefec53674e3edaaab3f854d995abde3d7e29bc5d09976",
+      "functions": [
+        {
+          "name": "parseJsonBody",
+          "params": [
+            "request"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "createRoomsRoute",
+          "params": [
+            "config",
+            "dependencies"
+          ],
+          "exported": true,
+          "lineCount": 111
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema",
+            "roomCreateResponseSchema",
+            "roomIdSchema",
+            "roomTokenRequestSchema",
+            "roomTokenResponseSchema"
+          ]
+        },
+        {
+          "source": "../config.js",
+          "specifiers": [
+            "AppConfig"
+          ]
+        },
+        {
+          "source": "../middleware/rateLimit.js",
+          "specifiers": [
+            "createRateLimitMiddleware"
+          ]
+        },
+        {
+          "source": "../services/liveKitRooms.js",
+          "specifiers": [
+            "createLiveKitRoomService",
+            "LiveKitRoomError"
+          ]
+        }
+      ],
+      "exports": [
+        "createRoomsRoute"
+      ],
+      "totalLines": 138,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/server.ts": {
+      "filePath": "backend/src/server.ts",
+      "contentHash": "5c137ff843c566580b4627304ff3d2f3615772be10e6a6828b330be83935c3f8",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@hono/node-server",
+          "specifiers": [
+            "serve"
+          ]
+        },
+        {
+          "source": "./app.js",
+          "specifiers": [
+            "app"
+          ]
+        },
+        {
+          "source": "./config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/services/liveKitRooms.ts": {
+      "filePath": "backend/src/services/liveKitRooms.ts",
+      "contentHash": "4dfaadd533390126525083ee76730f68eeff99c87a9dd0fd7242f09f6d895be0",
+      "functions": [
+        {
+          "name": "toLiveKitHttpUrl",
+          "params": [
+            "url"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "createRandomId",
+          "params": [
+            "prefix"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "isAlreadyExistsError",
+          "params": [
+            "error"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "assertLiveKitConfig",
+          "params": [
+            "config"
+          ],
+          "returnType": "{\n  readonly liveKitUrl: string;\n  readonly liveKitApiKey: string;\n  readonly liveKitApiSecret: string;\n}",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "defaultTokenSigner",
+          "params": [
+            "{\n  roomId,\n  participantIdentity,\n  displayName,\n  ttlSeconds,\n  apiKey,\n  apiSecret\n}"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "createLiveKitRoomService",
+          "params": [
+            "config",
+            "{\n    now = () => new Date(),\n    roomService,\n    tokenSigner = defaultTokenSigner,\n    randomId = createRandomId\n  }"
+          ],
+          "exported": true,
+          "lineCount": 89
+        }
+      ],
+      "classes": [
+        {
+          "name": "LiveKitRoomError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "node:crypto",
+          "specifiers": [
+            "randomBytes"
+          ]
+        },
+        {
+          "source": "livekit-server-sdk",
+          "specifiers": [
+            "AccessToken",
+            "RoomServiceClient",
+            "CreateOptions"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "participantIdentitySchema",
+            "roomCreateResponseSchema",
+            "roomIdSchema",
+            "roomTokenResponseSchema",
+            "RoomCreateResponse",
+            "RoomTokenRequest",
+            "RoomTokenResponse"
+          ]
+        },
+        {
+          "source": "../config.js",
+          "specifiers": [
+            "AppConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "LiveKitRoomError",
+        "createLiveKitRoomService"
+      ],
+      "totalLines": 191,
+      "hasStructuralAnalysis": true
+    },
+    "backend/src/services/openAiRealtime.ts": {
+      "filePath": "backend/src/services/openAiRealtime.ts",
+      "contentHash": "ab06d7ec77f522ec6d502fde983c74abf08b4b2a15d193d66d0e7c81cba2d71c",
+      "functions": [
+        {
+          "name": "isAbortError",
+          "params": [
+            "error"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "unixSecondsToIso",
+          "params": [
+            "value"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "parseOpenAiClientSecretResponse",
+          "params": [
+            "payload"
+          ],
+          "returnType": "RealtimeTokenResponse",
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "createOpenAiRealtimeService",
+          "params": [
+            "config",
+            "fetchImpl"
+          ],
+          "exported": true,
+          "lineCount": 83
+        }
+      ],
+      "classes": [
+        {
+          "name": "OpenAiRealtimeError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "openAiRealtimeTranslationCallsUrl",
+            "realtimeTokenResponseSchema",
+            "RealtimeTokenRequest",
+            "RealtimeTokenResponse"
+          ]
+        },
+        {
+          "source": "../config.js",
+          "specifiers": [
+            "AppConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "OpenAiRealtimeError",
+        "createOpenAiRealtimeService"
+      ],
+      "totalLines": 167,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tsconfig.json": {
+      "filePath": "backend/tsconfig.json",
+      "contentHash": "69d9b8abfb6eb7aa90a2398dacf7041a905e70857378ad0ae0a8dde1a5ba10ba",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tsconfig.test.json": {
+      "filePath": "backend/tsconfig.test.json",
+      "contentHash": "4f837cd041680c97d26ade6dc147eecacf3599c24026ad912c2bd0b528f941c4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "backend/vitest.config.ts": {
+      "filePath": "backend/vitest.config.ts",
+      "contentHash": "3014c2eb4b5a3f999db9e0dc11bd26040d86ef2bc0fbb2513a41b26cf7884efd",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "vitest/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "c29dc5af90587c7d34a9955f14379bd20c5066056d259c9718f992382bc926ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "components.json": {
+      "filePath": "components.json",
+      "contentHash": "c67ea8c86d79d7868bd3fa2881e25f8dd5c8a50610da8e9727a4e3353300093d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "docs/_generated/00_repo_context.md": {
+      "filePath": "docs/_generated/00_repo_context.md",
+      "contentHash": "c491f4c853580725f34cb4764c0491e90908765185239de2cf6cd16db1cac7c4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
+    "docs/_generated/01_architecture_map.md": {
+      "filePath": "docs/_generated/01_architecture_map.md",
+      "contentHash": "143b329a0bb93cb2e54d4c01785a2b7b2062ef14ff6223f233267636b5cff54d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "docs/_generated/02_folder_structure.md": {
+      "filePath": "docs/_generated/02_folder_structure.md",
+      "contentHash": "736e261560bfbaa949086973ac11fded030fe051000d728402deed87fb9283a4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "docs/_generated/03_file_index.md": {
+      "filePath": "docs/_generated/03_file_index.md",
+      "contentHash": "a7bd3be911f6d1cfe27a851c2983ba6f8a6f2773930371a958685534dafccc46",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    "docs/_generated/04_readme_gap_analysis.md": {
+      "filePath": "docs/_generated/04_readme_gap_analysis.md",
+      "contentHash": "92ef01fb465faf38bec14d61b1d8f3693544c90a5d7294e3a57f703a5b014883",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/plans/2026-05-24-access-gate.md": {
+      "filePath": "docs/superpowers/plans/2026-05-24-access-gate.md",
+      "contentHash": "e17436a648cda9db526562e54f051ca3a7a812504ec0d4d34a5cc24093e7f57d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1629,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/plans/2026-05-26-they-speak-auto-default.md": {
+      "filePath": "docs/superpowers/plans/2026-05-26-they-speak-auto-default.md",
+      "contentHash": "7f21322360c6dbff308a2abf98084c6f1eb6624b577876d0f4eef0f7ba46bfa8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 758,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-24-access-gate-design.md": {
+      "filePath": "docs/superpowers/specs/2026-05-24-access-gate-design.md",
+      "contentHash": "81029d973fffd6936e298dc03623318677744767f1c347d6cc65ae5333c132a8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 303,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-26-they-speak-auto-default-design.md": {
+      "filePath": "docs/superpowers/specs/2026-05-26-they-speak-auto-default-design.md",
+      "contentHash": "10a5dddef42be404b110b1cb871d4259df8ca0f3f208852d596e0b61b9f77642",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 136,
+      "hasStructuralAnalysis": true
+    },
+    "docs/ux-redesign-plan.md": {
+      "filePath": "docs/ux-redesign-plan.md",
+      "contentHash": "167a774a15e371eaac440d108232b3829fa8f61f3951f630f099674d4a623f85",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 483,
+      "hasStructuralAnalysis": true
+    },
+    "eslint.config.js": {
+      "filePath": "eslint.config.js",
+      "contentHash": "1032269e8fc5fa875393151362523ec4a142456f754ce178ca4da62e06154b69",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@eslint/js",
+          "specifiers": [
+            "js"
+          ]
+        },
+        {
+          "source": "eslint-plugin-react-hooks",
+          "specifiers": [
+            "reactHooks"
+          ]
+        },
+        {
+          "source": "typescript-eslint",
+          "specifiers": [
+            "tseslint"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/.env.example": {
+      "filePath": "frontend/.env.example",
+      "contentHash": "9d7c579b5c80e92fa29d0828644523fb7e861dc3d93b96b7587d5299732893e3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/index.html": {
+      "filePath": "frontend/index.html",
+      "contentHash": "e09313639ccf99fc78b48c51ecc8eea2843d34248b7cdc4097c358c9c1e665d1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/package.json": {
+      "filePath": "frontend/package.json",
+      "contentHash": "dccbdf231347ad2126be54aa232ffc37d4cdaa82e9997d26fab7740906ede623",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/public/favicons/site.webmanifest": {
+      "filePath": "frontend/public/favicons/site.webmanifest",
+      "contentHash": "215fe2a1bdbfb3fb0c4a3c3a3b5f1accbcf86f99debed767e2d5ab17e83643bd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/src/accessGate.ts": {
+      "filePath": "frontend/src/accessGate.ts",
+      "contentHash": "7ca72e6c14839047ca5cbc9ffa4ea09c9926726ba232059d89e2217719a03f28",
+      "functions": [
+        {
+          "name": "getStoredPassword",
+          "params": [],
+          "returnType": "string | null",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "setStoredPassword",
+          "params": [
+            "value"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "clearStoredPassword",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "AccessDeniedError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "getStoredPassword",
+        "setStoredPassword",
+        "clearStoredPassword",
+        "AccessDeniedError"
+      ],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/App.tsx": {
+      "filePath": "frontend/src/App.tsx",
+      "contentHash": "e6ec8a4add7b54b692bd3deece5ccdc393fdc1e269ce856c62fb0948e79b4619",
+      "functions": [
+        {
+          "name": "getRecordingExtension",
+          "params": [
+            "mimeType"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "splitSentences",
+          "params": [
+            "text"
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "isDevModeFromUrl",
+          "params": [],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "roomIdFromPathname",
+          "params": [],
+          "returnType": "string | null",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "createBrowserParticipantIdentity",
+          "params": [],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "participantIdentityStorageKey",
+          "params": [
+            "roomId"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "getParticipantIdentityForRoom",
+          "params": [
+            "roomId"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "readStoredLanguage",
+          "params": [
+            "key"
+          ],
+          "returnType": "string | null",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "writeStoredLanguage",
+          "params": [
+            "key",
+            "value"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "initialRemoteSource",
+          "params": [],
+          "returnType": "Language",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "initialRemoteTarget",
+          "params": [],
+          "returnType": "Language",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "App",
+          "params": [],
+          "exported": true,
+          "lineCount": 1094
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useMemo",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "livekit-client",
+          "specifiers": [
+            "LocalVideoTrack",
+            "RemoteVideoTrack"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "ConversationMode",
+            "RealtimeTokenRequest",
+            "RealtimeTokenResponse"
+          ]
+        },
+        {
+          "source": "./accessGate",
+          "specifiers": [
+            "AccessDeniedError",
+            "getStoredPassword",
+            "setStoredPassword"
+          ]
+        },
+        {
+          "source": "./components/brand/languages",
+          "specifiers": [
+            "AUTO_LANGUAGE",
+            "findLanguage",
+            "LANGUAGES",
+            "isAutoLanguage",
+            "Language"
+          ]
+        },
+        {
+          "source": "./components/screens/AccessGateModal",
+          "specifiers": [
+            "AccessGateModal"
+          ]
+        },
+        {
+          "source": "./components/screens/Lobby",
+          "specifiers": [
+            "Lobby"
+          ]
+        },
+        {
+          "source": "./components/screens/ListenerSurface",
+          "specifiers": [
+            "ListenerSurface"
+          ]
+        },
+        {
+          "source": "./components/screens/TurnaboutSurface",
+          "specifiers": [
+            "TurnaboutSurface",
+            "ConversationTurn"
+          ]
+        },
+        {
+          "source": "./components/screens/PracticeSurface",
+          "specifiers": [
+            "PracticeSurface",
+            "PracticeStage"
+          ]
+        },
+        {
+          "source": "./components/screens/RemoteRoomSurface",
+          "specifiers": [
+            "RemoteRoomSurface",
+            "RemoteRoomStatus"
+          ]
+        },
+        {
+          "source": "./components/screens/Summary",
+          "specifiers": [
+            "Summary"
+          ]
+        },
+        {
+          "source": "./components/screens/TranscriptSheet",
+          "specifiers": [
+            "TranscriptSheet"
+          ]
+        },
+        {
+          "source": "./components/session/SessionHeader",
+          "specifiers": [
+            "SessionHeader"
+          ]
+        },
+        {
+          "source": "./components/session/DevDrawer",
+          "specifiers": [
+            "DevDrawer"
+          ]
+        },
+        {
+          "source": "./liveKitRemoteRoomSession",
+          "specifiers": [
+            "createLiveKitRemoteRoomSession",
+            "RemoteRoomSession"
+          ]
+        },
+        {
+          "source": "./realtimeTokenClient",
+          "specifiers": [
+            "RealtimeTokenClientError",
+            "requestRealtimeToken"
+          ]
+        },
+        {
+          "source": "./realtimeTranslationSession",
+          "specifiers": [
+            "createRealtimeTranslationSession",
+            "RealtimeTranslationSessionError",
+            "RealtimeTranslationSession",
+            "TranscriptDelta"
+          ]
+        },
+        {
+          "source": "./roomTokenClient",
+          "specifiers": [
+            "requestRoomCreate",
+            "RoomTokenClientError"
+          ]
+        }
+      ],
+      "exports": [
+        "App"
+      ],
+      "totalLines": 1220,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/brand/Icons.tsx": {
+      "filePath": "frontend/src/components/brand/Icons.tsx",
+      "contentHash": "c132cfaa08b0857014265caba1a97e8a68688b0f3ed1ceb6db987ac08149a1ce",
+      "functions": [
+        {
+          "name": "STIcon",
+          "params": [
+            "{\n  name,\n  size = 20,\n  color = 'currentColor',\n  style,\n  ...rest\n}"
+          ],
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "CSSProperties",
+            "SVGProps"
+          ]
+        }
+      ],
+      "exports": [
+        "STIcon"
+      ],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/brand/LanguagePicker.tsx": {
+      "filePath": "frontend/src/components/brand/LanguagePicker.tsx",
+      "contentHash": "b1b62b5ed63fb64c4f749228265a068786147d2ef55c751f5acb25cfcb79f8cd",
+      "functions": [
+        {
+          "name": "LangCard",
+          "params": [
+            "{ label, lang, onPick, disabled = false }"
+          ],
+          "exported": true,
+          "lineCount": 74
+        },
+        {
+          "name": "LanguagePickerSheet",
+          "params": [
+            "{\n  open,\n  value,\n  onPick,\n  onClose,\n  title = 'PICK LANGUAGE',\n  languages = LANGUAGES\n}"
+          ],
+          "exported": true,
+          "lineCount": 164
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useMemo",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "./Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "./primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST"
+          ]
+        },
+        {
+          "source": "./languages",
+          "specifiers": [
+            "LANGUAGES",
+            "Language"
+          ]
+        }
+      ],
+      "exports": [
+        "LangCard",
+        "LanguagePickerSheet"
+      ],
+      "totalLines": 262,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/brand/languages.ts": {
+      "filePath": "frontend/src/components/brand/languages.ts",
+      "contentHash": "daf216bf4e26bd334b0b39c53a15ce803c1f5efdc967d8c0c706dab96f2fb46d",
+      "functions": [
+        {
+          "name": "findLanguage",
+          "params": [
+            "bcp47"
+          ],
+          "returnType": "Language",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "isAutoLanguage",
+          "params": [
+            "lang"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "AUTO_LANGUAGE",
+        "LANGUAGES",
+        "findLanguage",
+        "isAutoLanguage"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/brand/ModeSegmented.tsx": {
+      "filePath": "frontend/src/components/brand/ModeSegmented.tsx",
+      "contentHash": "6ab90305a1ebc6f011b7ed979e031f836f2f9329cfb0afe648b407bab5318b20",
+      "functions": [
+        {
+          "name": "ModeSegmented",
+          "params": [
+            "{ value, onChange }"
+          ],
+          "exported": true,
+          "lineCount": 47
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "ConversationMode"
+          ]
+        },
+        {
+          "source": "./Icons",
+          "specifiers": [
+            "STIcon",
+            "IconName"
+          ]
+        },
+        {
+          "source": "./primitives",
+          "specifiers": [
+            "FONT_DISPLAY",
+            "ST"
+          ]
+        }
+      ],
+      "exports": [
+        "ModeSegmented"
+      ],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/brand/primitives.tsx": {
+      "filePath": "frontend/src/components/brand/primitives.tsx",
+      "contentHash": "0988e15c2d04e680add80722dcc106ef7ca29837d594533102513f9114d1c0b0",
+      "functions": [
+        {
+          "name": "STButton",
+          "params": [
+            "{\n  children,\n  variant = 'primary',\n  size = 'md',\n  full = false,\n  icon,\n  type = 'button',\n  disabled = false,\n  onMouseDown,\n  onMouseUp,\n  onMouseLeave,\n  style,\n  ...rest\n}"
+          ],
+          "exported": true,
+          "lineCount": 64
+        },
+        {
+          "name": "STCard",
+          "params": [
+            "{\n  children,\n  tone = 'white',\n  onClick,\n  style,\n  padding = 18\n}"
+          ],
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "STTitle",
+          "params": [
+            "{\n  children,\n  size = 40,\n  color = ST.white,\n  stroke = 3,\n  shadow = 5,\n  as: Tag = 'div',\n  style,\n  id\n}"
+          ],
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "STChip",
+          "params": [
+            "{\n  children,\n  color = ST.white,\n  fg = ST.navy,\n  icon,\n  stroke = true\n}"
+          ],
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "STPill",
+          "params": [
+            "{\n  children,\n  color = ST.yellow,\n  fg = ST.navy,\n  icon\n}"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "LiveDot",
+          "params": [
+            "{ color = ST.cyan }"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState",
+            "ButtonHTMLAttributes",
+            "CSSProperties",
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "./Icons",
+          "specifiers": [
+            "STIcon",
+            "IconName"
+          ]
+        }
+      ],
+      "exports": [
+        "ST",
+        "FONT_DISPLAY",
+        "FONT_BODY",
+        "NEBULA",
+        "STButton",
+        "STCard",
+        "STTitle",
+        "STChip",
+        "STPill",
+        "LiveDot"
+      ],
+      "totalLines": 290,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/brand/VideoTile.tsx": {
+      "filePath": "frontend/src/components/brand/VideoTile.tsx",
+      "contentHash": "16ef30eaacba16eb8760b078d3e05dd6d58d57094ba4e012936315c5f6a63114",
+      "functions": [
+        {
+          "name": "initialOf",
+          "params": [
+            "name"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "Pill",
+          "params": [
+            "{\n  bg,\n  fg,\n  children\n}"
+          ],
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "VideoTile",
+          "params": [
+            "{\n  tone,\n  displayName,\n  language,\n  isLocal,\n  isMicMuted,\n  isSpeaking,\n  videoTrack,\n  onToggleMic,\n  onLanguageClick,\n  waiting = false\n}"
+          ],
+          "exported": true,
+          "lineCount": 210
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef"
+          ]
+        },
+        {
+          "source": "livekit-client",
+          "specifiers": [
+            "LocalVideoTrack",
+            "RemoteVideoTrack"
+          ]
+        },
+        {
+          "source": "./Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "./languages",
+          "specifiers": [
+            "Language"
+          ]
+        },
+        {
+          "source": "./primitives",
+          "specifiers": [
+            "FONT_DISPLAY",
+            "ST"
+          ]
+        }
+      ],
+      "exports": [
+        "VideoTile"
+      ],
+      "totalLines": 289,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/AccessGateModal.tsx": {
+      "filePath": "frontend/src/components/screens/AccessGateModal.tsx",
+      "contentHash": "6a9acedc2b18db35876fbaf7be138922a0f516bc736a1b8903db403ac2c50abf",
+      "functions": [
+        {
+          "name": "AccessGateModal",
+          "params": [
+            "{ open, errorMessage, onSubmit, onClose }"
+          ],
+          "exported": true,
+          "lineCount": 141
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST",
+            "STButton"
+          ]
+        }
+      ],
+      "exports": [
+        "AccessGateModal"
+      ],
+      "totalLines": 154,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/ListenerSurface.tsx": {
+      "filePath": "frontend/src/components/screens/ListenerSurface.tsx",
+      "contentHash": "a6a63b041dc456e700685b9b133101a0275b2e254ef02e57776a467537de6f57",
+      "functions": [
+        {
+          "name": "splitIntoSentences",
+          "params": [
+            "text"
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "ListenerSurface",
+          "params": [
+            "{\n  target,\n  liveText,\n  history,\n  isStreaming,\n  onPause,\n  onOpenTranscript\n}"
+          ],
+          "exported": true,
+          "lineCount": 176
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useMemo"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST",
+            "STButton"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "Language"
+          ]
+        }
+      ],
+      "exports": [
+        "ListenerSurface"
+      ],
+      "totalLines": 197,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/Lobby.tsx": {
+      "filePath": "frontend/src/components/screens/Lobby.tsx",
+      "contentHash": "90004a411af8bebf07466eb56f6fa44908ba5b3db2e722ba0eedc6cf984bdec8",
+      "functions": [
+        {
+          "name": "Lobby",
+          "params": [
+            "{\n  mode,\n  source,\n  target,\n  isLaunching,\n  isCreatingRoom = false,\n  errorMessage,\n  onChangeMode,\n  onChangeSource,\n  onChangeTarget,\n  onSwap,\n  onLaunch,\n  onCreateRoom,\n}"
+          ],
+          "exported": true,
+          "lineCount": 207
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "ConversationMode"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_DISPLAY",
+            "ST",
+            "STButton",
+            "STTitle"
+          ]
+        },
+        {
+          "source": "../brand/LanguagePicker",
+          "specifiers": [
+            "LangCard",
+            "LanguagePickerSheet"
+          ]
+        },
+        {
+          "source": "../brand/ModeSegmented",
+          "specifiers": [
+            "ModeSegmented"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "AUTO_LANGUAGE",
+            "LANGUAGES",
+            "isAutoLanguage",
+            "Language"
+          ]
+        }
+      ],
+      "exports": [
+        "Lobby"
+      ],
+      "totalLines": 248,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/PracticeSurface.tsx": {
+      "filePath": "frontend/src/components/screens/PracticeSurface.tsx",
+      "contentHash": "52e8586bf8acee5d7bd5ae26eb08f1e6161de6a3e6d1556e44ba1057e2b321c8",
+      "functions": [
+        {
+          "name": "normalize",
+          "params": [
+            "s"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "tokenize",
+          "params": [
+            "s"
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "diff",
+          "params": [
+            "attempt",
+            "reference"
+          ],
+          "returnType": "DiffToken[]",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "PracticeSurface",
+          "params": [
+            "{\n  source,\n  target,\n  stage,\n  heardText,\n  modelTranslation,\n  attempt,\n  audioUrl,\n  onStartRecording,\n  onStopRecording,\n  onAttemptChange,\n  onSubmitAttempt,\n  onReveal,\n  onTryAgain,\n  onNextPhrase\n}"
+          ],
+          "exported": true,
+          "lineCount": 266
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useMemo"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST",
+            "STButton",
+            "STCard"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "Language"
+          ]
+        }
+      ],
+      "exports": [
+        "PracticeSurface"
+      ],
+      "totalLines": 324,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/RemoteRoomSurface.tsx": {
+      "filePath": "frontend/src/components/screens/RemoteRoomSurface.tsx",
+      "contentHash": "a5c9ff45665385d28ee98c4ae015d2103cf5ebd4a77f13a84a1911edf92af8af",
+      "functions": [
+        {
+          "name": "PageShell",
+          "params": [
+            "{ children }"
+          ],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "Header",
+          "params": [],
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "RemoteRoomSurface",
+          "params": [
+            "{\n  roomId,\n  roomUrl,\n  source,\n  target,\n  status,\n  participantCount,\n  translatedCaption,\n  originalAudioMuted,\n  errorMessage,\n  localDisplayName,\n  remoteDisplayName,\n  localVideoTrack,\n  remoteVideoTrack,\n  localMicMuted,\n  localCameraEnabled,\n  remoteMicMuted,\n  remoteIsSpeaking,\n  onJoin,\n  onLeave,\n  onToggleOriginalAudio,\n  onToggleLocalMic,\n  onToggleLocalCamera,\n  onCopyLink,\n  onChangeSource,\n  onChangeTarget,\n}"
+          ],
+          "exported": true,
+          "lineCount": 439
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "livekit-client",
+          "specifiers": [
+            "LocalVideoTrack",
+            "RemoteVideoTrack"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/LanguagePicker",
+          "specifiers": [
+            "LangCard",
+            "LanguagePickerSheet"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "AUTO_LANGUAGE",
+            "LANGUAGES",
+            "Language"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST",
+            "STButton",
+            "STCard",
+            "STTitle"
+          ]
+        },
+        {
+          "source": "../brand/VideoTile",
+          "specifiers": [
+            "VideoTile"
+          ]
+        }
+      ],
+      "exports": [
+        "RemoteRoomSurface"
+      ],
+      "totalLines": 552,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/Summary.tsx": {
+      "filePath": "frontend/src/components/screens/Summary.tsx",
+      "contentHash": "9ead5b8f054cd025b972436d35ffa81cc00ac0bff1fb273ece9b89b849880ab0",
+      "functions": [
+        {
+          "name": "Summary",
+          "params": [
+            "{\n  mode,\n  source,\n  target,\n  inputTranscript,\n  outputTranscript,\n  turns,\n  audioUrl,\n  audioFilename,\n  onCopy,\n  onDownloadTranscript,\n  onNewSession,\n}"
+          ],
+          "exported": true,
+          "lineCount": 257
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "ConversationMode"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST",
+            "STButton",
+            "STCard",
+            "STTitle"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "Language"
+          ]
+        },
+        {
+          "source": "./TurnaboutSurface",
+          "specifiers": [
+            "ConversationTurn"
+          ]
+        }
+      ],
+      "exports": [
+        "Summary"
+      ],
+      "totalLines": 279,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/TranscriptSheet.tsx": {
+      "filePath": "frontend/src/components/screens/TranscriptSheet.tsx",
+      "contentHash": "7382e40632cff244e1c869efeffd1e6ecffedff7da1f5a9c62c0f01c6eaad4d5",
+      "functions": [
+        {
+          "name": "TranscriptSheet",
+          "params": [
+            "{\n  open,\n  title,\n  entries,\n  onClose,\n  onCopyAll\n}"
+          ],
+          "exported": true,
+          "lineCount": 119
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST"
+          ]
+        }
+      ],
+      "exports": [
+        "TranscriptSheet"
+      ],
+      "totalLines": 133,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/screens/TurnaboutSurface.tsx": {
+      "filePath": "frontend/src/components/screens/TurnaboutSurface.tsx",
+      "contentHash": "152f1599038c748fd3bb4576d13a8967ca82570a4c723fb044555417204c93f1",
+      "functions": [
+        {
+          "name": "SpeakerBadge",
+          "params": [
+            "{\n  lang,\n  speaking\n}"
+          ],
+          "exported": false,
+          "lineCount": 38
+        },
+        {
+          "name": "Bubble",
+          "params": [
+            "{ turn }"
+          ],
+          "exported": false,
+          "lineCount": 75
+        },
+        {
+          "name": "TurnaboutSurface",
+          "params": [
+            "{\n  source,\n  target,\n  activeSide,\n  turns,\n  recording,\n  liveSrc,\n  liveDst,\n  busy = false,\n  onFlip,\n  onMicDown,\n  onMicUp\n}"
+          ],
+          "exported": true,
+          "lineCount": 167
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "Language"
+          ]
+        }
+      ],
+      "exports": [
+        "TurnaboutSurface"
+      ],
+      "totalLines": 313,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/session/DevDrawer.tsx": {
+      "filePath": "frontend/src/components/session/DevDrawer.tsx",
+      "contentHash": "6adeb13653ba3873693b1a2ec5d7015f562936e9c9ce5d14bae388b9cd8258d6",
+      "functions": [
+        {
+          "name": "Row",
+          "params": [
+            "{ label, value }"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "DevDrawer",
+          "params": [
+            "{\n  open,\n  token,\n  status,\n  recordingStatus,\n  recentDeltas,\n  onClose\n}"
+          ],
+          "exported": true,
+          "lineCount": 112
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "RealtimeTokenResponse"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "ST"
+          ]
+        }
+      ],
+      "exports": [
+        "DevDrawer"
+      ],
+      "totalLines": 140,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/session/SessionHeader.tsx": {
+      "filePath": "frontend/src/components/session/SessionHeader.tsx",
+      "contentHash": "0fe929236a7a09121bf02343fb7d16b72c5d9b5fd9045f83e20ac918bef6e6a6",
+      "functions": [
+        {
+          "name": "formatDuration",
+          "params": [
+            "seconds"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "SessionHeader",
+          "params": [
+            "{\n  mode,\n  source,\n  target,\n  activeSide,\n  status,\n  onExit,\n  onToggleDev\n}"
+          ],
+          "exported": true,
+          "lineCount": 136
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "ConversationMode"
+          ]
+        },
+        {
+          "source": "../brand/Icons",
+          "specifiers": [
+            "STIcon"
+          ]
+        },
+        {
+          "source": "../brand/primitives",
+          "specifiers": [
+            "FONT_BODY",
+            "FONT_DISPLAY",
+            "LiveDot",
+            "ST"
+          ]
+        },
+        {
+          "source": "../brand/languages",
+          "specifiers": [
+            "Language"
+          ]
+        }
+      ],
+      "exports": [
+        "SessionHeader"
+      ],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/liveKitRemoteRoomSession.ts": {
+      "filePath": "frontend/src/liveKitRemoteRoomSession.ts",
+      "contentHash": "c33bbf6564eb05e350789a1d63917a375ff38bd2fb88a72f1f2178f341f9224e",
+      "functions": [
+        {
+          "name": "remoteParticipantsCount",
+          "params": [
+            "room"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "createLiveKitRemoteRoomSession",
+          "params": [
+            "{\n  roomId,\n  roomTokenRequest,\n  realtimeTokenRequest,\n  createRoom = () => new Room({ adaptiveStream: true, dynacast: true }),\n  onParticipantCountChange,\n  onTranscriptDelta,\n  onRemoteAudioActive,\n  onTranslationError,\n  onCameraError,\n  onMicrophoneError,\n  onLocalVideoTrackChange,\n  onLocalMicMuteChange,\n  onLocalCameraEnabledChange,\n  onRemoteVideoTrackChange,\n  onRemoteParticipantChange,\n  onRemoteMicMuteChange,\n  onRemoteSpeakingChange,\n  onRemoteYouHearChange,\n  initialYouHear\n}"
+          ],
+          "returnType": "Promise<RemoteRoomSession>",
+          "exported": true,
+          "lineCount": 347
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "livekit-client",
+          "specifiers": [
+            "LocalVideoTrack",
+            "RemoteAudioTrack",
+            "RemoteVideoTrack",
+            "Room",
+            "RoomEvent",
+            "Track",
+            "LocalTrackPublication",
+            "Participant",
+            "RemoteParticipant",
+            "RemoteTrack",
+            "RemoteTrackPublication",
+            "TrackPublication"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "RealtimeTokenRequest",
+            "RoomTokenRequest"
+          ]
+        },
+        {
+          "source": "./realtimeTranslationSession",
+          "specifiers": [
+            "createRealtimeTranslationSession",
+            "RealtimeTranslationSession",
+            "TranscriptDelta"
+          ]
+        },
+        {
+          "source": "./realtimeTokenClient",
+          "specifiers": [
+            "requestRealtimeToken"
+          ]
+        },
+        {
+          "source": "./roomTokenClient",
+          "specifiers": [
+            "requestRoomToken"
+          ]
+        }
+      ],
+      "exports": [
+        "createLiveKitRemoteRoomSession"
+      ],
+      "totalLines": 412,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/main.tsx": {
+      "filePath": "frontend/src/main.tsx",
+      "contentHash": "d470954a710336379020bb81784216b09dbdaa4a90619a748aff1431446bd690",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "StrictMode"
+          ]
+        },
+        {
+          "source": "react-dom/client",
+          "specifiers": [
+            "createRoot"
+          ]
+        },
+        {
+          "source": "./App",
+          "specifiers": [
+            "App"
+          ]
+        },
+        {
+          "source": "./styles/tokens.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/realtimeTokenClient.ts": {
+      "filePath": "frontend/src/realtimeTokenClient.ts",
+      "contentHash": "4ab382d5afcfd861a0b48636ccf1ba8ffc8376820a7ee444ee081def3a2f320b",
+      "functions": [
+        {
+          "name": "joinUrl",
+          "params": [
+            "baseUrl",
+            "path"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "requestRealtimeToken",
+          "params": [
+            "request",
+            "{ apiBaseUrl = defaultApiBaseUrl, fetchImpl = fetch }"
+          ],
+          "returnType": "Promise<RealtimeTokenResponse>",
+          "exported": true,
+          "lineCount": 89
+        }
+      ],
+      "classes": [
+        {
+          "name": "RealtimeTokenClientError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema",
+            "realtimeTokenRequestSchema",
+            "realtimeTokenResponseSchema",
+            "realtimeTokenRoute",
+            "ApiErrorCode",
+            "RealtimeTokenRequest",
+            "RealtimeTokenResponse"
+          ]
+        },
+        {
+          "source": "./accessGate",
+          "specifiers": [
+            "AccessDeniedError",
+            "clearStoredPassword",
+            "getStoredPassword"
+          ]
+        }
+      ],
+      "exports": [
+        "RealtimeTokenClientError",
+        "requestRealtimeToken"
+      ],
+      "totalLines": 127,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/realtimeTranslationSession.ts": {
+      "filePath": "frontend/src/realtimeTranslationSession.ts",
+      "contentHash": "7b80bff038d2899ed6311df0aa4c945748feba1e961e7574e998625e04f9ae6f",
+      "functions": [
+        {
+          "name": "defaultGetUserMedia",
+          "params": [
+            "constraints"
+          ],
+          "returnType": "Promise<MediaStream>",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "defaultCreateAudioElement",
+          "params": [],
+          "returnType": "HTMLAudioElement",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "parseTranscriptDelta",
+          "params": [
+            "rawData"
+          ],
+          "returnType": "TranscriptDelta | null",
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "throwIfAborted",
+          "params": [
+            "signal"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "abortable",
+          "params": [
+            "promise",
+            "signal"
+          ],
+          "returnType": "Promise<T>",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "createRealtimeTranslationSession",
+          "params": [
+            "{\n  token,\n  signal,\n  getUserMedia = defaultGetUserMedia,\n  createPeerConnection = () => new RTCPeerConnection(),\n  createAudioElement = defaultCreateAudioElement,\n  fetchImpl = fetch,\n  inputStream,\n  stopInputStreamOnStop = inputStream ? false : true,\n  startLocalAudioEnabled = true,\n  onLocalStream,\n  onTranscriptDelta,\n  onRemoteAudio\n}"
+          ],
+          "returnType": "Promise<RealtimeTranslationSession>",
+          "exported": true,
+          "lineCount": 130
+        }
+      ],
+      "classes": [
+        {
+          "name": "RealtimeTranslationSessionError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "RealtimeTokenResponse"
+          ]
+        }
+      ],
+      "exports": [
+        "RealtimeTranslationSessionError",
+        "createRealtimeTranslationSession"
+      ],
+      "totalLines": 234,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/roomTokenClient.ts": {
+      "filePath": "frontend/src/roomTokenClient.ts",
+      "contentHash": "ad57584e3526a66d76051705f4083b725077ffe4a27f2065de6dc3e1d370c728",
+      "functions": [
+        {
+          "name": "joinUrl",
+          "params": [
+            "baseUrl",
+            "path"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "buildHeaders",
+          "params": [
+            "extra"
+          ],
+          "returnType": "Record<string, string>",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "handle401",
+          "params": [
+            "response"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "parseApiError",
+          "params": [
+            "response",
+            "fallback"
+          ],
+          "returnType": "Promise<RoomTokenClientError>",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "requestRoomCreate",
+          "params": [
+            "{\n  apiBaseUrl = defaultApiBaseUrl,\n  fetchImpl = fetch\n}"
+          ],
+          "returnType": "Promise<RoomCreateResponse>",
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "requestRoomToken",
+          "params": [
+            "roomId",
+            "request",
+            "{ apiBaseUrl = defaultApiBaseUrl, fetchImpl = fetch }"
+          ],
+          "returnType": "Promise<RoomTokenResponse>",
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "classes": [
+        {
+          "name": "RoomTokenClientError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "apiErrorSchema",
+            "roomCreateResponseSchema",
+            "roomCreateRoute",
+            "roomIdSchema",
+            "roomTokenRequestSchema",
+            "roomTokenResponseSchema",
+            "roomTokenRoute",
+            "ApiErrorCode",
+            "RoomCreateResponse",
+            "RoomTokenRequest",
+            "RoomTokenResponse"
+          ]
+        },
+        {
+          "source": "./accessGate",
+          "specifiers": [
+            "AccessDeniedError",
+            "clearStoredPassword",
+            "getStoredPassword"
+          ]
+        }
+      ],
+      "exports": [
+        "RoomTokenClientError",
+        "requestRoomCreate",
+        "requestRoomToken"
+      ],
+      "totalLines": 146,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/styles/tokens.css": {
+      "filePath": "frontend/src/styles/tokens.css",
+      "contentHash": "a46cc9c7c1f47b7195fb7e4b69bc89561e44f558529c2f615f972ad382bac75b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 150,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/tsconfig.app.json": {
+      "filePath": "frontend/tsconfig.app.json",
+      "contentHash": "2f1133ebc8cd8b53d5da028e3940601216eeb15d707d22bedd32ca89ccd66d54",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.json": {
+      "filePath": "frontend/tsconfig.json",
+      "contentHash": "770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.node.json": {
+      "filePath": "frontend/tsconfig.node.json",
+      "contentHash": "038bbcce84d5bb3cd2fb10c235cc2f224d6c67dd8a81718f06250c81368cf40c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.test.json": {
+      "filePath": "frontend/tsconfig.test.json",
+      "contentHash": "6c8005df867c298fadf59b82d56dbfb3d897cfabe1f8cf24f9eacd8f0e6e0c94",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/vite.config.ts": {
+      "filePath": "frontend/vite.config.ts",
+      "contentHash": "addb8df9fe3ae580ecc8181c277700ad5c0acf0fffbe5e1efc937a6a639fca87",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-react",
+          "specifiers": [
+            "react"
+          ]
+        },
+        {
+          "source": "vitest/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "3ce67f58b285dfa78c742d95a416330835afcfbbdaf99b317fd8ac439497a370",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "playwright.config.ts": {
+      "filePath": "playwright.config.ts",
+      "contentHash": "fd9cbefa4612f2ecc270303731a11740561839286761e2cd0d2b6ae6d6e6bc83",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "defineConfig",
+            "devices"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "pnpm-workspace.yaml": {
+      "filePath": "pnpm-workspace.yaml",
+      "contentHash": "b3a0259ae30f840893906fad1a231ecde7a4ba206f6658c32e9cd90d99d9337c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "PRD.md": {
+      "filePath": "PRD.md",
+      "contentHash": "2ea6ddbe1f86036980bef4c1eb976d1d51d2da84f632a79b1fc3bda7664a415d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "b0336efa5ec73b95f66c023d8187b7f2f8d0f6fb59f785e8cb2f9923426e62c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 611,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/build_codemap.py": {
+      "filePath": "scripts/agentic/build_codemap.py",
+      "contentHash": "9289b848e17ab9ac42f771d29a28c4e3b67e66a9fde416eac20c42810f2a6dcc",
+      "functions": [
+        {
+          "name": "_die",
+          "params": [
+            "msg",
+            "code"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_load_config",
+          "params": [],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_matches_any",
+          "params": [
+            "path",
+            "globs"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "_is_default_ignored",
+          "params": [
+            "path"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_ignored_basenames",
+          "params": [
+            "ignore_globs"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_detect_language",
+          "params": [
+            "name"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_detect_subsystem",
+          "params": [
+            "rel_path",
+            "keywords_by_subsystem"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "_detect_risk_tags",
+          "params": [
+            "rel_path",
+            "patterns"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_related_tests",
+          "params": [
+            "rel_path",
+            "test_globs",
+            "all_paths"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_walk",
+          "params": [
+            "root",
+            "ignore_globs"
+          ],
+          "returnType": "tuple[list[str], list[str]]",
+          "exported": true,
+          "lineCount": 45
+        },
+        {
+          "name": "_build_entries",
+          "params": [
+            "dirs",
+            "files",
+            "cfg"
+          ],
+          "returnType": "list[dict[str, Any]]",
+          "exported": true,
+          "lineCount": 89
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "_dt"
+          ]
+        },
+        {
+          "source": "fnmatch",
+          "specifiers": [
+            "fnmatch"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path",
+            "PurePosixPath"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        }
+      ],
+      "exports": [
+        "_die",
+        "_load_config",
+        "_matches_any",
+        "_is_default_ignored",
+        "_ignored_basenames",
+        "_detect_language",
+        "_detect_subsystem",
+        "_detect_risk_tags",
+        "_related_tests",
+        "_walk",
+        "_build_entries",
+        "main"
+      ],
+      "totalLines": 362,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/graph_sync.py": {
+      "filePath": "scripts/agentic/graph_sync.py",
+      "contentHash": "7cdba38c4bb7e6966c41773d9963f4b0430ef6a97779598fdb5efed24e322605",
+      "functions": [
+        {
+          "name": "_load_config",
+          "params": [],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_iso_utc",
+          "params": [
+            "ts"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_hours_since",
+          "params": [
+            "mtime"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_sample_paths_resolve",
+          "params": [
+            "graph",
+            "sample_size"
+          ],
+          "returnType": "tuple[int, int]",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "_graph_node_count",
+          "params": [
+            "graph"
+          ],
+          "returnType": "int | None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_build_managed_block",
+          "params": [
+            "provider",
+            "graph_path",
+            "available",
+            "fallback",
+            "last_generated",
+            "parseable",
+            "non_empty",
+            "sample_hits",
+            "sample_count",
+            "node_count",
+            "stale"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "_splice_managed",
+          "params": [
+            "existing",
+            "new_managed"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 84
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        }
+      ],
+      "exports": [
+        "_load_config",
+        "_iso_utc",
+        "_hours_since",
+        "_sample_paths_resolve",
+        "_graph_node_count",
+        "_build_managed_block",
+        "_splice_managed",
+        "main"
+      ],
+      "totalLines": 258,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/README.md": {
+      "filePath": "scripts/agentic/README.md",
+      "contentHash": "62a346b9baea2f16834eaafe548b44b6863f6a33705731e30e991af3138a0cf5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/route_task.py": {
+      "filePath": "scripts/agentic/route_task.py",
+      "contentHash": "f5ea08c561509f663a7e381bad3e576a4ba909d4fe9cb18f1f17896bea320dba",
+      "functions": [
+        {
+          "name": "_die",
+          "params": [
+            "msg",
+            "code"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_load_json",
+          "params": [
+            "path"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_tokenize",
+          "params": [
+            "text"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_word_forms",
+          "params": [
+            "token"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_expanded_task_tokens",
+          "params": [
+            "task_tokens"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_load_graph",
+          "params": [
+            "path"
+          ],
+          "returnType": "dict[str, Any] | None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_index_graph",
+          "params": [
+            "graph"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "_node_score",
+          "params": [
+            "node",
+            "task_tokens",
+            "expanded_tokens"
+          ],
+          "returnType": "tuple[int, list[str]]",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "_explicit_anchors_from_graph",
+          "params": [
+            "task",
+            "idx"
+          ],
+          "returnType": "list[tuple[dict[str, Any], str]]",
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "_file_node_for_path",
+          "params": [
+            "idx",
+            "file_path"
+          ],
+          "returnType": "dict[str, Any] | None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_expand_dependencies",
+          "params": [
+            "idx",
+            "anchor_node"
+          ],
+          "returnType": "list[tuple[str, str]]",
+          "exported": true,
+          "lineCount": 45
+        },
+        {
+          "name": "_glob_to_regex",
+          "params": [
+            "pattern"
+          ],
+          "returnType": "re.Pattern[str]",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "_glob_match",
+          "params": [
+            "pattern",
+            "path"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_risk_tags_for",
+          "params": [
+            "paths",
+            "high_risk_patterns"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "_subsystem_for_path",
+          "params": [
+            "path",
+            "valid_subsystems"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "_valid_subsystems",
+          "params": [
+            "subsystem_keywords"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_subsystem_keyword_overlay",
+          "params": [
+            "task_tokens",
+            "subsystem_keywords"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "_is_test_path",
+          "params": [
+            "path",
+            "test_discovery"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_related_tests_for",
+          "params": [
+            "selected_paths",
+            "test_discovery"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 59
+        },
+        {
+          "name": "_codemap_routing",
+          "params": [
+            "task_tokens",
+            "subsystem_keywords",
+            "valid_subsystems",
+            "codemap_path"
+          ],
+          "returnType": "tuple[list[str], dict[str, str], set[str]]",
+          "exported": true,
+          "lineCount": 57
+        },
+        {
+          "name": "_filesystem_anchors",
+          "params": [
+            "task"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "_compute_confidence",
+          "params": [
+            "graph_available",
+            "fallback_active",
+            "has_explicit_anchors",
+            "selected_paths_count",
+            "related_tests_count",
+            "selected_subsystems_count"
+          ],
+          "returnType": "tuple[str, list[str]]",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "main",
+          "params": [
+            "argv"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 229
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "_dt"
+          ]
+        },
+        {
+          "source": "fnmatch",
+          "specifiers": [
+            "fnmatch"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterable"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path",
+            "PurePosixPath"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        }
+      ],
+      "exports": [
+        "_die",
+        "_load_json",
+        "_tokenize",
+        "_word_forms",
+        "_expanded_task_tokens",
+        "_load_graph",
+        "_index_graph",
+        "_node_score",
+        "_explicit_anchors_from_graph",
+        "_file_node_for_path",
+        "_expand_dependencies",
+        "_glob_to_regex",
+        "_glob_match",
+        "_risk_tags_for",
+        "_subsystem_for_path",
+        "_valid_subsystems",
+        "_subsystem_keyword_overlay",
+        "_is_test_path",
+        "_related_tests_for",
+        "_codemap_routing",
+        "_filesystem_anchors",
+        "_compute_confidence",
+        "main"
+      ],
+      "totalLines": 882,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/test_smoke.py": {
+      "filePath": "scripts/agentic/test_smoke.py",
+      "contentHash": "c334f00d87e8d9aae3f8c814059e8f05160fde991506e9f19eb07e73da250713",
+      "functions": [
+        {
+          "name": "_load_module",
+          "params": [
+            "name",
+            "filename"
+          ],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "_CwdRepoRoot",
+          "methods": [
+            "__enter__",
+            "__exit__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "GraphSyncSmoke",
+          "methods": [
+            "test_runs_and_updates_graph_index"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "ValidateMemorySmoke",
+          "methods": [
+            "test_runs_clean_against_repo",
+            "test_does_not_create_context_cache_directory"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 70
+        },
+        {
+          "name": "RouteTaskSmoke",
+          "methods": [
+            "_run",
+            "test_bundle_has_v2_contract",
+            "test_user_named_anchor_is_honoured",
+            "test_uses_understand_anything_when_available",
+            "test_user_named_path_not_in_graph_is_anchored"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 78
+        },
+        {
+          "name": "RelatedTestsUnit",
+          "methods": [
+            "setUp",
+            "test_uses_test_discovery_globs_when_provided",
+            "test_falls_back_to_tests_dir_when_no_patterns",
+            "test_skips_test_files_as_sources"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "GlobMatchUnit",
+          "methods": [
+            "setUp",
+            "test_double_star_matches_top_level",
+            "test_double_star_test_globs",
+            "test_single_star_does_not_cross_segments"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "UpdateMemorySmoke",
+          "methods": [
+            "test_runs_and_writes_marker"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "imports": [
+        {
+          "source": "importlib.util",
+          "specifiers": [
+            "importlib.util"
+          ]
+        },
+        {
+          "source": "io",
+          "specifiers": [
+            "io"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "unittest",
+          "specifiers": [
+            "unittest"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "redirect_stdout",
+            "redirect_stderr"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        }
+      ],
+      "exports": [
+        "_load_module",
+        "_CwdRepoRoot",
+        "GraphSyncSmoke",
+        "ValidateMemorySmoke",
+        "RouteTaskSmoke",
+        "RelatedTestsUnit",
+        "GlobMatchUnit",
+        "UpdateMemorySmoke"
+      ],
+      "totalLines": 304,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/update_memory.py": {
+      "filePath": "scripts/agentic/update_memory.py",
+      "contentHash": "3a515f3c57388ca63c089d80f0d59555eb7a08ef3e0520a7925c55a676f58db7",
+      "functions": [
+        {
+          "name": "_load_config",
+          "params": [],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_run_graph_sync",
+          "params": [],
+          "returnType": "tuple[int, str]",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "_git_available",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_git_head",
+          "params": [],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_git_changed_files",
+          "params": [
+            "since_ref"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 42
+        },
+        {
+          "name": "_valid_subsystems",
+          "params": [],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_subsystem_for",
+          "params": [
+            "path",
+            "valid"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "_glob_match",
+          "params": [
+            "pattern",
+            "path"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_risk_tags_for",
+          "params": [
+            "paths",
+            "high_risk_patterns"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "_refresh_freshness_block",
+          "params": [
+            "refreshed_files"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "_save_marker",
+          "params": [
+            "ref"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 81
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fnmatch",
+          "specifiers": [
+            "fnmatch"
+          ]
+        },
+        {
+          "source": "importlib.util",
+          "specifiers": [
+            "importlib.util"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path",
+            "PurePosixPath"
+          ]
+        }
+      ],
+      "exports": [
+        "_load_config",
+        "_run_graph_sync",
+        "_git_available",
+        "_git_head",
+        "_git_changed_files",
+        "_valid_subsystems",
+        "_subsystem_for",
+        "_glob_match",
+        "_risk_tags_for",
+        "_refresh_freshness_block",
+        "_save_marker",
+        "main"
+      ],
+      "totalLines": 326,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/agentic/validate_memory.py": {
+      "filePath": "scripts/agentic/validate_memory.py",
+      "contentHash": "fcd8ddda36c192074e67d846db36974c93e9de4dffc2186ec24d4e17cb7ac9b4",
+      "functions": [
+        {
+          "name": "_hours_since",
+          "params": [
+            "mtime"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_check_required_files",
+          "params": [
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_check_config",
+          "params": [
+            "report"
+          ],
+          "returnType": "dict | None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "_check_graph",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 39
+        },
+        {
+          "name": "_check_region_markers",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "_check_context_cache",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "_check_memory_freshness",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_check_sample_paths",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 46
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 28
+        }
+      ],
+      "classes": [
+        {
+          "name": "Report",
+          "methods": [
+            "__init__",
+            "err",
+            "warn"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        }
+      ],
+      "exports": [
+        "_hours_since",
+        "Report",
+        "_check_required_files",
+        "_check_config",
+        "_check_graph",
+        "_check_region_markers",
+        "_check_context_cache",
+        "_check_memory_freshness",
+        "_check_sample_paths",
+        "main"
+      ],
+      "totalLines": 314,
+      "hasStructuralAnalysis": true
+    },
+    "shared/types/package.json": {
+      "filePath": "shared/types/package.json",
+      "contentHash": "a51c29b32760aba54af8baae2029324ea959dcf5b4c3906a9e8bd1128a282602",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "shared/types/src/index.ts": {
+      "filePath": "shared/types/src/index.ts",
+      "contentHash": "25ff48841822eff6a93a2ee05cdf2b8389cdf23717a1a1a49843cf2bad8dd2d1",
+      "functions": [
+        {
+          "name": "roomTokenRoute",
+          "params": [
+            "roomId"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        }
+      ],
+      "exports": [
+        "realtimeTokenRoute",
+        "roomCreateRoute",
+        "roomTokenRoute",
+        "openAiRealtimeTranslationCallsUrl",
+        "conversationModes",
+        "conversationModeSchema",
+        "languageCodeSchema",
+        "realtimeTokenRequestSchema",
+        "realtimeTokenResponseSchema",
+        "roomIdSchema",
+        "participantIdentitySchema",
+        "roomCreateResponseSchema",
+        "roomTokenRequestSchema",
+        "roomTokenResponseSchema",
+        "apiErrorCodes",
+        "apiErrorCodeSchema",
+        "apiErrorSchema",
+        "healthResponseSchema"
+      ],
+      "totalLines": 147,
+      "hasStructuralAnalysis": true
+    },
+    "shared/types/tsconfig.json": {
+      "filePath": "shared/types/tsconfig.json",
+      "contentHash": "055ddeafeda3cdd9086bee1083c641820095d51b9d92b9045d97841a7e2bebdd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "shared/types/tsconfig.test.json": {
+      "filePath": "shared/types/tsconfig.test.json",
+      "contentHash": "40e73db1f2dd0a77ba47987500bfb73b82d9bd8b6f576f82b471c7ebbe1f3b88",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "shared/types/vitest.config.ts": {
+      "filePath": "shared/types/vitest.config.ts",
+      "contentHash": "ee75d57997bd4838b5dab96ea73c9501293ac8ec33a036d0377e8f1a41967cbe",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "System_Architecture.md": {
+      "filePath": "System_Architecture.md",
+      "contentHash": "6d576e420eb1159822269c400cf20f5c2547db85ca213c9cab16cc3d7a4e4197",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 182,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/integration/accessGate.test.ts": {
+      "filePath": "tests/backend/integration/accessGate.test.ts",
+      "contentHash": "31fc29753a8917d20041f198aad997cf68e6fa1696798fdd1b5d9a3683b7b457",
+      "functions": [
+        {
+          "name": "createJsonResponse",
+          "params": [
+            "body",
+            "status"
+          ],
+          "returnType": "Response",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "createRoomService",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "realtimeRequest",
+          "params": [
+            "headers"
+          ],
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "realtimeTokenRoute",
+            "roomCreateRoute",
+            "roomTokenRoute"
+          ]
+        },
+        {
+          "source": "../../../backend/src/app.js",
+          "specifiers": [
+            "createApp"
+          ]
+        },
+        {
+          "source": "../../../backend/src/config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 160,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/integration/app.test.ts": {
+      "filePath": "tests/backend/integration/app.test.ts",
+      "contentHash": "bda6c691c3bd4f1837f20f4cb493824914d3bed711161c7a44068d25cdf92902",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../backend/src/app.js",
+          "specifiers": [
+            "createApp"
+          ]
+        },
+        {
+          "source": "../../../backend/src/config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/integration/routes/realtime.test.ts": {
+      "filePath": "tests/backend/integration/routes/realtime.test.ts",
+      "contentHash": "b06525f350eefd7c4b04a264b2b559dfd4ac37862fdea0c0cef5289223e15aa1",
+      "functions": [
+        {
+          "name": "createJsonResponse",
+          "params": [
+            "body",
+            "status"
+          ],
+          "returnType": "Response",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "createTestConfig",
+          "params": [
+            "overrides"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "createTokenRequest",
+          "params": [
+            "headers"
+          ],
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "openAiRealtimeTranslationCallsUrl",
+            "realtimeTokenRoute"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/app.js",
+          "specifiers": [
+            "createApp"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 229,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/integration/routes/rooms.test.ts": {
+      "filePath": "tests/backend/integration/routes/rooms.test.ts",
+      "contentHash": "0a53d6f83c9fec6003176c68f1eaf357958f8347a30fab3f05b921da8f229825",
+      "functions": [
+        {
+          "name": "createTestConfig",
+          "params": [
+            "overrides"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "createRoomService",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "roomCreateRoute",
+            "roomTokenRoute"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/app.js",
+          "specifiers": [
+            "createApp"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/services/liveKitRooms.js",
+          "specifiers": [
+            "LiveKitRoomError"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 258,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/integration/vercelAdapter.test.ts": {
+      "filePath": "tests/backend/integration/vercelAdapter.test.ts",
+      "contentHash": "f130fcf24222eda71d39d48e8d6155dfc003f3109407def51d90228a34851fa2",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../api/index.js",
+          "specifiers": [
+            "app"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/unit/config.test.ts": {
+      "filePath": "tests/backend/unit/config.test.ts",
+      "contentHash": "33a9f6363b27a923fc3d715a2906731e44582e068855d992853c07f140c772d2",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../backend/src/config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/unit/middleware/accessGate.test.ts": {
+      "filePath": "tests/backend/unit/middleware/accessGate.test.ts",
+      "contentHash": "9d6452a89b7a4ce28cd827c2e86b4b0ab71d33d6f576af256fbb133e1f8db153",
+      "functions": [
+        {
+          "name": "buildApp",
+          "params": [
+            "passwords"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/middleware/accessGate.js",
+          "specifiers": [
+            "createAccessGateMiddleware"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/unit/services/liveKitRooms.test.ts": {
+      "filePath": "tests/backend/unit/services/liveKitRooms.test.ts",
+      "contentHash": "ec3365b9154cbdf5c74c75b92fd67746f6f3ed2e8c94dbc9e29eebc27b817290",
+      "functions": [
+        {
+          "name": "createTestConfig",
+          "params": [
+            "overrides"
+          ],
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/config.js",
+          "specifiers": [
+            "createAppConfig"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/services/liveKitRooms.js",
+          "specifiers": [
+            "createLiveKitRoomService",
+            "LiveKitRoomError"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 120,
+      "hasStructuralAnalysis": true
+    },
+    "tests/backend/unit/services/openAiRealtime.test.ts": {
+      "filePath": "tests/backend/unit/services/openAiRealtime.test.ts",
+      "contentHash": "abe51f401c897e1db0218fedcc488d6a11057ed209b286c3b7ad19ea1c732c46",
+      "functions": [
+        {
+          "name": "createJsonResponse",
+          "params": [
+            "body",
+            "status"
+          ],
+          "returnType": "Response",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "createTestConfig",
+          "params": [
+            "overrides"
+          ],
+          "returnType": "AppConfig",
+          "exported": false,
+          "lineCount": 21
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/config.js",
+          "specifiers": [
+            "AppConfig"
+          ]
+        },
+        {
+          "source": "../../../../backend/src/services/openAiRealtime.js",
+          "specifiers": [
+            "createOpenAiRealtimeService"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "tests/e2e/home.spec.ts": {
+      "filePath": "tests/e2e/home.spec.ts",
+      "contentHash": "5e6c4a29954c6e1e03d1c19dfe408cfa6c5fba377085079d263d58377a7328e8",
+      "functions": [
+        {
+          "name": "mockRealtimeTokenRoute",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "installBrowserRealtimeMocks",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 92
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "expect",
+            "test",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 194,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/component/AccessGateModal.test.tsx": {
+      "filePath": "tests/frontend/component/AccessGateModal.test.tsx",
+      "contentHash": "430b78f08d1f77f6313560a67213ad0dd3213f21c15293ae11bd3330019ed7b5",
+      "functions": [
+        {
+          "name": "renderModal",
+          "params": [
+            "overrides"
+          ],
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "fireEvent",
+            "render",
+            "screen"
+          ]
+        },
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/components/screens/AccessGateModal",
+          "specifiers": [
+            "AccessGateModal"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/component/App.test.tsx": {
+      "filePath": "tests/frontend/component/App.test.tsx",
+      "contentHash": "10158f710b6ad25946b61d014125fa8560849caf7f8a757aaf7da1421e14a4e1",
+      "functions": [
+        {
+          "name": "mockFetch",
+          "params": [
+            "response"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "tokenJsonResponse",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "roomCreateJsonResponse",
+          "params": [],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "act",
+            "fireEvent",
+            "render",
+            "screen",
+            "waitFor"
+          ]
+        },
+        {
+          "source": "vitest",
+          "specifiers": [
+            "afterEach",
+            "beforeEach",
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "../../../shared/types/src/index",
+          "specifiers": [
+            "participantIdentitySchema"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/accessGate",
+          "specifiers": [
+            "AccessDeniedError"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/App",
+          "specifiers": [
+            "App"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 838,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/component/RemoteRoomSurface.test.tsx": {
+      "filePath": "tests/frontend/component/RemoteRoomSurface.test.tsx",
+      "contentHash": "5fa64ea388348de2d74edcc06dea5fd9cb628310b93529bafb1e2bc67456b812",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "fireEvent",
+            "render",
+            "screen"
+          ]
+        },
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/components/screens/RemoteRoomSurface",
+          "specifiers": [
+            "RemoteRoomSurface"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/components/brand/languages",
+          "specifiers": [
+            "AUTO_LANGUAGE",
+            "findLanguage"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/component/STButton.test.tsx": {
+      "filePath": "tests/frontend/component/STButton.test.tsx",
+      "contentHash": "fd5db041cfbf70446e409733d67dd196be754f507a324b87e49cc801283be219",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "render"
+          ]
+        },
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/components/brand/primitives",
+          "specifiers": [
+            "STButton"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/support/setupTests.ts": {
+      "filePath": "tests/frontend/support/setupTests.ts",
+      "contentHash": "9fa5ef70ecb09d57b4de024f6d56c1ca99dd2feca8f682042f13463d81c51180",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "afterEach"
+          ]
+        },
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "cleanup"
+          ]
+        },
+        {
+          "source": "@testing-library/jest-dom/vitest",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/unit/accessGate.test.ts": {
+      "filePath": "tests/frontend/unit/accessGate.test.ts",
+      "contentHash": "2c3aa4b0df107fbcd103774de81ca7354559a569685ba8b56ba7fe6f43bb46c8",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "afterEach",
+            "beforeEach",
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/accessGate",
+          "specifiers": [
+            "AccessDeniedError",
+            "clearStoredPassword",
+            "getStoredPassword",
+            "setStoredPassword"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/unit/liveKitRemoteRoomSession.test.ts": {
+      "filePath": "tests/frontend/unit/liveKitRemoteRoomSession.test.ts",
+      "contentHash": "63860bc31327c1e8b4a1dc2f9512d6dc6975bc47b592e1ccb76e605686847cea",
+      "functions": [
+        {
+          "name": "createFakeRoom",
+          "params": [],
+          "exported": false,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "afterEach",
+            "beforeEach",
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "livekit-client",
+          "specifiers": [
+            "RoomEvent"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/liveKitRemoteRoomSession",
+          "specifiers": [
+            "createLiveKitRemoteRoomSession"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 372,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/unit/realtimeTokenClient.test.ts": {
+      "filePath": "tests/frontend/unit/realtimeTokenClient.test.ts",
+      "contentHash": "c56cdcbd97c492872159e2c62087b2758715888e4333eee9d2fbe7a6cdb9f331",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "afterEach",
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/accessGate",
+          "specifiers": [
+            "AccessDeniedError",
+            "clearStoredPassword",
+            "setStoredPassword"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/realtimeTokenClient",
+          "specifiers": [
+            "RealtimeTokenClientError",
+            "requestRealtimeToken"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 125,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/unit/realtimeTranslationSession.test.ts": {
+      "filePath": "tests/frontend/unit/realtimeTranslationSession.test.ts",
+      "contentHash": "63aa06802dfdfe3f7402592a9a9744b6ba5e7fc8e64a3cf2190d8436e7f18eca",
+      "functions": [],
+      "classes": [
+        {
+          "name": "FakeTrack",
+          "methods": [],
+          "properties": [
+            "kind",
+            "enabled",
+            "stop"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "FakeMediaStream",
+          "methods": [
+            "getTracks"
+          ],
+          "properties": [
+            "tracks"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "FakeDataChannel",
+          "methods": [],
+          "properties": [
+            "close"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "FakePeerConnection",
+          "methods": [],
+          "properties": [
+            "dataChannel",
+            "addTrack",
+            "close",
+            "createDataChannel",
+            "createOffer",
+            "setLocalDescription",
+            "setRemoteDescription",
+            "ontrack"
+          ],
+          "exported": false,
+          "lineCount": 11
+        }
+      ],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        },
+        {
+          "source": "@simtalk/shared-types",
+          "specifiers": [
+            "openAiRealtimeTranslationCallsUrl",
+            "RealtimeTokenResponse"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/realtimeTranslationSession",
+          "specifiers": [
+            "createRealtimeTranslationSession"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 314,
+      "hasStructuralAnalysis": true
+    },
+    "tests/frontend/unit/roomTokenClient.test.ts": {
+      "filePath": "tests/frontend/unit/roomTokenClient.test.ts",
+      "contentHash": "561b0e7834ec678c26d79675a575474618ea6a9ab2e9f57ec572810f58157ebf",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it",
+            "vi",
+            "afterEach"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/accessGate",
+          "specifiers": [
+            "AccessDeniedError",
+            "clearStoredPassword",
+            "setStoredPassword"
+          ]
+        },
+        {
+          "source": "../../../frontend/src/roomTokenClient",
+          "specifiers": [
+            "requestRoomCreate",
+            "requestRoomToken",
+            "RoomTokenClientError"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 159,
+      "hasStructuralAnalysis": true
+    },
+    "tests/shared/unit/index.test.ts": {
+      "filePath": "tests/shared/unit/index.test.ts",
+      "contentHash": "d0b2028e110a7312aaf086aa745da87537d66f648f76fafa05fa2fa41767f9fa",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "describe",
+            "expect",
+            "it"
+          ]
+        },
+        {
+          "source": "../../../shared/types/src/index",
+          "specifiers": [
+            "apiErrorCodes",
+            "apiErrorCodeSchema",
+            "apiErrorSchema",
+            "conversationModes",
+            "healthResponseSchema",
+            "languageCodeSchema",
+            "openAiRealtimeTranslationCallsUrl",
+            "realtimeTokenRequestSchema",
+            "realtimeTokenResponseSchema",
+            "realtimeTokenRoute",
+            "roomCreateResponseSchema",
+            "roomIdSchema",
+            "roomTokenRequestSchema",
+            "roomTokenResponseSchema",
+            "roomTokenRoute"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 187,
+      "hasStructuralAnalysis": true
+    },
+    "tsconfig.base.json": {
+      "filePath": "tsconfig.base.json",
+      "contentHash": "5fb35af2a37f202ab07e7667de1980db9e9726e633e8f4fbbca725370bdf11a5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "vercel.json": {
+      "filePath": "vercel.json",
+      "contentHash": "36f68f0a64dc9de22489c44f8b5880ee9ece011e604f186325118ac28825fa44",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

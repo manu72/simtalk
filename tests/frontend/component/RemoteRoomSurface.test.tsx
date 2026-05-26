@@ -58,4 +58,32 @@ describe('RemoteRoomSurface live state', () => {
     // The picker dialog is rendered as role=dialog with aria-label="YOU HEAR".
     expect(screen.getByRole('dialog', { name: /you hear/i })).toBeInTheDocument();
   });
+
+  // The remote tile's "waiting" state must reflect real presence
+  // (participantCount), not display name. A partner whose LiveKit
+  // identity has no `name` attribute is still present in the room; the
+  // tile must show the connected fallback (initial 'O' from 'Other
+  // participant'), not the waiting placeholder dot.
+  it('does not show the waiting placeholder when a partner is connected without a display name', () => {
+    render(
+      <RemoteRoomSurface
+        {...liveProps}
+        participantCount={1}
+        remoteDisplayName={null}
+      />
+    );
+    expect(screen.queryByText('·')).not.toBeInTheDocument();
+    expect(screen.getByText('O')).toBeInTheDocument();
+  });
+
+  it('shows the waiting placeholder before a partner is connected', () => {
+    render(
+      <RemoteRoomSurface
+        {...liveProps}
+        participantCount={0}
+        remoteDisplayName={null}
+      />
+    );
+    expect(screen.getByText('·')).toBeInTheDocument();
+  });
 });

@@ -1,33 +1,62 @@
 #!/usr/bin/env python3
-"""Compile a focused context bundle for a coding task.
+"""Compile a focused, graph-first context bundle for a coding task.
 
 Usage:
-    python scripts/agentic/route_task.py "<task description>"
+    python scripts/agentic/route_task.py "<task description>" [--explain]
 
-Reads .agentic/CODEMAP.json and .agentic/CONFIG/agentic.json, scores entries
-against the task description, and emits a JSON bundle to stdout. Also writes
-the bundle to .agentic/CONTEXT/last_context.json.
+Reads the configured graph artifact (default: Understand Anything's
+``.understand-anything/knowledge-graph.json``) plus operational memory and
+emits a JSON context bundle to stdout. Also writes the bundle to
+``.agentic/CONTEXT/last_context.json``.
 
-Standard library only. Idempotent.
+Routing priority (first-match wins per stage; later stages add more):
+
+    1. Explicit user-named files / paths resolved against the filesystem
+       (always runs first so the bundle cap can't crowd them out).
+    2. Graph: explicit user-named anchors (file / config / symbol nodes).
+    3. Graph traversal from anchors (1-hop imports both ways).
+    4. Graph search against task terms (node name / summary / tags / path).
+    5. CODEMAP fallback (only if graph unavailable + ``graph.fallback`` allows).
+    6. Related tests via ``test_discovery`` patterns.
+    7. Operational memory overlays (PROJECT_BRIEF, MEMORY_INDEX, SUBSYSTEMS).
+    8. Risk overlays from ``high_risk_patterns``.
+    9. Stop conditions when evidence is insufficient.
+
+Standard library only. Idempotent. Writes only to .agentic/CONTEXT/.
 """
 
 from __future__ import annotations
 
 import datetime as _dt
+import fnmatch
 import json
 import os
 import re
 import sys
-from pathlib import Path
+from collections.abc import Iterable
+from pathlib import Path, PurePosixPath
 from typing import Any
 
-CONFIG_PATH = Path(".agentic/CONFIG/agentic.json")
-CODEMAP_PATH = Path(".agentic/CODEMAP.json")
-MEMORY_INDEX_PATH = Path(".agentic/MEMORY_INDEX.md")
-SUBSYSTEMS_DIR = Path(".agentic/SUBSYSTEMS")
-PROJECT_BRIEF_PATH = Path(".agentic/PROJECT_BRIEF.md")
-CONTEXT_OUT = Path(".agentic/CONTEXT/last_context.json")
+REPO_ROOT = Path.cwd()
+CONFIG_PATH = REPO_ROOT / ".agentic" / "CONFIG" / "agentic.json"
+MEMORY_INDEX_PATH = REPO_ROOT / ".agentic" / "MEMORY_INDEX.md"
+PROJECT_BRIEF_PATH = REPO_ROOT / ".agentic" / "PROJECT_BRIEF.md"
+SUBSYSTEMS_DIR = REPO_ROOT / ".agentic" / "SUBSYSTEMS"
+CONTEXT_OUT = REPO_ROOT / ".agentic" / "CONTEXT" / "last_context.json"
 
+MAX_SELECTED_PATHS = 10
+MAX_GRAPH_NODES_RETURNED = 15
+WORD_FORM_SUFFIXES = ("s", "es", "d", "ed", "ing", "er", "ers", "ment", "ments")
+WORD_FORM_ALIASES = {
+    "auth": {
+        "authenticate",
+        "authenticated",
+        "authentication",
+        "authorize",
+        "authorized",
+        "authorization",
+    },
+}
 RISKY_VERBS = {
     "migrate": ["data-integrity"],
     "delete": ["data-integrity"],
@@ -44,8 +73,6 @@ RISKY_VERBS = {
     "record": ["privacy"],
     "transcript": ["privacy"],
 }
-
-MAX_SELECTED_PATHS = 10
 PRUNED_SCAN_DIRS = {
     ".cache",
     ".git",
@@ -56,19 +83,11 @@ PRUNED_SCAN_DIRS = {
     "dist",
     "node_modules",
     "venv",
-}
-WORD_FORM_SUFFIXES = ("s", "es", "d", "ed", "ing", "er", "ers", "ment", "ments")
-WORD_FORM_ALIASES = {
-    "auth": {
-        "authenticate",
-        "authenticated",
-        "authenticating",
-        "authentication",
-        "authorize",
-        "authorized",
-        "authorizing",
-        "authorization",
-    },
+    ".turbo",
+    ".next",
+    ".vercel",
+    "playwright-report",
+    "test-results",
 }
 
 
@@ -78,344 +97,782 @@ def _die(msg: str, code: int = 1) -> None:
 
 
 def _load_json(path: Path) -> dict[str, Any]:
-    if not path.is_file():
-        _die(f"missing {path}. Run scripts/agentic/build_codemap.py first.")
     try:
-        with path.open("r", encoding="utf-8") as fh:
-            return json.load(fh)
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        _die(f"missing required file: {path}")
     except json.JSONDecodeError as exc:
         _die(f"invalid JSON in {path}: {exc}")
-        return {}  # unreachable
+    return {}  # unreachable
 
 
 def _tokenize(text: str) -> set[str]:
-    return {tok for tok in re.split(r"[^a-z0-9]+", text.lower()) if len(tok) > 1}
+    return {t for t in re.split(r"[^a-z0-9]+", text.lower()) if len(t) > 1}
 
 
-def _keyword_part_matches(part: str, task_tokens: set[str]) -> bool:
-    """True when a keyword appears as an exact token or supported word form."""
-    if part in task_tokens:
-        return True
-    if WORD_FORM_ALIASES.get(part, set()) & task_tokens:
-        return True
-    word_forms = {f"{part}{suffix}" for suffix in WORD_FORM_SUFFIXES}
-    return bool(word_forms & task_tokens)
+def _word_forms(token: str) -> set[str]:
+    forms = {token}
+    forms.update(WORD_FORM_ALIASES.get(token, set()))
+    forms.update(f"{token}{suf}" for suf in WORD_FORM_SUFFIXES)
+    return forms
 
 
-def _keyword_matches_task(keyword: str, task_tokens: set[str]) -> bool:
-    """True when every token in a (possibly hyphenated) keyword matches the task."""
-    parts = _tokenize(keyword)
-    if not parts:
-        return False
-    return all(_keyword_part_matches(p, task_tokens) for p in parts)
+def _expanded_task_tokens(task_tokens: set[str]) -> set[str]:
+    expanded: set[str] = set()
+    for tok in task_tokens:
+        expanded |= _word_forms(tok)
+    return expanded
 
 
-def _contains_explicit_reference(normalized_task: str, reference: str) -> bool:
-    """True when a path or filename appears as its own task reference."""
-    if not reference:
-        return False
+# ---------------------------------------------------------------------------
+# Graph helpers
+# ---------------------------------------------------------------------------
+
+
+def _load_graph(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict):
+        return None
+    if not isinstance(data.get("nodes"), list):
+        return None
+    return data
+
+
+def _index_graph(graph: dict[str, Any]) -> dict[str, Any]:
+    nodes = [n for n in graph.get("nodes", []) if isinstance(n, dict)]
+    edges = [e for e in graph.get("edges", []) if isinstance(e, dict)]
+
+    nodes_by_id: dict[str, dict[str, Any]] = {}
+    nodes_by_filepath: dict[str, list[dict[str, Any]]] = {}
+    file_node_ids: set[str] = set()
+
+    for node in nodes:
+        nid = node.get("id")
+        if isinstance(nid, str):
+            nodes_by_id[nid] = node
+            if node.get("type") == "file":
+                file_node_ids.add(nid)
+        fp = node.get("filePath")
+        if isinstance(fp, str) and fp:
+            nodes_by_filepath.setdefault(fp, []).append(node)
+
+    edges_from: dict[str, list[dict[str, Any]]] = {}
+    edges_to: dict[str, list[dict[str, Any]]] = {}
+    for edge in edges:
+        src = edge.get("source")
+        tgt = edge.get("target")
+        if isinstance(src, str):
+            edges_from.setdefault(src, []).append(edge)
+        if isinstance(tgt, str):
+            edges_to.setdefault(tgt, []).append(edge)
+
+    return {
+        "nodes": nodes,
+        "nodes_by_id": nodes_by_id,
+        "nodes_by_filepath": nodes_by_filepath,
+        "file_node_ids": file_node_ids,
+        "edges": edges,
+        "edges_from": edges_from,
+        "edges_to": edges_to,
+    }
+
+
+def _node_score(
+    node: dict[str, Any], task_tokens: set[str], expanded_tokens: set[str]
+) -> tuple[int, list[str]]:
+    """Score a graph node against task tokens; return (score, reason_parts)."""
+    score = 0
+    reasons: list[str] = []
+
+    name = str(node.get("name") or "").lower()
+    name_tokens = _tokenize(name)
+    name_overlap = len(task_tokens & name_tokens)
+    if name_overlap:
+        score += 5 * name_overlap
+        reasons.append(f"name match ({name_overlap})")
+
+    tags = {str(t).lower() for t in node.get("tags") or [] if isinstance(t, str)}
+    tag_overlap = len(expanded_tokens & tags)
+    if tag_overlap:
+        score += 3 * tag_overlap
+        reasons.append(f"tag match ({tag_overlap})")
+
+    summary = str(node.get("summary") or "").lower()
+    summary_tokens = _tokenize(summary)
+    summary_overlap = len(task_tokens & summary_tokens)
+    if summary_overlap:
+        score += 1 * summary_overlap
+        reasons.append(f"summary match ({summary_overlap})")
+
+    fp = str(node.get("filePath") or "").lower()
+    fp_tokens = _tokenize(fp)
+    fp_overlap = len(task_tokens & fp_tokens)
+    if fp_overlap:
+        score += 2 * fp_overlap
+        reasons.append(f"path match ({fp_overlap})")
+
+    return score, reasons
+
+
+def _explicit_anchors_from_graph(
+    task: str, idx: dict[str, Any]
+) -> list[tuple[dict[str, Any], str]]:
+    """Find graph nodes the user explicitly named.
+
+    A node is an anchor when its filePath, basename, or symbol name appears as
+    a token-bounded substring of the (lowered, slash-normalised) task string.
+    Returns a list of (node, reason) pairs preserving insertion order.
+    """
+    norm = task.lower().replace("\\", "/")
     boundary = r"a-z0-9_./-"
-    return (
-        re.search(
-            rf"(?<![{boundary}]){re.escape(reference)}(?![{boundary}])",
-            normalized_task,
-        )
-        is not None
-    )
+    seen: set[str] = set()
+    anchors: list[tuple[dict[str, Any], str]] = []
 
-
-def _explicit_file_reference_matches(
-    task: str, entries: list[dict[str, Any]]
-) -> list[dict[str, Any]]:
-    """Return existing codemap file entries explicitly named by path or basename."""
-    normalized_task = task.lower().replace("\\", "/")
-    matches: list[dict[str, Any]] = []
-    for entry in entries:
-        path = entry.get("path")
-        if entry.get("kind") == "dir" or not isinstance(path, str) or not path:
-            continue
-        normalized_path = path.replace("\\", "/")
-        if not Path(normalized_path).is_file():
-            continue
-        basename = Path(normalized_path).name.lower()
-        normalized_path_lower = normalized_path.lower()
-        if _contains_explicit_reference(
-            normalized_task, normalized_path_lower
-        ) or _contains_explicit_reference(normalized_task, basename):
-            matches.append(entry)
-    return sorted(matches, key=lambda entry: str(entry.get("path", "")))
-
-
-def _explicit_files_from_filesystem(task: str) -> list[str]:
-    normalized_task = task.lower().replace("\\", "/")
-    candidates: list[str] = []
-
-    for dirpath, dirnames, filenames in os.walk("."):
-        dirnames[:] = sorted(
-            dirname
-            for dirname in dirnames
-            if dirname not in PRUNED_SCAN_DIRS and not dirname.endswith(".egg-info")
+    def _matches(reference: str) -> bool:
+        if not reference:
+            return False
+        return (
+            re.search(
+                rf"(?<![{boundary}]){re.escape(reference.lower())}(?![{boundary}])",
+                norm,
+            )
+            is not None
         )
 
-        current_dir = Path(dirpath)
-        for filename in sorted(filenames):
-            path = current_dir / filename
-            if not path.is_file():
+    for node in idx["nodes"]:
+        nid = node.get("id")
+        if not isinstance(nid, str) or nid in seen:
+            continue
+        fp = str(node.get("filePath") or "")
+        name = str(node.get("name") or "")
+        basename = PurePosixPath(fp).name if fp else ""
+        ntype = node.get("type")
+
+        # File / config / pipeline / document nodes: match path or basename.
+        if ntype in {"file", "config", "pipeline", "document"} and fp:
+            if _matches(fp) or _matches(basename):
+                anchors.append((node, f"user-named ({basename or fp})"))
+                seen.add(nid)
                 continue
 
-            rel = path.as_posix()
-            rel_lower = rel.lower()
-            basename = path.name.lower()
+        # Symbol-level nodes: match the symbol name when it is non-trivial.
+        if ntype in {"function", "class", "method"} and len(name) >= 3:
+            if _matches(name):
+                anchors.append((node, f"user-named symbol ({name})"))
+                seen.add(nid)
 
-            if _contains_explicit_reference(
-                normalized_task, rel_lower
-            ) or _contains_explicit_reference(normalized_task, basename):
-                candidates.append(rel)
-                if len(candidates) >= MAX_SELECTED_PATHS:
-                    return sorted(set(candidates))[:MAX_SELECTED_PATHS]
-
-    return sorted(set(candidates))
+    return anchors
 
 
-def _score_entry(
-    entry: dict[str, Any],
+def _file_node_for_path(idx: dict[str, Any], file_path: str) -> dict[str, Any] | None:
+    candidates = idx["nodes_by_filepath"].get(file_path) or []
+    for cand in candidates:
+        if cand.get("type") == "file":
+            return cand
+    return candidates[0] if candidates else None
+
+
+def _expand_dependencies(
+    idx: dict[str, Any], anchor_node: dict[str, Any]
+) -> list[tuple[str, str]]:
+    """Return [(file_path, reason)] for 1-hop import neighbours of an anchor.
+
+    Walks both directions on edges of type ``imports``. Limits each direction
+    to a small fan-out so large hub files don't dominate the bundle.
+    """
+    out: list[tuple[str, str]] = []
+    nid = anchor_node.get("id")
+    if not isinstance(nid, str):
+        return out
+
+    # If anchor is a function node, hop to its file first.
+    file_id = nid
+    if anchor_node.get("type") in {"function", "class", "method"}:
+        fp = anchor_node.get("filePath")
+        if isinstance(fp, str):
+            file_node = _file_node_for_path(idx, fp)
+            if file_node and isinstance(file_node.get("id"), str):
+                file_id = file_node["id"]
+
+    def _emit(edges: Iterable[dict[str, Any]], outgoing: bool, limit: int) -> None:
+        count = 0
+        for edge in edges:
+            if edge.get("type") != "imports":
+                continue
+            other_id = edge.get("target") if outgoing else edge.get("source")
+            if not isinstance(other_id, str):
+                continue
+            other = idx["nodes_by_id"].get(other_id)
+            if not other:
+                continue
+            other_path = other.get("filePath")
+            if not isinstance(other_path, str) or not other_path:
+                continue
+            reason = "imports anchor" if outgoing else "imported by anchor"
+            out.append((other_path, reason))
+            count += 1
+            if count >= limit:
+                return
+
+    _emit(idx["edges_from"].get(file_id, []), outgoing=True, limit=4)
+    _emit(idx["edges_to"].get(file_id, []), outgoing=False, limit=4)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Memory + risk overlays
+# ---------------------------------------------------------------------------
+
+
+def _glob_to_regex(pattern: str) -> re.Pattern[str]:
+    """Translate a POSIX-style glob to a regex.
+
+    Honours ``**`` as a zero-or-more path-segment wildcard. Plain ``*`` and
+    ``?`` match within a single segment (do not cross ``/``). Anchored to the
+    full string. The result is cached per process via ``functools`` semantics
+    of compiled patterns being cheap to reuse.
+    """
+    out: list[str] = []
+    i = 0
+    n = len(pattern)
+    while i < n:
+        if pattern[i : i + 3] == "**/":
+            out.append("(?:.*/)?")
+            i += 3
+        elif pattern[i : i + 3] == "/**" and (i + 3 == n or pattern[i + 3] == "/"):
+            out.append("(?:/.*)?")
+            i += 3
+        elif pattern[i : i + 2] == "**":
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    return re.compile("^" + "".join(out) + "$")
+
+
+def _glob_match(pattern: str, path: str) -> bool:
+    """Match a repo-relative POSIX path against a glob with ``**`` support.
+
+    Falls back to the legacy ``fnmatch`` substitution if the regex translator
+    raises (defensive — should never happen on the patterns we ship).
+    """
+    try:
+        return _glob_to_regex(pattern).match(path) is not None
+    except re.error:
+        return fnmatch.fnmatchcase(path, pattern.replace("**", "*"))
+
+
+def _risk_tags_for(paths: list[str], high_risk_patterns: list[dict[str, Any]]) -> set[str]:
+    tags: set[str] = set()
+    for pattern_block in high_risk_patterns:
+        pat = pattern_block.get("match")
+        ts = pattern_block.get("tags") or []
+        if not isinstance(pat, str) or not isinstance(ts, list):
+            continue
+        for p in paths:
+            if _glob_match(pat, p):
+                for t in ts:
+                    if isinstance(t, str):
+                        tags.add(t)
+                break
+    return tags
+
+
+def _subsystem_for_path(path: str, valid_subsystems: set[str]) -> str | None:
+    """Best-effort top-level subsystem mapping from a repo-relative path."""
+    pp = PurePosixPath(path)
+    if not pp.parts:
+        return None
+    head = pp.parts[0]
+    mapping = {
+        "frontend": "web",
+        "backend": "api",
+        "shared": "shared",
+        "tests": "tests",
+        ".github": "infra",
+        "api": "api",
+    }
+    sub = mapping.get(head)
+    if sub and sub in valid_subsystems:
+        return sub
+    return head if head in valid_subsystems else None
+
+
+def _valid_subsystems(subsystem_keywords: dict[str, list[str]]) -> set[str]:
+    names: set[str] = set(subsystem_keywords.keys())
+    if SUBSYSTEMS_DIR.is_dir():
+        for p in SUBSYSTEMS_DIR.glob("*.md"):
+            if p.name.lower() != "readme.md":
+                names.add(p.stem)
+    return names
+
+
+def _subsystem_keyword_overlay(
+    task_tokens: set[str], subsystem_keywords: dict[str, list[str]]
+) -> set[str]:
+    """Subsystems whose configured keywords appear (with word forms) in task."""
+    expanded = _expanded_task_tokens(task_tokens)
+    out: set[str] = set()
+    for sub, kws in subsystem_keywords.items():
+        for kw in kws:
+            parts = _tokenize(kw)
+            if parts and all(p in expanded for p in parts):
+                out.add(sub)
+                break
+    return out
+
+
+def _is_test_path(path: str, test_discovery: list[str]) -> bool:
+    """Decide if a repo-relative path looks like a test file.
+
+    Honours the configured ``test_discovery`` globs when supplied; otherwise
+    falls back to simple ``tests/`` heuristics. Used to skip test files when
+    deriving source-stem keys, so a stem like ``realtime`` from
+    ``tests/.../realtime.test.ts`` doesn't bleed into test discovery.
+    """
+    if test_discovery:
+        return any(_glob_match(pat, path) for pat in test_discovery)
+    return path.startswith("tests/") or "/tests/" in path or "/test_" in path
+
+
+def _related_tests_for(
+    selected_paths: list[str], test_discovery: list[str]
+) -> list[str]:
+    """For each non-test selected source path, find tests that match.
+
+    Walks the repo (pruning common build/dependency dirs), filters files via
+    the configured ``test_discovery`` globs (``**/__tests__/**``,
+    ``**/*.test.*``, etc.), and keeps those whose stem contains the stem of
+    any selected source path. Caps output at ``MAX_SELECTED_PATHS``. Falls
+    back to scanning ``tests/`` only when no test patterns are configured.
+    """
+    stems: set[str] = set()
+    selected_set = set(selected_paths)
+    for p in selected_paths:
+        if _is_test_path(p, test_discovery):
+            continue
+        stems.add(PurePosixPath(p).stem.lower())
+    if not stems:
+        return []
+
+    out: list[str] = []
+
+    def _consider(rel: str) -> bool:
+        if rel in selected_set or rel in out:
+            return False
+        if test_discovery and not any(_glob_match(pat, rel) for pat in test_discovery):
+            return False
+        base = PurePosixPath(rel).stem.lower()
+        if not any(stem in base for stem in stems):
+            return False
+        out.append(rel)
+        return len(out) >= MAX_SELECTED_PATHS
+
+    if test_discovery:
+        for dirpath, dirnames, filenames in os.walk(REPO_ROOT):
+            rel_dir = Path(dirpath).relative_to(REPO_ROOT).as_posix()
+            if rel_dir.startswith(".") and rel_dir not in {".", ".github"}:
+                dirnames[:] = []
+                continue
+            dirnames[:] = sorted(
+                d
+                for d in dirnames
+                if d not in PRUNED_SCAN_DIRS and not d.endswith(".egg-info")
+            )
+            for fn in sorted(filenames):
+                rel = (Path(dirpath) / fn).relative_to(REPO_ROOT).as_posix()
+                if _consider(rel):
+                    return out
+        return out
+
+    test_root = REPO_ROOT / "tests"
+    if test_root.is_dir():
+        for path in test_root.rglob("*"):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(REPO_ROOT).as_posix()
+            if _consider(rel):
+                return out
+    return out
+
+
+# ---------------------------------------------------------------------------
+# CODEMAP fallback path (degraded mode)
+# ---------------------------------------------------------------------------
+
+
+def _codemap_routing(
     task_tokens: set[str],
     subsystem_keywords: dict[str, list[str]],
-    risky_tags: set[str],
-) -> int:
-    """Score an entry against the task. Boosts (source-of-truth, risky-verb)
-    only apply once the entry has demonstrated baseline relevance via a
-    trigger or subsystem-keyword overlap; otherwise role/risk alone would
-    pull in every doc regardless of topic.
+    valid_subsystems: set[str],
+    codemap_path: Path,
+) -> tuple[list[str], dict[str, str], set[str]]:
+    """Return (selected_paths, selection_reasons, selected_subsystems).
+
+    Mirrors the v1 keyword-scoring routing as a degraded fallback when the
+    graph artifact is unavailable.
     """
-    triggers = {str(t).lower() for t in entry.get("read_triggers") or []}
-    token_overlap = len(task_tokens & triggers)
+    if not codemap_path.is_file():
+        return [], {}, set()
+    try:
+        codemap = json.loads(codemap_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return [], {}, set()
 
-    subsystem = entry.get("subsystem")
-    sub_overlap = 0
-    if subsystem and subsystem in subsystem_keywords:
-        sub_overlap = sum(
-            1
-            for k in subsystem_keywords[subsystem]
-            if _keyword_matches_task(k, task_tokens)
-        )
-
-    score = 3 * token_overlap + 2 * sub_overlap
-    has_relevance = token_overlap > 0 or sub_overlap > 0
-
-    if has_relevance and entry.get("role") == "source-of-truth":
-        score += 2
-
-    risk_tags = {str(t).lower() for t in entry.get("risk_tags") or []}
-    if has_relevance and (risky_tags & risk_tags):
-        score += 4
-
-    return score
-
-
-def _select_subsystem_files(selected_subsystems: set[str]) -> list[str]:
-    out: list[str] = []
-    if not SUBSYSTEMS_DIR.is_dir():
-        return out
-    for sub in sorted(selected_subsystems):
-        candidate = SUBSYSTEMS_DIR / f"{sub}.md"
-        if candidate.is_file():
-            out.append(str(candidate))
-    return out
-
-
-def _routable_entries_for_selection(
-    entry: dict[str, Any], entries: list[dict[str, Any]]
-) -> list[dict[str, Any]]:
-    path = entry.get("path")
-    if not isinstance(path, str) or not path:
-        return []
-    if entry.get("kind") != "dir":
-        return [entry]
-
-    prefix = f"{path.rstrip('/')}/"
-    out: list[dict[str, Any]] = []
-    for candidate in entries:
-        candidate_path = candidate.get("path")
-        if candidate.get("kind") == "dir" or not isinstance(candidate_path, str):
+    entries = codemap.get("entries") or []
+    expanded = _expanded_task_tokens(task_tokens)
+    scored: list[tuple[int, dict[str, Any]]] = []
+    for e in entries:
+        if not isinstance(e, dict):
             continue
-        if candidate_path.startswith(prefix):
-            out.append(candidate)
-    return out
+        triggers = {str(t).lower() for t in e.get("read_triggers") or []}
+        token_overlap = len(task_tokens & triggers)
+        sub = e.get("subsystem")
+        sub_overlap = 0
+        if sub and sub in subsystem_keywords:
+            for kw in subsystem_keywords[sub]:
+                parts = _tokenize(kw)
+                if parts and all(p in expanded for p in parts):
+                    sub_overlap += 1
+        score = 3 * token_overlap + 2 * sub_overlap
+        if score > 0:
+            scored.append((score, e))
+    scored.sort(key=lambda x: (-x[0], x[1].get("path", "")))
+
+    selected: list[str] = []
+    reasons: dict[str, str] = {}
+    subs: set[str] = set()
+    for _, e in scored:
+        path = e.get("path")
+        if not isinstance(path, str):
+            continue
+        if e.get("kind") == "dir":
+            continue
+        if path in reasons:
+            continue
+        if len(selected) >= MAX_SELECTED_PATHS:
+            break
+        selected.append(path)
+        reasons[path] = "codemap fallback (keyword score)"
+        sub = e.get("subsystem")
+        if sub in valid_subsystems:
+            subs.add(sub)
+    return selected, reasons, subs
 
 
-def _confidence(
-    selected_paths: list[str],
-    selected_subsystems: set[str],
-    has_tests: bool,
-    has_explicit_paths: bool = False,
+# ---------------------------------------------------------------------------
+# Filesystem fallback (last resort)
+# ---------------------------------------------------------------------------
+
+
+def _filesystem_anchors(task: str) -> list[str]:
+    norm = task.lower().replace("\\", "/")
+    boundary = r"a-z0-9_./-"
+    found: list[str] = []
+    for dirpath, dirnames, filenames in os.walk(REPO_ROOT):
+        rel_dir = Path(dirpath).relative_to(REPO_ROOT).as_posix()
+        if rel_dir.startswith(".") and rel_dir not in {".", ".github"}:
+            dirnames[:] = []
+            continue
+        dirnames[:] = sorted(
+            d for d in dirnames if d not in PRUNED_SCAN_DIRS and not d.endswith(".egg-info")
+        )
+        for fn in sorted(filenames):
+            rel = (Path(dirpath) / fn).relative_to(REPO_ROOT).as_posix()
+            base = fn.lower()
+            for needle in (rel.lower(), base):
+                if re.search(
+                    rf"(?<![{boundary}]){re.escape(needle)}(?![{boundary}])", norm
+                ):
+                    found.append(rel)
+                    break
+            if len(found) >= MAX_SELECTED_PATHS:
+                return sorted(set(found))[:MAX_SELECTED_PATHS]
+    return sorted(set(found))
+
+
+# ---------------------------------------------------------------------------
+# Confidence
+# ---------------------------------------------------------------------------
+
+
+def _compute_confidence(
+    *,
+    graph_available: bool,
+    fallback_active: bool,
+    has_explicit_anchors: bool,
+    selected_paths_count: int,
+    related_tests_count: int,
+    selected_subsystems_count: int,
 ) -> tuple[str, list[str]]:
     stops: list[str] = []
-    if has_explicit_paths and selected_paths:
-        if has_tests:
-            return "high", []
-        return "medium", []
-    if not selected_paths and not selected_subsystems:
-        stops.append(
-            "Low routing confidence: no clear subsystem match. Confirm task scope before implementing."
-        )
+    if selected_paths_count == 0:
+        stops.append("No paths matched the task; refine the task string or supply a file anchor.")
         return "low", stops
-    if len(selected_subsystems) >= 3 and not has_explicit_paths:
-        stops.append(
-            "Task spans multiple subsystems. Confirm the intended primary subsystem before implementing."
-        )
-        return "low", stops
-    if not has_tests:
-        stops.append(
-            "No related tests located by the codemap. Add or identify tests before non-trivial changes."
-        )
-        return "medium", stops
-    return "high", stops
+    if has_explicit_anchors:
+        level = "high" if related_tests_count > 0 else "medium"
+    elif graph_available and selected_paths_count > 0:
+        level = "medium"
+        if related_tests_count == 0:
+            stops.append("No related tests located; identify or add a test before non-trivial changes.")
+    else:
+        level = "low"
+        stops.append("Graph not available and no explicit anchors; confirm scope before implementing.")
+
+    if selected_subsystems_count >= 3 and not has_explicit_anchors:
+        stops.append("Task spans multiple subsystems; confirm primary subsystem before implementing.")
+        level = "low" if level != "low" else level
+
+    if fallback_active and level != "low":
+        level = "medium" if level == "high" else "low"
+
+    return level, stops
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 
 def main(argv: list[str]) -> int:
-    task = " ".join(argv[1:]).strip()
+    args = [a for a in argv[1:] if a != "--explain"]
+    explain = "--explain" in argv[1:]
+    task = " ".join(args).strip()
     if not task:
-        _die('usage: route_task.py "<task description>"', code=2)
+        _die('usage: route_task.py "<task description>" [--explain]', code=2)
+
     cfg = _load_json(CONFIG_PATH)
-    codemap = _load_json(CODEMAP_PATH)
-    entries: list[dict[str, Any]] = codemap.get("entries", [])
+    graph_block = cfg.get("graph") or {}
+    graph_path_str = graph_block.get("path")
+    graph_required = bool(graph_block.get("required", True))
+    graph_fallback = graph_block.get("fallback") or "none"
+    fallback_artifact = REPO_ROOT / ".agentic" / "CODEMAP.json"
 
-    subsystem_keywords: dict[str, list[str]] = cfg.get("subsystem_keywords", {})
+    subsystem_keywords: dict[str, list[str]] = cfg.get("subsystem_keywords") or {}
+    test_discovery: list[str] = cfg.get("test_discovery") or []
+    high_risk_patterns: list[dict[str, Any]] = cfg.get("high_risk_patterns") or []
+    valid_subsystems = _valid_subsystems(subsystem_keywords)
+
+    # ---- Graph load -------------------------------------------------------
+    graph: dict[str, Any] | None = None
+    graph_path = REPO_ROOT / graph_path_str if isinstance(graph_path_str, str) else None
+    if graph_path is not None:
+        graph = _load_graph(graph_path)
+    graph_available = graph is not None
+
+    fallback_active = False
+    if not graph_available and graph_fallback == "codemap" and fallback_artifact.is_file():
+        fallback_active = True
+
+    if not graph_available and graph_required and not fallback_active:
+        # Hard config: graph required, no fallback. Surface a stop condition
+        # but do not crash; the caller deserves a usable bundle.
+        pass
+
     task_tokens = _tokenize(task)
+    expanded_tokens = _expanded_task_tokens(task_tokens)
 
+    selected_paths: list[str] = []
+    selection_reasons: dict[str, str] = {}
+    graph_node_summaries: list[dict[str, Any]] = []
+    dependency_paths: list[str] = []
+    selected_subsystems: set[str] = set()
+    has_explicit_anchors = False
+
+    def _add_path(path: str, reason: str) -> None:
+        if not path or path in selection_reasons:
+            return
+        if len(selected_paths) >= MAX_SELECTED_PATHS:
+            return
+        selected_paths.append(path)
+        selection_reasons[path] = reason
+        sub = _subsystem_for_path(path, valid_subsystems)
+        if sub:
+            selected_subsystems.add(sub)
+
+    # Priority 1 (documented routing contract): user-named files / paths.
+    # Resolve these against the filesystem BEFORE graph or codemap routing so
+    # explicitly named paths always survive the bundle cap, even when they are
+    # not represented in the knowledge graph (new file, doc, config, generated
+    # artifact) and even when the graph is unavailable.
+    fs_anchor_paths = _filesystem_anchors(task)
+    for p in fs_anchor_paths:
+        _add_path(p, "user-named filesystem path")
+    if fs_anchor_paths:
+        has_explicit_anchors = True
+
+    if graph_available and graph is not None:
+        idx = _index_graph(graph)
+
+        # 1. Explicit user-named anchors (graph-resolved).
+        anchors = _explicit_anchors_from_graph(task, idx)
+        for node, reason in anchors:
+            fp = node.get("filePath")
+            if isinstance(fp, str) and fp:
+                _add_path(fp, reason)
+                has_explicit_anchors = True
+                if len(graph_node_summaries) < MAX_GRAPH_NODES_RETURNED:
+                    graph_node_summaries.append(
+                        {
+                            "id": node.get("id"),
+                            "type": node.get("type"),
+                            "name": node.get("name"),
+                            "filePath": fp,
+                            "tags": node.get("tags") or [],
+                            "lineRange": node.get("lineRange"),
+                            "reason": reason,
+                        }
+                    )
+
+        # 2. Dependency expansion from anchor file nodes.
+        for node, _ in anchors:
+            for dep_path, dep_reason in _expand_dependencies(idx, node):
+                if dep_path not in selection_reasons:
+                    dependency_paths.append(dep_path)
+                _add_path(dep_path, dep_reason)
+
+        # 3. Graph search across remaining nodes.
+        if expanded_tokens:
+            scored: list[tuple[int, dict[str, Any], list[str]]] = []
+            for node in idx["nodes"]:
+                if node.get("id") in {n["id"] for n in graph_node_summaries if n.get("id")}:
+                    continue
+                score, parts = _node_score(node, task_tokens, expanded_tokens)
+                if score > 0:
+                    scored.append((score, node, parts))
+            scored.sort(key=lambda t: (-t[0], str(t[1].get("filePath") or "")))
+            for score, node, parts in scored:
+                fp = node.get("filePath")
+                if not isinstance(fp, str) or not fp:
+                    continue
+                reason = "graph search: " + ", ".join(parts) if parts else "graph search"
+                _add_path(fp, reason)
+                if len(graph_node_summaries) < MAX_GRAPH_NODES_RETURNED:
+                    graph_node_summaries.append(
+                        {
+                            "id": node.get("id"),
+                            "type": node.get("type"),
+                            "name": node.get("name"),
+                            "filePath": fp,
+                            "tags": node.get("tags") or [],
+                            "lineRange": node.get("lineRange"),
+                            "reason": reason,
+                        }
+                    )
+                if len(selected_paths) >= MAX_SELECTED_PATHS:
+                    break
+
+    elif fallback_active:
+        codemap_paths, codemap_reasons, codemap_subs = _codemap_routing(
+            task_tokens, subsystem_keywords, valid_subsystems, fallback_artifact
+        )
+        for p in codemap_paths:
+            _add_path(p, codemap_reasons.get(p, "codemap fallback"))
+        selected_subsystems |= codemap_subs
+
+    # 6/7. Subsystem-keyword overlay (soft hint, additive).
+    selected_subsystems |= _subsystem_keyword_overlay(task_tokens, subsystem_keywords)
+    selected_subsystems &= valid_subsystems
+
+    # Risk overlay.
     risky_tags: set[str] = set()
     for verb, tags in RISKY_VERBS.items():
         if verb in task_tokens:
             risky_tags.update(tags)
+    risk_tags = sorted(risky_tags | _risk_tags_for(selected_paths, high_risk_patterns))
 
-    scored: list[tuple[int, dict[str, Any]]] = []
-    for e in entries:
-        s = _score_entry(e, task_tokens, subsystem_keywords, risky_tags)
-        if s > 0:
-            scored.append((s, e))
-    scored.sort(key=lambda x: (-x[0], x[1].get("path", "")))
-
-    selected_paths: list[str] = []
-    selected_subsystems: set[str] = set()
-    risk_tags_present: set[str] = set()
-    has_tests = False
-
-    # Direct keyword match: pull in subsystems whose configured keywords
-    # appear in the task description, regardless of whether the codemap has
-    # any entries for them yet. Useful for pre-MVP repos where the SUBSYSTEMS
-    # stubs are the most authoritative guidance available.
-    for sub_name, kws in subsystem_keywords.items():
-        if any(_keyword_matches_task(kw, task_tokens) for kw in kws):
-            selected_subsystems.add(sub_name)
-
-    # Real product subsystems are those configured in agentic.json, plus any
-    # that have a corresponding SUBSYSTEMS/<name>.md stub. Anything else
-    # (e.g. ".agentic", "scripts" derived from the top-level fallback) is
-    # tooling/meta and must not pollute the routing surface.
-    valid_subsystem_names: set[str] = set(subsystem_keywords.keys())
-    if SUBSYSTEMS_DIR.is_dir():
-        for p in SUBSYSTEMS_DIR.glob("*.md"):
-            if p.name.lower() != "readme.md":
-                valid_subsystem_names.add(p.stem)
-
-    explicit_entries = _explicit_file_reference_matches(task, entries)
-    for e in explicit_entries:
-        sub = e.get("subsystem")
-        if sub and sub in valid_subsystem_names:
-            selected_subsystems.add(sub)
-        for t in e.get("risk_tags") or []:
-            risk_tags_present.add(str(t))
-        if e.get("related_tests"):
-            has_tests = True
-        candidate_path = e.get("path")
-        if (
-            isinstance(candidate_path, str)
-            and candidate_path not in selected_paths
-            and len(selected_paths) < MAX_SELECTED_PATHS
-        ):
-            selected_paths.append(candidate_path)
-
-    explicit_fs_paths = _explicit_files_from_filesystem(task)
-
-    for p in reversed(explicit_fs_paths):
-        if len(selected_paths) >= MAX_SELECTED_PATHS:
-            break
-        if p not in selected_paths:
-            selected_paths.insert(0, p)
-
-    for _, e in scored:
-        sub = e.get("subsystem")
-        if sub and sub in valid_subsystem_names:
-            selected_subsystems.add(sub)
-        for t in e.get("risk_tags") or []:
-            risk_tags_present.add(str(t))
-        if e.get("related_tests"):
-            has_tests = True
-        for candidate in _routable_entries_for_selection(e, entries):
-            candidate_sub = candidate.get("subsystem")
-            if candidate_sub and candidate_sub in valid_subsystem_names:
-                selected_subsystems.add(candidate_sub)
-            for t in candidate.get("risk_tags") or []:
-                risk_tags_present.add(str(t))
-            if candidate.get("related_tests"):
-                has_tests = True
-            if len(selected_paths) >= MAX_SELECTED_PATHS:
-                break
-            candidate_path = candidate.get("path")
-            if not isinstance(candidate_path, str) or candidate_path in selected_paths:
-                continue
-            selected_paths.append(candidate_path)
-
-    selected_subsystems &= valid_subsystem_names
-
+    # Memory files.
     memory_files: list[str] = []
     if PROJECT_BRIEF_PATH.is_file():
-        memory_files.append(str(PROJECT_BRIEF_PATH))
+        memory_files.append(PROJECT_BRIEF_PATH.relative_to(REPO_ROOT).as_posix())
     if MEMORY_INDEX_PATH.is_file():
-        memory_files.append(str(MEMORY_INDEX_PATH))
+        memory_files.append(MEMORY_INDEX_PATH.relative_to(REPO_ROOT).as_posix())
 
-    subsystem_files = _select_subsystem_files(selected_subsystems)
+    subsystem_files: list[str] = []
+    if SUBSYSTEMS_DIR.is_dir():
+        for sub in sorted(selected_subsystems):
+            cand = SUBSYSTEMS_DIR / f"{sub}.md"
+            if cand.is_file():
+                subsystem_files.append(cand.relative_to(REPO_ROOT).as_posix())
 
-    has_explicit_paths = bool(explicit_entries or explicit_fs_paths)
+    # Related tests.
+    related_tests = _related_tests_for(selected_paths, test_discovery)
 
-    confidence, stop_conditions = _confidence(
-        selected_paths, selected_subsystems, has_tests, has_explicit_paths
+    # Confidence + stops.
+    confidence, stop_conditions = _compute_confidence(
+        graph_available=graph_available,
+        fallback_active=fallback_active,
+        has_explicit_anchors=has_explicit_anchors,
+        selected_paths_count=len(selected_paths),
+        related_tests_count=len(related_tests),
+        selected_subsystems_count=len(selected_subsystems),
     )
 
     unknowns: list[str] = []
-    if not entries:
-        unknowns.append(
-            "CODEMAP has no entries yet. Run scripts/agentic/build_codemap.py."
-        )
+    if not graph_available:
+        if fallback_active:
+            unknowns.append(
+                "Graph unavailable; routed via CODEMAP fallback. Re-run /understand to restore graph mode."
+            )
+        elif graph_required:
+            unknowns.append(
+                "Graph required by config but artifact missing/unparseable, and no fallback active."
+            )
+            stop_conditions.append(
+                "Graph is required but unavailable. Run /understand or set graph.required=false."
+            )
     if not selected_paths:
-        unknowns.append(
-            "No code paths matched the task. The repository may be pre-MVP, or the task description is too generic."
-        )
-    if "openai" in task_tokens or "realtime" in task_tokens or "webrtc" in task_tokens:
+        unknowns.append("No paths resolved by graph, fallback, or filesystem.")
+    if any(t in task_tokens for t in ("openai", "realtime", "webrtc")):
         unknowns.append(
             "Realtime path is OpenAI-specific. Confirm whether changes touch backend token issuance, frontend WebRTC, or both."
         )
 
-    bundle = {
+    bundle: dict[str, Any] = {
         "task": task,
-        "generated_at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "confidence": confidence,
+        "graph_available": graph_available,
+        "graph_source": graph_path_str if graph_available else (
+            ".agentic/CODEMAP.json" if fallback_active else None
+        ),
+        "fallback_active": fallback_active,
         "selected_paths": selected_paths,
-        "selected_subsystems": sorted(selected_subsystems),
+        "selection_reasons": selection_reasons,
+        "graph_nodes": graph_node_summaries,
+        "dependency_paths": sorted(set(dependency_paths)),
+        "related_tests": related_tests,
         "subsystem_files": subsystem_files,
         "memory_files": memory_files,
-        "risk_tags": sorted(risk_tags_present | risky_tags),
+        "selected_subsystems": sorted(selected_subsystems),
+        "risk_tags": risk_tags,
         "unknowns": unknowns,
         "stop_conditions": stop_conditions,
     }
 
-    CONTEXT_OUT.parent.mkdir(parents=True, exist_ok=True)
-    with CONTEXT_OUT.open("w", encoding="utf-8") as fh:
-        json.dump(bundle, fh, indent=2, sort_keys=False)
-        fh.write("\n")
+    if explain:
+        bundle["_explain"] = {
+            "graph_required": graph_required,
+            "graph_fallback": graph_fallback,
+            "expanded_token_count": len(expanded_tokens),
+            "valid_subsystems": sorted(valid_subsystems),
+        }
 
-    json.dump(bundle, sys.stdout, indent=2, sort_keys=False)
+    CONTEXT_OUT.parent.mkdir(parents=True, exist_ok=True)
+    CONTEXT_OUT.write_text(json.dumps(bundle, indent=2) + "\n", encoding="utf-8")
+    json.dump(bundle, sys.stdout, indent=2)
     sys.stdout.write("\n")
     return 0
 

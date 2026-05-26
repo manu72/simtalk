@@ -100,15 +100,15 @@ export const Lobby = ({
           onClick={(e) => {
             if (window.location.pathname === "/") e.preventDefault();
           }}
-          style={{ flexShrink: 0, marginTop: 4, lineHeight: 0 }}
+          style={{ flexShrink: 0, lineHeight: 0 }}
         >
           <img
             src="/rocket-logo_100x132.png"
             alt=""
             aria-hidden="true"
-            width={100}
-            height={132}
-            style={{ width: 100, height: "auto" }}
+            width={72}
+            height={96}
+            style={{ width: 72, height: "auto" }}
           />
         </a>
       </div>

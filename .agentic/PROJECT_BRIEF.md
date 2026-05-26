@@ -1,70 +1,85 @@
-<!-- generated-on-init: after bootstrap this file is curated; do not overwrite without explicit confirmation. -->
-
+<!-- agentic:managed:start -->
 # Project brief
 
 ## Purpose
 
-SimTalk is a realtime speech-to-speech translation web app that lets people who speak different languages converse naturally on a single device. Phase 1 is a private, single-user prototype validating low-latency translated audio across three modes (Listener, Turn-about, Practice).
+SimTalk is a realtime speech-to-speech translation web app that lets people who speak different languages converse on a single device. Phase 1 is a private, single-user prototype validating low-latency translated audio across three modes (Listener, Turn-about, Practice).
 
 ## Stack
 
-- Languages: TypeScript
-- Frameworks: React 19 + Vite 7 (frontend), Hono (backend), custom CSS tokens/native controls (UI), Zod (schema validation)
+- Languages: TypeScript (strict), Python (Agentic OS tooling only)
+- Frameworks: React 19 + Vite 7 (frontend), Hono on `@hono/node-server` (backend), Zod (schema validation), Vitest + React Testing Library, Playwright
 - Runtime: Node.js 22+, modern evergreen browsers (WebRTC required)
 - Package manager: pnpm 10+
 - Realtime: OpenAI `gpt-realtime-translate` via `/v1/realtime/translations` over browser WebRTC
-- Test stack: Vitest + React Testing Library (frontend, backend), Playwright (E2E)
-
-## Architecture (high level)
-
-- Browser owns mic capture, WebRTC session to OpenAI, transcript rendering, optional local-only recording. See `.agentic/SUBSYSTEMS/web.md`.
-- Node/Hono backend enforces the Phase 1 access gate, mints short-lived OpenAI ephemeral realtime tokens, validates mode/language requests, and enforces CORS/rate limits. No transcript or audio passes through it. See `.agentic/SUBSYSTEMS/api.md`.
-- OpenAI Realtime Translate handles speech recognition, translation, audio synthesis, and transcript deltas. The browser connects directly via WebRTC after the backend issues a token.
-- Phase 1 has no database and no server-side transcript storage. Local recordings stay in the browser.
-- Phase 2 (out of current scope) moves backend to Google Cloud Run, adds Supabase Auth + Postgres, and a multi-user room layer (likely LiveKit).
 
 ## Deployment
 
 - Phase 1: Vercel (frontend + standalone Node/Hono backend), custom domain `simtalk.app`, Vercel Password Protection plus app-level `APP_ACCESS_PASSWORD` for protected actions.
+- CI: `.github/workflows/ci.yml` and `.github/workflows/vercel-deploy.yml` are present.
 - Phase 2: Google Cloud Run services (`simtalk-api`, `simtalk-realtime`, `simtalk-worker`), HTTPS load balancer, managed secrets.
 
 ## Major subsystems
 
-- `web` — React/Vite/TS frontend; mic, WebRTC, mode UI, transcripts, local recording. `frontend/`.
-- `api` — Node/Hono backend; ephemeral token minting, validation, rate limiting, security headers. `backend/`.
-- `shared` — Cross-package TypeScript types and contracts. `shared/types/`.
-- `tests` — E2E test suite (Playwright) sitting at repo root. `tests/`.
-- `scripts` — Local developer and Agentic OS tooling. `scripts/`.
-- `infra` — Vercel project config and planned GitHub Actions workflows; no in-repo infra config exists yet.
+- `web` — React/Vite/TS frontend; mic, WebRTC, mode UI, transcripts, local recording. `frontend/`. See `SUBSYSTEMS/web.md`.
+- `api` — Node/Hono backend; ephemeral token minting, validation, rate limiting, security headers. `backend/`. See `SUBSYSTEMS/api.md`.
+- `shared` — Cross-package TypeScript types and Zod contracts. `shared/types/`. See `SUBSYSTEMS/shared.md`.
+- `tests` — Vitest + Playwright suites at repo root. `tests/`. See `SUBSYSTEMS/tests.md`.
+- `infra` — Vercel deploy config, GitHub Actions, Phase 2 Cloud Run plan. `.github/workflows/`. See `SUBSYSTEMS/infra.md`.
 
 ## Source-of-truth files
 
 - `PRD.md` — product scope, modes, non-goals, success metrics.
 - `System_Architecture.md` — Phase 1/2 architecture, security controls, runtime flow.
 - `README.md` — repo conventions, commands, env vars, decision log.
-- `backend/src/routes/` — API surface, including realtime and room token endpoints.
-- `backend/src/middleware/accessGate.ts` — app-level shared-password gate for protected Phase 1 actions.
-- `shared/types/` — Zod contracts shared between frontend and backend.
+- `CLAUDE.md` — repo-shape and hard invariants for agents.
+- `backend/src/routes/` — API surface (realtime + room tokens).
+- `backend/src/middleware/accessGate.ts` — app-level shared-password gate.
+- `shared/types/src/index.ts` — Zod contracts shared between frontend and backend.
 
-## Key constraints
+## External agent instruction sources
 
-- OpenAI API key MUST never reach the browser. The browser only ever sees short-lived ephemeral tokens.
-- `APP_ACCESS_PASSWORD` is required outside development; frontend storage is UX only and backend middleware is the enforcement boundary.
-- No server-side storage of audio or transcript content in Phase 1. Local recording is opt-in, off by default, browser-only.
-- Strict CORS limited to `simtalk.app` (and local dev origins). Rate-limit the token endpoint.
-- Required security headers: CSP, HSTS, X-Frame-Options / frame-ancestors, Referrer-Policy.
-- Time-to-first-translated-audio target < 2 seconds. Latency regressions are product-critical.
-- TypeScript strict mode; validate at all boundaries with Zod.
-- Phase 1 decisions must not block Phase 2 (rooms, auth, persistence).
+- `CLAUDE.md` — repo-shape, commands, hard invariants, frontend notes, environment.
+- `AGENTS.md` — absent.
+- `.cursor/rules/*` — absent (no per-file rule files).
+- `.cursor/skills/*` — repo-local skills: `agenticOS-context`, `agenticOS-update`, `test-structure`.
+- `.github/copilot-instructions.md` — absent.
+
+## Conflicts
+
+- `LESSONS/decisions.md` records "Tailwind CSS, shadcn/ui" as the frontend stack (2026-05-20). `CLAUDE.md` and current state describe Tailwind/shadcn as stale scaffold; the active CSS lives in `frontend/src/styles/tokens.css`. Flagged for human review — see human notes below.
 
 ## Unknowns
 
-- Whether the Phase 1 Node/Hono backend will deploy as a Vercel serverless function or a standalone Vercel-hosted service. README and architecture spec lean toward standalone for easier Cloud Run migration; final call not yet committed in code.
-- Concrete supported language list for Listener and Turn-about modes (PRD says "any supported", no explicit allowlist defined yet).
-- Rate-limit thresholds and storage (in-memory vs. external) for the token endpoint.
-- Observability stack (logging/metrics target) — README mentions lightweight capture but does not name a provider.
-- Exact Phase 1 session length / cost ceilings before the user is warned or cut off.
+- Top-level `api/` directory (with its own `tsconfig.json` and `pnpm typecheck:api` script) is not documented in any current subsystem file. Likely Vercel API route or compatibility shim; needs classification (`api`? `infra`? new subsystem?).
+- Whether the Phase 1 backend deploys as a Vercel serverless function or standalone service — README leans standalone, final call not committed in code.
+- Concrete supported language allowlist for Listener and Turn-about modes.
+- Rate-limit thresholds and storage strategy for the token endpoint (currently in-memory per `CLAUDE.md`).
+- Observability stack (logging/metrics provider).
+- Phase 1 session length / cost ceilings.
+<!-- agentic:managed:end -->
 
-## Maintenance notes
+<!-- human:notes:start -->
+## Product intent
 
-This file is generated during initial bootstrap, then maintained by humans or explicit Agentic OS update tasks only.
+SimTalk validates whether OpenAI's realtime translation can deliver "natural" cross-language conversation on a single device with sub-2s time-to-first-translated-audio. The MVP is intentionally narrow: private user, no accounts, three modes (Listener, Turn-about, Practice), no persistence. Phase 1 success unlocks Phase 2 (rooms, multi-user, Cloud Run).
+
+## Architectural philosophy
+
+- The backend is a token-minting service only — it never sees audio or transcripts. This is the single most important architectural constraint and shapes every other decision (no DB, no audio proxy, browser-direct WebRTC to OpenAI).
+- Privacy-by-default: optional recording is browser-local, off by default, cleared on refresh.
+- Phase 1 decisions must not block Phase 2 — keep the backend thin and portable; avoid hard-coding single-peer assumptions in shared abstractions.
+- TypeScript strict mode everywhere; validate every cross-boundary payload with Zod from `@simtalk/shared-types`.
+
+## Business constraints
+
+- OpenAI API cost is per-minute of audio; session-length and cost ceilings are an open question.
+- Vercel Password Protection is the deployment-level allowlist; `APP_ACCESS_PASSWORD` is the application-level gate. Neither is a real auth model — both are interim.
+- Time-to-first-translated-audio < 2s is a product-critical metric; latency regressions block release.
+
+## Project-specific judgement
+
+- Treat `LESSONS/decisions.md` as authoritative for *recorded* intent, but cross-check with `CLAUDE.md` and current code before assuming a recorded decision still describes the system. The Tailwind/shadcn entry is the current known mismatch.
+- Phase 2 work (LiveKit rooms, Supabase, multi-user) is **out of current scope** — surface as an architectural change requiring a decision entry, not as ordinary work.
+- The Agentic OS tooling under `.agentic/` and `scripts/agentic/` is not application code; do not modify it during normal feature work.
+<!-- human:notes:end -->
