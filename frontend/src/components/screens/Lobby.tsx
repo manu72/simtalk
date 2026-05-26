@@ -81,7 +81,7 @@ export const Lobby = ({
           >
             Realtime translation
           </span>
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 8 }}>
             <STTitle as="h1" size={56} stroke={4} shadow={6}>
               {titles.line1}
               {titles.line2 ? (
@@ -104,7 +104,7 @@ export const Lobby = ({
         >
           <img
             src="/rocket-logo_100x132.png"
-            alt=""
+            alt="SimTalk rocketship logo"
             aria-hidden="true"
             width={72}
             height={96}
@@ -113,11 +113,11 @@ export const Lobby = ({
         </a>
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 16 }}>
         <ModeSegmented value={mode} onChange={onChangeMode} />
       </div>
 
-      <div style={{ marginTop: 22 }}>
+      <div style={{ marginTop: 24 }}>
         <div style={{ position: "relative" }}>
           <div style={{ display: "flex", alignItems: "stretch", gap: 10 }}>
             <LangCard

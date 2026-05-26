@@ -11,6 +11,7 @@ import { Lobby } from './components/screens/Lobby';
 import { ListenerSurface } from './components/screens/ListenerSurface';
 import { TurnaboutSurface, type ConversationTurn } from './components/screens/TurnaboutSurface';
 import { PracticeSurface, type PracticeStage } from './components/screens/PracticeSurface';
+import { RemoteNameModal, REMOTE_DISPLAY_NAME_MAX_LENGTH } from './components/screens/RemoteNameModal';
 import { RemoteRoomSurface, type RemoteRoomStatus } from './components/screens/RemoteRoomSurface';
 import { Summary } from './components/screens/Summary';
 import { TranscriptSheet } from './components/screens/TranscriptSheet';
@@ -83,6 +84,34 @@ const getParticipantIdentityForRoom = (roomId: string): string => {
   if (stored) return stored;
 
   return createBrowserParticipantIdentity();
+};
+
+const remoteDisplayNameStorageKey = (roomId: string): string =>
+  `simtalk.room.${roomId}.displayName`;
+
+// Per-room name persistence is sessionStorage only, mirroring participant
+// identity. This keeps the modal from re-prompting on reload mid-session
+// without persisting names across browser restarts or rooms.
+const readStoredRemoteDisplayName = (roomId: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(remoteDisplayNameStorageKey(roomId));
+    if (!raw) return null;
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return null;
+    return trimmed.slice(0, REMOTE_DISPLAY_NAME_MAX_LENGTH);
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredRemoteDisplayName = (roomId: string, value: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(remoteDisplayNameStorageKey(roomId), value);
+  } catch {
+    // sessionStorage may be unavailable; persistence is best-effort.
+  }
 };
 
 const REMOTE_SOURCE_STORAGE_KEY = 'simtalk.remoteRoom.sourceLanguage';
@@ -221,6 +250,17 @@ export const App = () => {
   const [accessModalOpen, setAccessModalOpen] = useState(false);
   const [accessError, setAccessError] = useState<string | null>(null);
   const pendingAccessActionRef = useRef<(() => void) | null>(null);
+
+  // Remote room name prompt. localDisplayName is the name the local user has
+  // chosen for the current room. It is collected before each join (or replayed
+  // from sessionStorage on reload) and forwarded to LiveKit via the room token
+  // request, so it shows up in the partner's UI without a backend account.
+  const [localDisplayName, setLocalDisplayName] = useState<string | null>(() => {
+    const initialRoomId = roomIdFromPathname();
+    return initialRoomId ? readStoredRemoteDisplayName(initialRoomId) : null;
+  });
+  const [nameModalOpen, setNameModalOpen] = useState(false);
+  const pendingNameActionRef = useRef<((displayName: string) => void) | null>(null);
 
   // Refs to session lifecycle
   const sessionRef = useRef<RealtimeTranslationSession | null>(null);
@@ -501,6 +541,44 @@ export const App = () => {
     pendingAccessActionRef.current = null;
   }, []);
 
+  // requireName mirrors requireAccess: it gates a follow-up action on the user
+  // confirming a display name. If a name is already cached for this room, the
+  // action runs immediately; otherwise the modal is opened and the action is
+  // queued until submit. Closing the modal cancels the queued action so the
+  // join attempt is fully aborted.
+  const requireName = useCallback(
+    (roomId: string, action: (displayName: string) => void) => {
+      const cached = readStoredRemoteDisplayName(roomId);
+      if (cached) {
+        setLocalDisplayName(cached);
+        action(cached);
+        return;
+      }
+      pendingNameActionRef.current = action;
+      setNameModalOpen(true);
+    },
+    []
+  );
+
+  const handleNameSubmit = useCallback(
+    (displayName: string) => {
+      const trimmed = displayName.trim().slice(0, REMOTE_DISPLAY_NAME_MAX_LENGTH);
+      if (trimmed.length === 0) return;
+      setLocalDisplayName(trimmed);
+      if (remoteRoomId) writeStoredRemoteDisplayName(remoteRoomId, trimmed);
+      setNameModalOpen(false);
+      const action = pendingNameActionRef.current;
+      pendingNameActionRef.current = null;
+      action?.(trimmed);
+    },
+    [remoteRoomId]
+  );
+
+  const handleNameClose = useCallback(() => {
+    setNameModalOpen(false);
+    pendingNameActionRef.current = null;
+  }, []);
+
   const createRemoteRoom = useCallback(async () => {
     if (isCreatingRoom) return;
     setIsCreatingRoom(true);
@@ -524,8 +602,10 @@ export const App = () => {
     }
   }, [errorMessageFor, isCreatingRoom, reopenAccessModal, source, target]);
 
-  const joinRemoteRoom = useCallback(async () => {
+  const joinRemoteRoom = useCallback(async (displayName: string) => {
     if (!remoteRoomId || remoteStatus === 'joining') return;
+    const trimmedDisplayName = displayName.trim().slice(0, REMOTE_DISPLAY_NAME_MAX_LENGTH);
+    if (trimmedDisplayName.length === 0) return;
     teardownRemoteRoom();
     const joinGeneration = joinGenerationRef.current + 1;
     joinGenerationRef.current = joinGeneration;
@@ -548,6 +628,7 @@ export const App = () => {
         roomId: remoteRoomId,
         roomTokenRequest: {
           participantIdentity,
+          displayName: trimmedDisplayName,
           sourceLanguage: hintedSourceLanguage,
           targetLanguage: remoteTarget.bcp47
         },
@@ -627,7 +708,7 @@ export const App = () => {
         if (joinGenerationRef.current === joinGeneration) {
           setRemoteStatus('idle');
         }
-        reopenAccessModal(() => void joinRemoteRoom());
+        reopenAccessModal(() => void joinRemoteRoom(trimmedDisplayName));
         return;
       }
       if (joinGenerationRef.current !== joinGeneration) return;
@@ -1053,7 +1134,7 @@ export const App = () => {
           translatedCaption={remoteTranslatedCaption}
           originalAudioMuted={remoteOriginalAudioMuted}
           errorMessage={remoteErrorMessage}
-          localDisplayName="You"
+          localDisplayName={localDisplayName ?? 'You'}
           remoteDisplayName={remoteDisplayName}
           localVideoTrack={localVideoTrack}
           remoteVideoTrack={remoteVideoTrack}
@@ -1061,7 +1142,11 @@ export const App = () => {
           localCameraEnabled={localCameraEnabled}
           remoteMicMuted={remoteMicMuted}
           remoteIsSpeaking={remoteIsSpeaking}
-          onJoin={() => requireAccess(() => void joinRemoteRoom())}
+          onJoin={() =>
+            requireAccess(() =>
+              requireName(remoteRoomId, (name) => void joinRemoteRoom(name))
+            )
+          }
           onLeave={leaveRemoteRoom}
           onToggleOriginalAudio={toggleOriginalAudio}
           onToggleLocalMic={toggleLocalMic}
@@ -1075,6 +1160,12 @@ export const App = () => {
           errorMessage={accessError}
           onSubmit={handleAccessSubmit}
           onClose={handleAccessClose}
+        />
+        <RemoteNameModal
+          open={nameModalOpen}
+          defaultValue={localDisplayName ?? ''}
+          onSubmit={handleNameSubmit}
+          onClose={handleNameClose}
         />
       </>
     );
