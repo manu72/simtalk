@@ -64,9 +64,9 @@ export const Summary = ({
             src="/rocket-logo_100x132.png"
             alt=""
             aria-hidden="true"
-            width={80}
-            height={106}
-            style={{ width: 80, height: "auto" }}
+            width={73}
+            height={96}
+            style={{ width: 73, height: "auto" }}
           />
         </a>
       </div>
