@@ -267,14 +267,20 @@ export const App = () => {
   // if remoteRoomId changes between open and submit.
   const pendingNameRoomIdRef = useRef<string | null>(null);
 
-  // Reset name-gating state whenever the active room changes (createRemoteRoom,
-  // popstate across rooms, or leaveRemoteRoom). Without this, an open name
-  // modal could submit and execute a queued join whose closure was captured
-  // against the previous remoteRoomId — joining the wrong room while the typed
-  // name is persisted under the new room's storage key.
+  // Reset name- and access-gating state whenever the active room changes
+  // (createRemoteRoom, popstate across rooms, or leaveRemoteRoom). Without
+  // this, an open name modal could submit and execute a queued join whose
+  // closure was captured against the previous remoteRoomId — joining the
+  // wrong room while the typed name is persisted under the new room's storage
+  // key. The access-gate ref is cleared for the same reason: queued access
+  // actions from `requireAccess`/`reopenAccessModal` can close over the prior
+  // remoteRoomId (via `joinRemoteRoom` or the inline closure in
+  // `RemoteRoomSurface onJoin`), so submitting the access modal after a room
+  // change would otherwise replay a join for the old room.
   useEffect(() => {
     pendingNameActionRef.current = null;
     pendingNameRoomIdRef.current = null;
+    pendingAccessActionRef.current = null;
     setNameModalOpen(false);
     setLocalDisplayName(remoteRoomId ? readStoredRemoteDisplayName(remoteRoomId) : null);
   }, [remoteRoomId]);
