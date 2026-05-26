@@ -39,3 +39,23 @@ describe('RemoteRoomSurface pre-join THEY SPEAK picker', () => {
     expect(screen.getByText(/AUTO\s*·\s*Automatic/i)).toBeInTheDocument();
   });
 });
+
+describe('RemoteRoomSurface live state', () => {
+  const liveProps = {
+    ...baseProps,
+    status: 'live' as const,
+    participantCount: 1,
+    remoteDisplayName: 'Bob',
+    source: findLanguage('tl'),
+    target: findLanguage('en')
+  };
+
+  it('opens the YOU HEAR picker when the local language pill is clicked', () => {
+    render(<RemoteRoomSurface {...liveProps} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: /change the language you hear/i })
+    );
+    // The picker dialog is rendered as role=dialog with aria-label="YOU HEAR".
+    expect(screen.getByRole('dialog', { name: /you hear/i })).toBeInTheDocument();
+  });
+});

@@ -167,6 +167,7 @@ export const RemoteRoomSurface = ({
             isSpeaking={false}
             videoTrack={localVideoTrack}
             onToggleMic={onToggleLocalMic}
+            onLanguageClick={() => setPicker('target')}
           />
           <VideoTile
             tone="teal"
@@ -350,6 +351,17 @@ export const RemoteRoomSurface = ({
             Leave Room
           </STButton>
         </div>
+
+        <LanguagePickerSheet
+          open={picker === 'target'}
+          value={target}
+          onPick={(lang) => {
+            onChangeTarget(lang);
+            setPicker(null);
+          }}
+          onClose={() => setPicker(null)}
+          title="YOU HEAR"
+        />
       </PageShell>
     );
   }

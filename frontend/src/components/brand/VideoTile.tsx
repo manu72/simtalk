@@ -16,6 +16,7 @@ export type VideoTileProps = {
   readonly isSpeaking: boolean;
   readonly videoTrack: LocalVideoTrack | RemoteVideoTrack | null;
   readonly onToggleMic?: () => void;
+  readonly onLanguageClick?: () => void;
   readonly waiting?: boolean;
 };
 
@@ -84,6 +85,7 @@ export const VideoTile = ({
   isSpeaking,
   videoTrack,
   onToggleMic,
+  onLanguageClick,
   waiting = false
 }: VideoTileProps) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -202,10 +204,30 @@ export const VideoTile = ({
           {displayName.toUpperCase()}
         </Pill>
         {language ? (
-          <Pill bg={language.color} fg={ST.navy}>
-            <span aria-hidden="true">{language.flag}</span>
-            {language.code}
-          </Pill>
+          onLanguageClick ? (
+            <button
+              type="button"
+              onClick={onLanguageClick}
+              aria-label="Change the language you hear"
+              style={{
+                padding: 0,
+                border: 0,
+                background: 'transparent',
+                cursor: 'pointer',
+                lineHeight: 0
+              }}
+            >
+              <Pill bg={language.color} fg={ST.navy}>
+                <span aria-hidden="true">{language.flag}</span>
+                {language.code}
+              </Pill>
+            </button>
+          ) : (
+            <Pill bg={language.color} fg={ST.navy}>
+              <span aria-hidden="true">{language.flag}</span>
+              {language.code}
+            </Pill>
+          )
         ) : null}
       </div>
 
