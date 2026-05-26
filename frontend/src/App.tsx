@@ -276,12 +276,16 @@ export const App = () => {
   // actions from `requireAccess`/`reopenAccessModal` can close over the prior
   // remoteRoomId (via `joinRemoteRoom` or the inline closure in
   // `RemoteRoomSurface onJoin`), so submitting the access modal after a room
-  // change would otherwise replay a join for the old room.
+  // change would otherwise replay a join for the old room. The access modal
+  // and its error are also reset so a stale modal left open across a room
+  // change cannot present a no-op submit to the user.
   useEffect(() => {
     pendingNameActionRef.current = null;
     pendingNameRoomIdRef.current = null;
     pendingAccessActionRef.current = null;
     setNameModalOpen(false);
+    setAccessModalOpen(false);
+    setAccessError(null);
     setLocalDisplayName(remoteRoomId ? readStoredRemoteDisplayName(remoteRoomId) : null);
   }, [remoteRoomId]);
 
