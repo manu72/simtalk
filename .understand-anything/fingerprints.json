@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "5308b493efe8bd9337f26fac977eeb90b03ae4d2",
-  "generatedAt": "2026-05-26T03:42:03.769Z",
+  "gitCommitHash": "f268e0736a87c27bf4a08ceb6306e879c3e45708",
+  "generatedAt": "2026-05-26T06:52:24.421Z",
   "files": {
     ".agentic/CODEMAP.json": {
       "filePath": ".agentic/CODEMAP.json",
@@ -15,12 +15,22 @@
     },
     ".agentic/CONFIG/agentic.json": {
       "filePath": ".agentic/CONFIG/agentic.json",
-      "contentHash": "ea1df7bd50571715e14768f8301760ff2cce374f48f93bf0174ff3b90af4a6ca",
+      "contentHash": "66b32478d5f8bff446c2a9bf2579bcb560a4533562c2cc95949feb4dcf853eab",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 132,
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    ".agentic/GRAPH_INDEX.md": {
+      "filePath": ".agentic/GRAPH_INDEX.md",
+      "contentHash": "26944ce58752da3b62418bfc83ad199e0f36703ae13f10d2c96c54e7b6609d87",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
       "hasStructuralAnalysis": true
     },
     ".agentic/LESSONS/decisions.md": {
@@ -45,82 +55,82 @@
     },
     ".agentic/MEMORY_INDEX.md": {
       "filePath": ".agentic/MEMORY_INDEX.md",
-      "contentHash": "6e6c8db24b8c6534f09ee0628d3bb0c753105df260216781126f98c6a65e619c",
+      "contentHash": "0f63864adbdc24a8379e7668c8bc1183985ca7c6a5be544761460bf1763cbbac",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 55,
+      "totalLines": 83,
       "hasStructuralAnalysis": true
     },
     ".agentic/PROJECT_BRIEF.md": {
       "filePath": ".agentic/PROJECT_BRIEF.md",
-      "contentHash": "2ae98d0252819f6ee685c7eb244ccfc5c14414df4662c74f10a823d7feca7eb3",
+      "contentHash": "baf56118f40cbb911c6beccd8c9c6448a6db7abee6e199e7ca8165b17b8e4bbe",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 71,
+      "totalLines": 86,
       "hasStructuralAnalysis": true
     },
     ".agentic/SUBSYSTEMS/api.md": {
       "filePath": ".agentic/SUBSYSTEMS/api.md",
-      "contentHash": "0c4f2676e673aeb72122a4f0edd8b5df60c3ded3ef1642b186f0f54373fb777b",
+      "contentHash": "721c57f3be2b94d2f0da7c2ad11e846157f9140dae61edf667586e3b0c48b302",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 65,
+      "totalLines": 95,
       "hasStructuralAnalysis": true
     },
     ".agentic/SUBSYSTEMS/infra.md": {
       "filePath": ".agentic/SUBSYSTEMS/infra.md",
-      "contentHash": "ab5980bae7821ec1009ce9a62b234c505f8fd8150baff93e2e147c392f723c0f",
+      "contentHash": "7b967b327dea879759e92b3ee18bf661853e53d091d2c463257067604ea42cda",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 51,
+      "totalLines": 83,
       "hasStructuralAnalysis": true
     },
     ".agentic/SUBSYSTEMS/README.md": {
       "filePath": ".agentic/SUBSYSTEMS/README.md",
-      "contentHash": "23fc17e8946c0d9011b871815841196d8a400e30da50e9aa74456baee9760a1a",
+      "contentHash": "7d4cbc0874fd15d5fef573443ac92bee26130ee2ca6680c7c5989ba842982c4d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 25,
+      "totalLines": 28,
       "hasStructuralAnalysis": true
     },
     ".agentic/SUBSYSTEMS/shared.md": {
       "filePath": ".agentic/SUBSYSTEMS/shared.md",
-      "contentHash": "853522c4764356409b10e12772f08e3b3545b9d2089998655de363ec99c63f16",
+      "contentHash": "cf55d223bf37be7bc349a9228bdd5c330ee683ce2bf24e4d88df6ac8d60679b5",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 45,
+      "totalLines": 69,
       "hasStructuralAnalysis": true
     },
     ".agentic/SUBSYSTEMS/tests.md": {
       "filePath": ".agentic/SUBSYSTEMS/tests.md",
-      "contentHash": "366b7a5ee8b1268ffbeed991900e3edfed35979d238f8a3b3b8cfb2e2441a1a7",
+      "contentHash": "a4187d952222fefc214b84055a86ce902d0475dae7e3c089a1231c934997af19",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 50,
+      "totalLines": 76,
       "hasStructuralAnalysis": true
     },
     ".agentic/SUBSYSTEMS/web.md": {
       "filePath": ".agentic/SUBSYSTEMS/web.md",
-      "contentHash": "aa658cb646f74f072dae667824fcafab88d15aba7eaa4d224f4de7834b83dc44",
+      "contentHash": "7182fcb8381fa25c48f08ca2cbdb2039e98c9e0bcc34f58f572161f1534d7705",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 58,
+      "totalLines": 85,
       "hasStructuralAnalysis": true
     },
     ".claude/settings.local.json": {
@@ -151,26 +161,6 @@
       "imports": [],
       "exports": [],
       "totalLines": 361,
-      "hasStructuralAnalysis": true
-    },
-    ".cursor/skills/agenticOS-context/skill.md": {
-      "filePath": ".cursor/skills/agenticOS-context/skill.md",
-      "contentHash": "121c67b223cadad179a3010b82a4e0e48337a471520ee9d711ff7ea50c4470b9",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 35,
-      "hasStructuralAnalysis": true
-    },
-    ".cursor/skills/agenticOS-update/skill.md": {
-      "filePath": ".cursor/skills/agenticOS-update/skill.md",
-      "contentHash": "2a3bc661a8c3f79242ee09b898c3c16b3de26f32048143e8b2fba3a2a832b3b8",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 34,
       "hasStructuralAnalysis": true
     },
     ".cursor/skills/test-structure/SKILL.md": {
@@ -205,7 +195,7 @@
     },
     ".prettierignore": {
       "filePath": ".prettierignore",
-      "contentHash": "7a18323055ffc9beae2c20b3f473111cac27f8588abdae79cef4648cbbf521fb",
+      "contentHash": "88844f86847a2340c124a6f5e9f68e3b588a6db1fd79af7855020ffa2c8c3d76",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -221,6 +211,46 @@
       "imports": [],
       "exports": [],
       "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/fingerprints.json": {
+      "filePath": ".understand-anything/fingerprints.json",
+      "contentHash": "df28bae56381f329af95c2dece15f3de22f0f71022ecb9eb2d0abff8d38ad2cf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4852,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/knowledge-graph.json": {
+      "filePath": ".understand-anything/knowledge-graph.json",
+      "contentHash": "35a65cbe31c618ef23bdd2b8a42a2bb4e562ff62c8883ce232a69e192237141e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6681,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/meta.json": {
+      "filePath": ".understand-anything/meta.json",
+      "contentHash": "7dfe0b824bac347d88bf18dfbdfcce6de42453e7a76cd68834b6bdb7130ba507",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/tmp/changed-files.txt": {
+      "filePath": ".understand-anything/tmp/changed-files.txt",
+      "contentHash": "93cc7a79469b8ffcac86ea68c3d9458e2f50813ac89cb996efc3875263afc1c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
       "hasStructuralAnalysis": false
     },
     "agentic_os_plan_v2.md": {
@@ -1937,7 +1967,7 @@
     },
     "frontend/src/components/screens/Lobby.tsx": {
       "filePath": "frontend/src/components/screens/Lobby.tsx",
-      "contentHash": "062262cfa5b068121ea329ee0e5160cdcf89f4944a907c98af46a7c7552530d8",
+      "contentHash": "90004a411af8bebf07466eb56f6fa44908ba5b3db2e722ba0eedc6cf984bdec8",
       "functions": [
         {
           "name": "Lobby",
@@ -2086,7 +2116,7 @@
     },
     "frontend/src/components/screens/RemoteRoomSurface.tsx": {
       "filePath": "frontend/src/components/screens/RemoteRoomSurface.tsx",
-      "contentHash": "def3d720714effe8c88190a5929e8e4687fd256ec4ab2e84fff85936ef77db32",
+      "contentHash": "a5c9ff45665385d28ee98c4ae015d2103cf5ebd4a77f13a84a1911edf92af8af",
       "functions": [
         {
           "name": "PageShell",
@@ -2105,10 +2135,10 @@
         {
           "name": "RemoteRoomSurface",
           "params": [
-            "{\n  roomId,\n  roomUrl,\n  source,\n  target,\n  status,\n  participantCount,\n  translatedCaption,\n  originalAudioMuted,\n  errorMessage,\n  localDisplayName,\n  remoteDisplayName,\n  localVideoTrack,\n  remoteVideoTrack,\n  localMicMuted,\n  localCameraEnabled,\n  remoteMicMuted,\n  remoteIsSpeaking,\n  onJoin,\n  onLeave,\n  onToggleOriginalAudio,\n  onToggleLocalMic,\n  onToggleLocalCamera,\n  onCopyLink,\n  onChangeSource,\n  onChangeTarget\n}"
+            "{\n  roomId,\n  roomUrl,\n  source,\n  target,\n  status,\n  participantCount,\n  translatedCaption,\n  originalAudioMuted,\n  errorMessage,\n  localDisplayName,\n  remoteDisplayName,\n  localVideoTrack,\n  remoteVideoTrack,\n  localMicMuted,\n  localCameraEnabled,\n  remoteMicMuted,\n  remoteIsSpeaking,\n  onJoin,\n  onLeave,\n  onToggleOriginalAudio,\n  onToggleLocalMic,\n  onToggleLocalCamera,\n  onCopyLink,\n  onChangeSource,\n  onChangeTarget,\n}"
           ],
           "exported": true,
-          "lineCount": 465
+          "lineCount": 439
         }
       ],
       "classes": [],
@@ -2168,12 +2198,12 @@
       "exports": [
         "RemoteRoomSurface"
       ],
-      "totalLines": 578,
+      "totalLines": 552,
       "hasStructuralAnalysis": true
     },
     "frontend/src/components/screens/Summary.tsx": {
       "filePath": "frontend/src/components/screens/Summary.tsx",
-      "contentHash": "e8e15cf332e5a95414d294020291f6cf59e9ca7301e482370ad353bd7fa29151",
+      "contentHash": "9ead5b8f054cd025b972436d35ffa81cc00ac0bff1fb273ece9b89b849880ab0",
       "functions": [
         {
           "name": "Summary",
@@ -3146,19 +3176,151 @@
       "totalLines": 362,
       "hasStructuralAnalysis": true
     },
+    "scripts/agentic/graph_sync.py": {
+      "filePath": "scripts/agentic/graph_sync.py",
+      "contentHash": "7cdba38c4bb7e6966c41773d9963f4b0430ef6a97779598fdb5efed24e322605",
+      "functions": [
+        {
+          "name": "_load_config",
+          "params": [],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_iso_utc",
+          "params": [
+            "ts"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_hours_since",
+          "params": [
+            "mtime"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_sample_paths_resolve",
+          "params": [
+            "graph",
+            "sample_size"
+          ],
+          "returnType": "tuple[int, int]",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "_graph_node_count",
+          "params": [
+            "graph"
+          ],
+          "returnType": "int | None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_build_managed_block",
+          "params": [
+            "provider",
+            "graph_path",
+            "available",
+            "fallback",
+            "last_generated",
+            "parseable",
+            "non_empty",
+            "sample_hits",
+            "sample_count",
+            "node_count",
+            "stale"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "_splice_managed",
+          "params": [
+            "existing",
+            "new_managed"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 84
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        }
+      ],
+      "exports": [
+        "_load_config",
+        "_iso_utc",
+        "_hours_since",
+        "_sample_paths_resolve",
+        "_graph_node_count",
+        "_build_managed_block",
+        "_splice_managed",
+        "main"
+      ],
+      "totalLines": 258,
+      "hasStructuralAnalysis": true
+    },
     "scripts/agentic/README.md": {
       "filePath": "scripts/agentic/README.md",
-      "contentHash": "9cd5ca578a43f49595027bef1f694343a0aa782aae25bd929125cb063505f49b",
+      "contentHash": "62a346b9baea2f16834eaafe548b44b6863f6a33705731e30e991af3138a0cf5",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 13,
+      "totalLines": 42,
       "hasStructuralAnalysis": true
     },
     "scripts/agentic/route_task.py": {
       "filePath": "scripts/agentic/route_task.py",
-      "contentHash": "01905ea8da2256bd26647294433e6c13d10d565dbccbc2ceced3e32365aacd39",
+      "contentHash": "f5ea08c561509f663a7e381bad3e576a4ba909d4fe9cb18f1f17896bea320dba",
       "functions": [
         {
           "name": "_die",
@@ -3177,7 +3339,7 @@
           ],
           "returnType": "dict[str, Any]",
           "exported": true,
-          "lineCount": 9
+          "lineCount": 8
         },
         {
           "name": "_tokenize",
@@ -3189,96 +3351,194 @@
           "lineCount": 2
         },
         {
-          "name": "_keyword_part_matches",
+          "name": "_word_forms",
           "params": [
-            "part",
-            "task_tokens"
+            "token"
           ],
-          "returnType": "bool",
+          "returnType": "set[str]",
           "exported": true,
-          "lineCount": 8
+          "lineCount": 5
         },
         {
-          "name": "_keyword_matches_task",
+          "name": "_expanded_task_tokens",
           "params": [
-            "keyword",
             "task_tokens"
           ],
-          "returnType": "bool",
+          "returnType": "set[str]",
           "exported": true,
-          "lineCount": 6
+          "lineCount": 5
         },
         {
-          "name": "_contains_explicit_reference",
+          "name": "_load_graph",
           "params": [
-            "normalized_task",
-            "reference"
+            "path"
           ],
-          "returnType": "bool",
+          "returnType": "dict[str, Any] | None",
           "exported": true,
           "lineCount": 12
         },
         {
-          "name": "_explicit_file_reference_matches",
+          "name": "_index_graph",
           "params": [
-            "task",
-            "entries"
+            "graph"
           ],
-          "returnType": "list[dict[str, Any]]",
+          "returnType": "dict[str, Any]",
           "exported": true,
-          "lineCount": 20
+          "lineCount": 37
         },
         {
-          "name": "_explicit_files_from_filesystem",
+          "name": "_node_score",
+          "params": [
+            "node",
+            "task_tokens",
+            "expanded_tokens"
+          ],
+          "returnType": "tuple[int, list[str]]",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "_explicit_anchors_from_graph",
+          "params": [
+            "task",
+            "idx"
+          ],
+          "returnType": "list[tuple[dict[str, Any], str]]",
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "_file_node_for_path",
+          "params": [
+            "idx",
+            "file_path"
+          ],
+          "returnType": "dict[str, Any] | None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_expand_dependencies",
+          "params": [
+            "idx",
+            "anchor_node"
+          ],
+          "returnType": "list[tuple[str, str]]",
+          "exported": true,
+          "lineCount": 45
+        },
+        {
+          "name": "_glob_to_regex",
+          "params": [
+            "pattern"
+          ],
+          "returnType": "re.Pattern[str]",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "_glob_match",
+          "params": [
+            "pattern",
+            "path"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_risk_tags_for",
+          "params": [
+            "paths",
+            "high_risk_patterns"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "_subsystem_for_path",
+          "params": [
+            "path",
+            "valid_subsystems"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "_valid_subsystems",
+          "params": [
+            "subsystem_keywords"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_subsystem_keyword_overlay",
+          "params": [
+            "task_tokens",
+            "subsystem_keywords"
+          ],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "_is_test_path",
+          "params": [
+            "path",
+            "test_discovery"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_related_tests_for",
+          "params": [
+            "selected_paths",
+            "test_discovery"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 59
+        },
+        {
+          "name": "_codemap_routing",
+          "params": [
+            "task_tokens",
+            "subsystem_keywords",
+            "valid_subsystems",
+            "codemap_path"
+          ],
+          "returnType": "tuple[list[str], dict[str, str], set[str]]",
+          "exported": true,
+          "lineCount": 57
+        },
+        {
+          "name": "_filesystem_anchors",
           "params": [
             "task"
           ],
           "returnType": "list[str]",
           "exported": true,
-          "lineCount": 29
+          "lineCount": 24
         },
         {
-          "name": "_score_entry",
+          "name": "_compute_confidence",
           "params": [
-            "entry",
-            "task_tokens",
-            "subsystem_keywords",
-            "risky_tags"
-          ],
-          "returnType": "int",
-          "exported": true,
-          "lineCount": 34
-        },
-        {
-          "name": "_select_subsystem_files",
-          "params": [
-            "selected_subsystems"
-          ],
-          "returnType": "list[str]",
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "_routable_entries_for_selection",
-          "params": [
-            "entry",
-            "entries"
-          ],
-          "returnType": "list[dict[str, Any]]",
-          "exported": true,
-          "lineCount": 18
-        },
-        {
-          "name": "_confidence",
-          "params": [
-            "selected_paths",
-            "selected_subsystems",
-            "has_tests",
-            "has_explicit_paths"
+            "graph_available",
+            "fallback_active",
+            "has_explicit_anchors",
+            "selected_paths_count",
+            "related_tests_count",
+            "selected_subsystems_count"
           ],
           "returnType": "tuple[str, list[str]]",
           "exported": true,
-          "lineCount": 27
+          "lineCount": 31
         },
         {
           "name": "main",
@@ -3287,7 +3547,7 @@
           ],
           "returnType": "int",
           "exported": true,
-          "lineCount": 145
+          "lineCount": 229
         }
       ],
       "classes": [],
@@ -3296,6 +3556,12 @@
           "source": "datetime",
           "specifiers": [
             "_dt"
+          ]
+        },
+        {
+          "source": "fnmatch",
+          "specifiers": [
+            "fnmatch"
           ]
         },
         {
@@ -3323,9 +3589,16 @@
           ]
         },
         {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterable"
+          ]
+        },
+        {
           "source": "pathlib",
           "specifiers": [
-            "Path"
+            "Path",
+            "PurePosixPath"
           ]
         },
         {
@@ -3339,94 +3612,126 @@
         "_die",
         "_load_json",
         "_tokenize",
-        "_keyword_part_matches",
-        "_keyword_matches_task",
-        "_contains_explicit_reference",
-        "_explicit_file_reference_matches",
-        "_explicit_files_from_filesystem",
-        "_score_entry",
-        "_select_subsystem_files",
-        "_routable_entries_for_selection",
-        "_confidence",
+        "_word_forms",
+        "_expanded_task_tokens",
+        "_load_graph",
+        "_index_graph",
+        "_node_score",
+        "_explicit_anchors_from_graph",
+        "_file_node_for_path",
+        "_expand_dependencies",
+        "_glob_to_regex",
+        "_glob_match",
+        "_risk_tags_for",
+        "_subsystem_for_path",
+        "_valid_subsystems",
+        "_subsystem_keyword_overlay",
+        "_is_test_path",
+        "_related_tests_for",
+        "_codemap_routing",
+        "_filesystem_anchors",
+        "_compute_confidence",
         "main"
       ],
-      "totalLines": 425,
+      "totalLines": 882,
       "hasStructuralAnalysis": true
     },
-    "scripts/agentic/test_build_codemap.py": {
-      "filePath": "scripts/agentic/test_build_codemap.py",
-      "contentHash": "540402a27781a8c9c1c63ceaff44780a587d77059e8a65275a6163829ef5d3c8",
-      "functions": [],
-      "classes": [
+    "scripts/agentic/test_smoke.py": {
+      "filePath": "scripts/agentic/test_smoke.py",
+      "contentHash": "c334f00d87e8d9aae3f8c814059e8f05160fde991506e9f19eb07e73da250713",
+      "functions": [
         {
-          "name": "DefaultIgnorePartsTest",
-          "methods": [
-            "test_multi_segment_default_ignore_entries_match_path_segments",
-            "test_multi_segment_default_ignore_entries_do_not_match_individual_segments"
+          "name": "_load_module",
+          "params": [
+            "name",
+            "filename"
           ],
-          "properties": [],
           "exported": true,
           "lineCount": 7
         }
       ],
-      "imports": [
-        {
-          "source": "unittest",
-          "specifiers": [
-            "unittest"
-          ]
-        },
-        {
-          "source": "scripts.agentic.build_codemap",
-          "specifiers": [
-            "_is_default_ignored"
-          ]
-        }
-      ],
-      "exports": [
-        "DefaultIgnorePartsTest"
-      ],
-      "totalLines": 22,
-      "hasStructuralAnalysis": true
-    },
-    "scripts/agentic/test_route_task.py": {
-      "filePath": "scripts/agentic/test_route_task.py",
-      "contentHash": "0862cd8d76baa65ce981360be6b20f21e3767d02e6b62f9dd2f22c9b04a0f9db",
-      "functions": [],
       "classes": [
         {
-          "name": "KeywordPartMatchesTest",
+          "name": "_CwdRepoRoot",
           "methods": [
-            "test_does_not_match_short_keyword_prefixes_inside_unrelated_tokens",
-            "test_still_matches_exact_short_keywords",
-            "test_still_matches_limited_word_forms_and_aliases"
+            "__enter__",
+            "__exit__"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 15
+          "lineCount": 10
         },
         {
-          "name": "RouteTaskBundleTest",
+          "name": "GraphSyncSmoke",
           "methods": [
-            "_write_fixture",
-            "_run_route",
-            "test_selected_paths_excludes_scored_directory_entries",
-            "test_exact_path_reference_includes_existing_file",
-            "test_basename_reference_includes_existing_file",
-            "test_function_and_file_hint_includes_existing_file",
-            "test_filesystem_explicit_matches_skip_build_cache_and_venv_dirs",
-            "test_filesystem_explicit_matches_are_capped_to_selected_path_limit"
+            "test_runs_and_updates_graph_index"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 191
+          "lineCount": 14
+        },
+        {
+          "name": "ValidateMemorySmoke",
+          "methods": [
+            "test_runs_clean_against_repo",
+            "test_does_not_create_context_cache_directory"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 70
+        },
+        {
+          "name": "RouteTaskSmoke",
+          "methods": [
+            "_run",
+            "test_bundle_has_v2_contract",
+            "test_user_named_anchor_is_honoured",
+            "test_uses_understand_anything_when_available",
+            "test_user_named_path_not_in_graph_is_anchored"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 78
+        },
+        {
+          "name": "RelatedTestsUnit",
+          "methods": [
+            "setUp",
+            "test_uses_test_discovery_globs_when_provided",
+            "test_falls_back_to_tests_dir_when_no_patterns",
+            "test_skips_test_files_as_sources"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "GlobMatchUnit",
+          "methods": [
+            "setUp",
+            "test_double_star_matches_top_level",
+            "test_double_star_test_globs",
+            "test_single_star_does_not_cross_segments"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "UpdateMemorySmoke",
+          "methods": [
+            "test_runs_and_writes_marker"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 14
         }
       ],
       "imports": [
         {
-          "source": "contextlib",
+          "source": "importlib.util",
           "specifiers": [
-            "contextlib"
+            "importlib.util"
           ]
         },
         {
@@ -3448,9 +3753,9 @@
           ]
         },
         {
-          "source": "tempfile",
+          "source": "sys",
           "specifiers": [
-            "tempfile"
+            "sys"
           ]
         },
         {
@@ -3459,91 +3764,11 @@
             "unittest"
           ]
         },
-        {
-          "source": "pathlib",
-          "specifiers": [
-            "Path"
-          ]
-        },
-        {
-          "source": "scripts.agentic.route_task",
-          "specifiers": [
-            "MAX_SELECTED_PATHS",
-            "_keyword_part_matches",
-            "main"
-          ]
-        }
-      ],
-      "exports": [
-        "KeywordPartMatchesTest",
-        "RouteTaskBundleTest"
-      ],
-      "totalLines": 229,
-      "hasStructuralAnalysis": true
-    },
-    "scripts/agentic/test_update_memory.py": {
-      "filePath": "scripts/agentic/test_update_memory.py",
-      "contentHash": "585378dd8f8e9ea990ba61ed651b014a0256f93007a15232b978fc828da3f213",
-      "functions": [],
-      "classes": [
-        {
-          "name": "LoadJsonTest",
-          "methods": [
-            "test_missing_file_raises_file_not_found_error",
-            "test_invalid_json_raises_json_decode_error"
-          ],
-          "properties": [],
-          "exported": true,
-          "lineCount": 15
-        },
-        {
-          "name": "StaleSubsystemDetectionTest",
-          "methods": [
-            "_write_memory_files",
-            "_run_update_memory",
-            "test_planned_subsystem_stubs_are_not_reported_as_stale",
-            "test_non_planned_subsystem_file_without_codemap_evidence_is_stale"
-          ],
-          "properties": [],
-          "exported": true,
-          "lineCount": 66
-        }
-      ],
-      "imports": [
         {
           "source": "contextlib",
           "specifiers": [
-            "contextlib"
-          ]
-        },
-        {
-          "source": "io",
-          "specifiers": [
-            "io"
-          ]
-        },
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "tempfile",
-          "specifiers": [
-            "tempfile"
-          ]
-        },
-        {
-          "source": "unittest",
-          "specifiers": [
-            "unittest"
+            "redirect_stdout",
+            "redirect_stderr"
           ]
         },
         {
@@ -3551,141 +3776,149 @@
           "specifiers": [
             "Path"
           ]
-        },
-        {
-          "source": "unittest.mock",
-          "specifiers": [
-            "patch"
-          ]
-        },
-        {
-          "source": "scripts.agentic.update_memory",
-          "specifiers": [
-            "_load_json",
-            "main"
-          ]
         }
       ],
       "exports": [
-        "LoadJsonTest",
-        "StaleSubsystemDetectionTest"
+        "_load_module",
+        "_CwdRepoRoot",
+        "GraphSyncSmoke",
+        "ValidateMemorySmoke",
+        "RouteTaskSmoke",
+        "RelatedTestsUnit",
+        "GlobMatchUnit",
+        "UpdateMemorySmoke"
       ],
-      "totalLines": 105,
-      "hasStructuralAnalysis": true
-    },
-    "scripts/agentic/test_validate_memory.py": {
-      "filePath": "scripts/agentic/test_validate_memory.py",
-      "contentHash": "1ba53578a0e714d32e4c2210d8ce4a07e38b02e951314e548ea4d01ba92ba21d",
-      "functions": [],
-      "classes": [
-        {
-          "name": "CuratedPathRefsTest",
-          "methods": [
-            "test_ignores_external_absolute_api_endpoints",
-            "test_resolves_markdown_references_relative_to_markdown_file",
-            "test_falls_back_to_repo_root_when_file_relative_path_is_missing"
-          ],
-          "properties": [],
-          "exported": true,
-          "lineCount": 58
-        }
-      ],
-      "imports": [
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "tempfile",
-          "specifiers": [
-            "tempfile"
-          ]
-        },
-        {
-          "source": "unittest",
-          "specifiers": [
-            "unittest"
-          ]
-        },
-        {
-          "source": "pathlib",
-          "specifiers": [
-            "Path"
-          ]
-        },
-        {
-          "source": "scripts.agentic",
-          "specifiers": [
-            "validate_memory"
-          ]
-        }
-      ],
-      "exports": [
-        "CuratedPathRefsTest"
-      ],
-      "totalLines": 77,
+      "totalLines": 304,
       "hasStructuralAnalysis": true
     },
     "scripts/agentic/update_memory.py": {
       "filePath": "scripts/agentic/update_memory.py",
-      "contentHash": "c1b846827c7f5e857706ff430f9675e51163b322ff7e3acda9c680d9248dd61e",
+      "contentHash": "3a515f3c57388ca63c089d80f0d59555eb7a08ef3e0520a7925c55a676f58db7",
       "functions": [
         {
-          "name": "_run_build_codemap",
+          "name": "_load_config",
           "params": [],
-          "returnType": "int",
+          "returnType": "dict",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 9
         },
         {
-          "name": "_load_json",
+          "name": "_run_graph_sync",
+          "params": [],
+          "returnType": "tuple[int, str]",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "_git_available",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_git_head",
+          "params": [],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_git_changed_files",
           "params": [
+            "since_ref"
+          ],
+          "returnType": "list[str]",
+          "exported": true,
+          "lineCount": 42
+        },
+        {
+          "name": "_valid_subsystems",
+          "params": [],
+          "returnType": "set[str]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_subsystem_for",
+          "params": [
+            "path",
+            "valid"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "_glob_match",
+          "params": [
+            "pattern",
             "path"
           ],
-          "returnType": "dict[str, Any]",
+          "returnType": "bool",
           "exported": true,
-          "lineCount": 3
+          "lineCount": 2
         },
         {
-          "name": "_detected_subsystems",
+          "name": "_risk_tags_for",
           "params": [
-            "codemap",
-            "valid_names"
+            "paths",
+            "high_risk_patterns"
           ],
-          "returnType": "set[str]",
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "_existing_subsystem_files",
-          "params": [],
-          "returnType": "set[str]",
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "_planned_subsystem_files",
-          "params": [],
           "returnType": "set[str]",
           "exported": true,
           "lineCount": 14
+        },
+        {
+          "name": "_refresh_freshness_block",
+          "params": [
+            "refreshed_files"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "_save_marker",
+          "params": [
+            "ref"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
         },
         {
           "name": "main",
           "params": [],
           "returnType": "int",
           "exported": true,
-          "lineCount": 36
+          "lineCount": 81
         }
       ],
       "classes": [],
       "imports": [
         {
+          "source": "fnmatch",
+          "specifiers": [
+            "fnmatch"
+          ]
+        },
+        {
+          "source": "importlib.util",
+          "specifiers": [
+            "importlib.util"
+          ]
+        },
+        {
           "source": "json",
           "specifiers": [
             "json"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
           ]
         },
         {
@@ -3701,75 +3934,150 @@
           ]
         },
         {
-          "source": "pathlib",
+          "source": "datetime",
           "specifiers": [
-            "Path"
+            "datetime",
+            "timezone"
           ]
         },
         {
-          "source": "typing",
+          "source": "pathlib",
           "specifiers": [
-            "Any"
+            "Path",
+            "PurePosixPath"
           ]
         }
       ],
       "exports": [
-        "_run_build_codemap",
-        "_load_json",
-        "_detected_subsystems",
-        "_existing_subsystem_files",
-        "_planned_subsystem_files",
+        "_load_config",
+        "_run_graph_sync",
+        "_git_available",
+        "_git_head",
+        "_git_changed_files",
+        "_valid_subsystems",
+        "_subsystem_for",
+        "_glob_match",
+        "_risk_tags_for",
+        "_refresh_freshness_block",
+        "_save_marker",
         "main"
       ],
-      "totalLines": 114,
+      "totalLines": 326,
       "hasStructuralAnalysis": true
     },
     "scripts/agentic/validate_memory.py": {
       "filePath": "scripts/agentic/validate_memory.py",
-      "contentHash": "bc5f01a2785bb13ccdc644b065546840859081544f95c28e9b18e84d25dbb380",
+      "contentHash": "fcd8ddda36c192074e67d846db36974c93e9de4dffc2186ec24d4e17cb7ac9b4",
       "functions": [
         {
-          "name": "_looks_like_path",
+          "name": "_hours_since",
           "params": [
-            "token"
+            "mtime"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_check_required_files",
+          "params": [
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_check_config",
+          "params": [
+            "report"
+          ],
+          "returnType": "dict | None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "_check_graph",
+          "params": [
+            "cfg",
+            "report"
           ],
           "returnType": "bool",
           "exported": true,
-          "lineCount": 11
+          "lineCount": 39
         },
         {
-          "name": "_check_codemap",
+          "name": "_check_region_markers",
           "params": [
-            "failures",
-            "warnings"
+            "cfg",
+            "report"
           ],
           "returnType": "None",
           "exported": true,
-          "lineCount": 33
+          "lineCount": 30
         },
         {
-          "name": "_check_curated_path_refs",
+          "name": "_check_context_cache",
           "params": [
-            "warnings"
+            "cfg",
+            "report"
           ],
           "returnType": "None",
           "exported": true,
-          "lineCount": 38
+          "lineCount": 34
+        },
+        {
+          "name": "_check_memory_freshness",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_check_sample_paths",
+          "params": [
+            "cfg",
+            "report"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 46
         },
         {
           "name": "main",
           "params": [],
           "returnType": "int",
           "exported": true,
-          "lineCount": 21
+          "lineCount": 28
         }
       ],
-      "classes": [],
+      "classes": [
+        {
+          "name": "Report",
+          "methods": [
+            "__init__",
+            "err",
+            "warn"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
       "imports": [
         {
           "source": "json",
           "specifiers": [
             "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
           ]
         },
         {
@@ -3785,25 +4093,32 @@
           ]
         },
         {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
           "source": "pathlib",
           "specifiers": [
             "Path"
           ]
-        },
-        {
-          "source": "typing",
-          "specifiers": [
-            "Any"
-          ]
         }
       ],
       "exports": [
-        "_looks_like_path",
-        "_check_codemap",
-        "_check_curated_path_refs",
+        "_hours_since",
+        "Report",
+        "_check_required_files",
+        "_check_config",
+        "_check_graph",
+        "_check_region_markers",
+        "_check_context_cache",
+        "_check_memory_freshness",
+        "_check_sample_paths",
         "main"
       ],
-      "totalLines": 187,
+      "totalLines": 314,
       "hasStructuralAnalysis": true
     },
     "shared/types/package.json": {

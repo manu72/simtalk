@@ -7,12 +7,12 @@
 - Graph path: `.understand-anything/knowledge-graph.json`
 - Graph mode available: yes
 - Fallback mode: codemap
-- Last checked: 2026-05-26T05:41:18Z
-- Last generated: 2026-05-26T03:42:03Z
+- Last checked: 2026-05-26T06:57:34Z
+- Last generated: 2026-05-26T06:52:24Z
 - Parseable: yes
 - Non-empty: yes
 - Sample paths resolve: 5/5
-- Coverage notes: 232 nodes
+- Coverage notes: 226 nodes
 - Known gaps: none
 - Unknowns: none
 

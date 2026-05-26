@@ -91,7 +91,7 @@ const Header = () => (
       >
         Private two-person room
       </span>
-      <div style={{ marginTop: 10 }}>
+      <div style={{ marginTop: 8 }}>
         <STTitle id="remote-room-title" as="h1" size={56} stroke={4} shadow={6}>
           Remote Talk.
         </STTitle>

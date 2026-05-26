@@ -22,7 +22,6 @@ Standard library only. Idempotent. Writes only inside ``.agentic/``.
 
 from __future__ import annotations
 
-import fnmatch
 import importlib.util
 import json
 import re
@@ -175,8 +174,43 @@ def _subsystem_for(path: str, valid: set[str]) -> str | None:
     return head if head in valid else None
 
 
+def _glob_to_regex(pattern: str) -> re.Pattern[str]:
+    """Translate a POSIX-style glob to a regex.
+
+    Honours ``**`` as a zero-or-more path-segment wildcard so patterns like
+    ``**/.env*`` match a top-level ``.env``. Plain ``*`` and ``?`` match
+    within a single segment (do not cross ``/``). Anchored to the full
+    string. Mirrors the translator in ``route_task.py`` so risk-overlay and
+    routing behaviour stay consistent.
+    """
+    out: list[str] = []
+    i = 0
+    n = len(pattern)
+    while i < n:
+        if pattern[i : i + 3] == "**/":
+            out.append("(?:.*/)?")
+            i += 3
+        elif pattern[i : i + 3] == "/**" and (i + 3 == n or pattern[i + 3] == "/"):
+            out.append("(?:/.*)?")
+            i += 3
+        elif pattern[i : i + 2] == "**":
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    return re.compile("^" + "".join(out) + "$")
+
+
 def _glob_match(pattern: str, path: str) -> bool:
-    return fnmatch.fnmatchcase(path, pattern.replace("**", "*"))
+    """Match a repo-relative POSIX path against a glob with ``**`` support."""
+    return _glob_to_regex(pattern).match(path) is not None
 
 
 def _risk_tags_for(paths: list[str], high_risk_patterns: list[dict]) -> set[str]:
