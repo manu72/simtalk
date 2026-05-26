@@ -617,6 +617,10 @@ export const App = () => {
       } catch {
         // Camera permission denied or unavailable; UI stays on avatar fallback.
       }
+      // Teardown (popstate, leave, a second join) may have run while the
+      // camera prompt was in flight; in that case the join is superseded and
+      // must not flip status to 'live' on top of the reset state.
+      if (!isCurrentJoin()) return;
       setRemoteStatus('live');
     } catch (error) {
       if (error instanceof AccessDeniedError) {

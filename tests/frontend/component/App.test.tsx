@@ -735,6 +735,58 @@ describe('Remote room language mirroring', () => {
     expect(screen.getAllByText('EN')).toHaveLength(2);
   });
 
+  it('does not flip status to live after the join is superseded mid-startup', async () => {
+    // Regression: joinRemoteRoom used to call setRemoteStatus('live')
+    // unconditionally after awaiting setCameraEnabled. If teardown (popstate,
+    // leave, etc.) ran during that await, the stale join still flipped status
+    // to 'live', rendering a ghost live surface with no underlying session.
+    let resolveCamera: (() => void) | undefined;
+    const session = {
+      participantIdentity: 'participant_abcdefghijklmnop',
+      setOriginalAudioMuted: vi.fn(),
+      setCameraEnabled: vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveCamera = () => resolve();
+          })
+      ),
+      setMicrophoneEnabled: vi.fn(async () => undefined),
+      setLocalYouHear: vi.fn(),
+      stop: vi.fn()
+    };
+    createLiveKitRemoteRoomSessionMock.mockResolvedValueOnce(session);
+
+    window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
+    });
+    await waitFor(() => expect(session.setCameraEnabled).toHaveBeenCalledWith(true));
+
+    // User navigates back, then forward to the same room. The two popstate
+    // teardowns bump joinGenerationRef so the still-pending join is stale.
+    await act(async () => {
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await act(async () => {
+      window.history.pushState({}, '', '/rooms/room_abcdefghijklmnopqrstuvwxyz');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    // Camera promise resolves AFTER the join was superseded.
+    await act(async () => {
+      resolveCamera!();
+      await Promise.resolve();
+    });
+
+    // Pre-join surface must still be visible — the live branch (with its
+    // "Leave Room" button) would only render if status had flipped to 'live'.
+    expect(screen.getByRole('button', { name: /join room/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /leave room/i })).not.toBeInTheDocument();
+  });
+
   it('pushes remoteTarget into the session as youHear', async () => {
     const setLocalYouHear = vi.fn();
     createLiveKitRemoteRoomSessionMock.mockImplementationOnce(async (opts) => {
