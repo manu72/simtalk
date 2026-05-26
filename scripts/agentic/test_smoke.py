@@ -142,6 +142,7 @@ class ValidateMemorySmoke(unittest.TestCase):
 class RouteTaskSmoke(unittest.TestCase):
     REQUIRED_KEYS = (
         "task",
+        "generated_at",
         "confidence",
         "graph_available",
         "graph_source",
@@ -153,6 +154,7 @@ class RouteTaskSmoke(unittest.TestCase):
         "related_tests",
         "subsystem_files",
         "memory_files",
+        "selected_subsystems",
         "risk_tags",
         "unknowns",
         "stop_conditions",
