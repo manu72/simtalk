@@ -247,7 +247,7 @@ def _refresh_freshness_block(refreshed_files: list[str]) -> bool:
         f"## Memory freshness",
         "",
         f"- Last refreshed: {iso}",
-        "- Files refreshed this run: " + (", ".join(refreshed_files) if refreshed_files else "GRAPH_INDEX.md (managed region)"),
+        "- Files refreshed this run: " + (", ".join(refreshed_files) if refreshed_files else "MEMORY_INDEX.md (managed region)"),
         "- Source: scripts/agentic/update_memory.py",
         "",
     ]
