@@ -177,7 +177,12 @@ export const RemoteRoomSurface = ({
             isMicMuted={remoteMicMuted}
             isSpeaking={remoteIsSpeaking}
             videoTrack={remoteVideoTrack}
-            waiting={remoteDisplayName === null}
+            // "Waiting" means no partner is in the room. participantCount
+            // reflects room.remoteParticipants.size, so it's the
+            // authoritative presence signal. remoteDisplayName is only the
+            // displayed name (with a fallback) and can legitimately be null
+            // for a connected partner whose token has no `name` set.
+            waiting={participantCount === 0}
           />
         </div>
 
