@@ -261,6 +261,11 @@ export const App = () => {
   });
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const pendingNameActionRef = useRef<((displayName: string) => void) | null>(null);
+  // Tracks the roomId the name modal was opened for. handleNameSubmit uses
+  // this — not the live remoteRoomId state — to decide which room's storage
+  // key receives the typed name, so persistence stays bound to the gate even
+  // if remoteRoomId changes between open and submit.
+  const pendingNameRoomIdRef = useRef<string | null>(null);
 
   // Reset name-gating state whenever the active room changes (createRemoteRoom,
   // popstate across rooms, or leaveRemoteRoom). Without this, an open name
@@ -269,6 +274,7 @@ export const App = () => {
   // name is persisted under the new room's storage key.
   useEffect(() => {
     pendingNameActionRef.current = null;
+    pendingNameRoomIdRef.current = null;
     setNameModalOpen(false);
     setLocalDisplayName(remoteRoomId ? readStoredRemoteDisplayName(remoteRoomId) : null);
   }, [remoteRoomId]);
@@ -566,6 +572,7 @@ export const App = () => {
         return;
       }
       pendingNameActionRef.current = action;
+      pendingNameRoomIdRef.current = roomId;
       setNameModalOpen(true);
     },
     []
@@ -575,19 +582,26 @@ export const App = () => {
     (displayName: string) => {
       const trimmed = displayName.trim().slice(0, REMOTE_DISPLAY_NAME_MAX_LENGTH);
       if (trimmed.length === 0) return;
+      // Persist against the room the gate was opened for, not the live
+      // remoteRoomId state. These can diverge if remoteRoomId changes between
+      // requireName() and submit, even though the room-change effect aims to
+      // close the modal first.
+      const targetRoomId = pendingNameRoomIdRef.current;
       setLocalDisplayName(trimmed);
-      if (remoteRoomId) writeStoredRemoteDisplayName(remoteRoomId, trimmed);
+      if (targetRoomId) writeStoredRemoteDisplayName(targetRoomId, trimmed);
       setNameModalOpen(false);
       const action = pendingNameActionRef.current;
       pendingNameActionRef.current = null;
+      pendingNameRoomIdRef.current = null;
       action?.(trimmed);
     },
-    [remoteRoomId]
+    []
   );
 
   const handleNameClose = useCallback(() => {
     setNameModalOpen(false);
     pendingNameActionRef.current = null;
+    pendingNameRoomIdRef.current = null;
   }, []);
 
   const createRemoteRoom = useCallback(async () => {
