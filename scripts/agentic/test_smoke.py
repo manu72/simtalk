@@ -76,6 +76,68 @@ class ValidateMemorySmoke(unittest.TestCase):
                 rc = validate.main()
         self.assertEqual(rc, 0, f"validate_memory exit was {rc}: {buf_err.getvalue()}")
 
+    def test_does_not_create_context_cache_directory(self) -> None:
+        # The module docstring promises validation is read-only. The context
+        # cache parent (`.agentic/CONTEXT/`) must not be created as a side
+        # effect of running the validator — `route_task.py` is responsible for
+        # mkdir-ing it on first write.
+        import shutil
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            # Mirror just enough of the .agentic layout to let the validator
+            # exercise _check_context_cache: a config pointing at a
+            # not-yet-created CONTEXT dir, plus the required memory files so
+            # other checks don't mask the assertion.
+            agentic = tmp_path / ".agentic"
+            (agentic / "CONFIG").mkdir(parents=True)
+            (agentic / "SUBSYSTEMS").mkdir()
+            (agentic / "LESSONS").mkdir()
+            cfg = {
+                "version": 2,
+                "graph": {"required": False, "fallback": "none"},
+                "paths": {
+                    "memory_root": ".agentic",
+                    "scripts_root": "scripts/agentic",
+                    "context_cache": ".agentic/CONTEXT/last_context.json",
+                },
+                "validation": {"require_region_markers": False},
+            }
+            (agentic / "CONFIG" / "agentic.json").write_text(
+                json.dumps(cfg), encoding="utf-8"
+            )
+            for name in (
+                "PROJECT_BRIEF.md",
+                "MEMORY_INDEX.md",
+            ):
+                (agentic / name).write_text("", encoding="utf-8")
+            (agentic / "SUBSYSTEMS" / "README.md").write_text("", encoding="utf-8")
+            (agentic / "LESSONS" / "decisions.md").write_text("", encoding="utf-8")
+            (agentic / "LESSONS" / "incidents.md").write_text("", encoding="utf-8")
+
+            old_cwd = Path.cwd()
+            os.chdir(tmp_path)
+            try:
+                # Re-import the module so REPO_ROOT picks up the temp dir.
+                shutil.rmtree(agentic / "CONTEXT", ignore_errors=True)
+                validate_fresh = _load_module(
+                    "agentic_validate_memory_fresh", "validate_memory.py"
+                )
+                buf_err = io.StringIO()
+                with redirect_stderr(buf_err):
+                    rc = validate_fresh.main()
+            finally:
+                os.chdir(old_cwd)
+
+            self.assertEqual(
+                rc, 0, f"validate_memory exit was {rc}: {buf_err.getvalue()}"
+            )
+            self.assertFalse(
+                (agentic / "CONTEXT").exists(),
+                ".agentic/CONTEXT must not be created by the read-only validator",
+            )
+
 
 class RouteTaskSmoke(unittest.TestCase):
     REQUIRED_KEYS = (

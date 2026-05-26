@@ -25,6 +25,7 @@ Standard library only. Read-only: never modifies any file.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -184,10 +185,33 @@ def _check_context_cache(cfg: dict, report: Report) -> None:
         report.err("agentic.json.paths.context_cache is missing")
         return
     cache_parent = (REPO_ROOT / cache_str).parent
-    try:
-        cache_parent.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        report.err(f"context cache parent directory not creatable: {cache_parent}: {exc}")
+    # Read-only check (see module docstring): never create directories here.
+    # If the parent already exists, it must be a writable directory. Otherwise
+    # walk up to the nearest existing ancestor and verify it is a writable
+    # directory we could create the missing segments inside. ``route_task.py``
+    # is responsible for actually mkdir-ing the cache dir on first write.
+    if cache_parent.exists():
+        if not cache_parent.is_dir():
+            report.err(f"context cache parent is not a directory: {cache_parent}")
+        elif not os.access(cache_parent, os.W_OK):
+            report.err(f"context cache parent not writable: {cache_parent}")
+        return
+    ancestor = cache_parent.parent
+    while True:
+        if ancestor.exists():
+            if not ancestor.is_dir():
+                report.err(
+                    f"context cache ancestor is not a directory: {ancestor}"
+                )
+            elif not os.access(ancestor, os.W_OK):
+                report.err(
+                    f"context cache parent not creatable (ancestor {ancestor} not writable)"
+                )
+            return
+        if ancestor.parent == ancestor:
+            report.err(f"context cache parent not creatable: {cache_parent}")
+            return
+        ancestor = ancestor.parent
 
 
 def _check_memory_freshness(cfg: dict, report: Report) -> None:
