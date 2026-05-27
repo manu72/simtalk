@@ -86,14 +86,17 @@ export const CameraTranslateModal = ({
   useEffect(() => {
     if (!open) return;
     const handler = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      if (picker) {
+        setPicker(false);
+        return;
       }
+      onClose();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [open, onClose]);
+  }, [open, onClose, picker]);
 
   useEffect(
     () => () => {

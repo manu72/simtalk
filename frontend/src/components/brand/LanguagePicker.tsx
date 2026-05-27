@@ -143,7 +143,10 @@ export const LanguagePickerSheet = ({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      onClick={onClose}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClose();
+      }}
       style={{
         position: 'fixed',
         inset: 0,
