@@ -144,13 +144,18 @@ const initialRemoteSource = (): Language => {
   return match ?? AUTO_LANGUAGE;
 };
 
+// YOU HEAR (the user's translated-output language in a remote room) is the
+// user's primary language. With no stored preference we fall back to English —
+// the app's default lobby YOU SPEAK — rather than the lobby's THEY SPEAK
+// language. THEY SPEAK in the lobby is the *partner's* language and has no
+// semantic relationship to what the user wants to hear translated audio in.
 const initialRemoteTarget = (): Language => {
   const stored = readStoredLanguage(REMOTE_TARGET_STORAGE_KEY);
   if (stored) {
     const match = LANGUAGES.find((lang) => lang.bcp47 === stored);
     if (match) return match;
   }
-  return findLanguage('es');
+  return findLanguage('en');
 };
 
 export const App = () => {
@@ -637,8 +642,21 @@ export const App = () => {
       const room = await requestRoomCreate();
       window.history.pushState({}, '', room.roomUrlPath);
       setRemoteRoomId(room.roomId);
-      setRemoteSource(source);
-      setRemoteTarget(target);
+      // Do NOT seed remoteSource from lobby `source`. remoteSource is
+      // "THEY SPEAK" in the remote room (the *partner's* mic language) and
+      // must default to Automatic until a partner publishes their YOU HEAR
+      // language. The `remotePartnerYouHear` effect already enforces this on
+      // mount and on partner disconnect; copying the lobby's YOU SPEAK here
+      // would silently override that intent. Likewise, remoteTarget
+      // ("YOU HEAR") is the user's own language and must not be seeded from
+      // the lobby's THEY SPEAK (the partner's language in the lobby). We
+      // respect a previously stored YOU HEAR preference; if none exists we
+      // fall back to the lobby YOU SPEAK (the user's own language), or to
+      // English when the lobby source is Automatic.
+      const storedRemoteTarget = readStoredLanguage(REMOTE_TARGET_STORAGE_KEY);
+      if (!storedRemoteTarget) {
+        setRemoteTarget(isAutoLanguage(source) ? findLanguage('en') : source);
+      }
       setRemoteStatus('idle');
       setRemoteErrorMessage(null);
     } catch (error) {
@@ -650,7 +668,7 @@ export const App = () => {
     } finally {
       setIsCreatingRoom(false);
     }
-  }, [errorMessageFor, isCreatingRoom, reopenAccessModal, source, target]);
+  }, [errorMessageFor, isCreatingRoom, reopenAccessModal, source]);
 
   const joinRemoteRoom = useCallback(async (displayName: string) => {
     if (!remoteRoomId || remoteStatus === 'joining') return;
