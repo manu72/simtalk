@@ -145,6 +145,23 @@ export const createOpenAiRealtimeService = (
     }
 
     if (!response.ok) {
+      // Surface the upstream failure to operators. We log status plus a short
+      // body snippet so OpenAI's actual error reason is visible without
+      // exposing the bearer token. The body for this endpoint contains an
+      // OpenAI error envelope (no audio, no transcripts) so it is safe to
+      // log truncated.
+      let bodySnippet = '';
+      try {
+        const text = await response.text();
+        bodySnippet = text.slice(0, 500);
+      } catch {
+        bodySnippet = '<unreadable body>';
+      }
+      console.error('[openAiRealtime] client secret upstream failure', {
+        status: response.status,
+        statusText: response.statusText,
+        bodySnippet
+      });
       throw new OpenAiRealtimeError(
         'OpenAI realtime translation client secret request failed',
         'upstream_unavailable'
