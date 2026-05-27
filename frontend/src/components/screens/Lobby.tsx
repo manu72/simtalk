@@ -94,7 +94,7 @@ export const Lobby = ({
               ) : null}
             </STTitle>
           </div>
-          <p style={{ fontSize: 15, fontWeight: 600, marginTop: 12, opacity: 0.9, maxWidth: 320 }}>{titles.tagline}</p>
+          <p style={{ fontSize: 15, fontWeight: 600, marginTop: 8, opacity: 0.9, maxWidth: 320 }}>{titles.tagline}</p>
         </div>
         <a
           href="/"

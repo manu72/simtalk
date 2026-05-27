@@ -50,10 +50,16 @@ export const CameraTranslateModal = ({
   const abortRef = useRef<AbortController | null>(null);
   const previewUrlRef = useRef<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  // Monotonic token used to invalidate in-flight file selections. compressImage
+  // has no AbortSignal hook, so the only way to ignore a stale resolution is to
+  // bump this counter on every code path that resets the picker (close, retake,
+  // unmount) and refuse to apply results whose token no longer matches.
+  const selectionRef = useRef(0);
 
   const resetState = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    selectionRef.current++;
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = null;
@@ -92,6 +98,7 @@ export const CameraTranslateModal = ({
   useEffect(
     () => () => {
       abortRef.current?.abort();
+      selectionRef.current++;
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
     },
     []
@@ -99,15 +106,30 @@ export const CameraTranslateModal = ({
 
   const handleFileSelected = useCallback(async (file: File | null) => {
     if (!file) return;
+    const token = ++selectionRef.current;
     setErrorMessage('');
     setResult(null);
     setOriginalOpen(false);
     setStep('compressing');
     try {
       const compressed = await compressImage(file);
+      if (selectionRef.current !== token) {
+        // The picker was reset (close/retake/unmount) or a newer file was
+        // selected while compressImage was running. Drop this result instead
+        // of overwriting the current state with a stale image. The blob will
+        // be garbage-collected once this closure exits — we have not yet
+        // allocated an object URL for it.
+        return;
+      }
       const filenameBase = file.name.replace(/\.[^.]+$/, '') || 'image';
       const safeName = `${filenameBase}.jpg`;
       const url = URL.createObjectURL(compressed.blob);
+      if (selectionRef.current !== token) {
+        // The reset happened between the token check above and createObjectURL.
+        // Revoke the URL we just allocated so it does not leak, and bail.
+        URL.revokeObjectURL(url);
+        return;
+      }
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = url;
       setPreviewUrl(url);
@@ -115,6 +137,7 @@ export const CameraTranslateModal = ({
       setCompressedFilename(safeName);
       setStep('previewing');
     } catch (error) {
+      if (selectionRef.current !== token) return;
       const message =
         error instanceof CompressImageError
           ? error.message
@@ -185,6 +208,7 @@ export const CameraTranslateModal = ({
   }, []);
 
   const handleRetake = useCallback(() => {
+    selectionRef.current++;
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = null;
