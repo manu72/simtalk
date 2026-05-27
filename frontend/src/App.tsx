@@ -7,6 +7,7 @@ import type { ConversationMode, RealtimeTokenRequest, RealtimeTokenResponse } fr
 import { AccessDeniedError, getStoredPassword, setStoredPassword } from './accessGate';
 import { AUTO_LANGUAGE, findLanguage, LANGUAGES, isAutoLanguage, type Language } from './components/brand/languages';
 import { AccessGateModal } from './components/screens/AccessGateModal';
+import { CameraTranslateModal } from './components/screens/CameraTranslateModal';
 import { Lobby } from './components/screens/Lobby';
 import { ListenerSurface } from './components/screens/ListenerSurface';
 import { TurnaboutSurface, type ConversationTurn } from './components/screens/TurnaboutSurface';
@@ -245,6 +246,20 @@ export const App = () => {
 
   // Dev drawer
   const [devOpen, setDevOpen] = useState(false);
+
+  // Camera translate (Phase 1.6) — Lobby-only floating action.
+  const [cameraTranslateOpen, setCameraTranslateOpen] = useState(false);
+
+  // The camera modal's default "Translate into" is the user's primary language.
+  // In listener mode the user picks `target` as what they want to read/hear, so
+  // that IS their language. In turnabout/practice modes `source` is the user's
+  // side ("Person A" / "You speak"). Falling back to English avoids handing
+  // AUTO (empty BCP-47) to the picker. No new storage key — this is a derived
+  // view of state the user is already managing in the Lobby.
+  const cameraTranslatePrimary = useMemo<Language>(() => {
+    const candidate = mode === 'listener' ? target : source;
+    return isAutoLanguage(candidate) ? findLanguage('en') : candidate;
+  }, [mode, source, target]);
 
   // Access gate
   const [accessModalOpen, setAccessModalOpen] = useState(false);
@@ -1239,6 +1254,21 @@ export const App = () => {
           onSwap={swapLanguages}
           onLaunch={() => requireAccess(() => void launch())}
           onCreateRoom={() => requireAccess(() => void createRemoteRoom())}
+          onOpenCameraTranslate={() => requireAccess(() => setCameraTranslateOpen(true))}
+        />
+      ) : null}
+
+      {view === 'lobby' ? (
+        <CameraTranslateModal
+          open={cameraTranslateOpen}
+          initialTarget={cameraTranslatePrimary}
+          onClose={() => setCameraTranslateOpen(false)}
+          onAccessDenied={(retry) =>
+            reopenAccessModal(() => {
+              setCameraTranslateOpen(true);
+              retry();
+            })
+          }
         />
       ) : null}
 

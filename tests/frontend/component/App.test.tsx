@@ -146,11 +146,11 @@ describe('Lobby', () => {
     expect(screen.queryByText(/person a/i)).not.toBeInTheDocument();
   });
 
-  it('Turn-about mode shows Person A and Person B pickers with a swap chip', () => {
+  it('Turn-about mode shows You speak and They speak pickers with a swap chip', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('radio', { name: /talk/i }));
-    expect(screen.getByText(/person a/i)).toBeInTheDocument();
-    expect(screen.getByText(/person b/i)).toBeInTheDocument();
+    expect(screen.getByText(/you speak/i)).toBeInTheDocument();
+    expect(screen.getByText(/they speak/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /swap a and b/i })).toBeInTheDocument();
   });
 

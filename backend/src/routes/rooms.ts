@@ -32,7 +32,8 @@ export const createRoomsRoute = (
   const roomService = dependencies.liveKitRoomService ?? createLiveKitRoomService(config);
   const rateLimit = createRateLimitMiddleware({
     maxRequests: config.roomTokenRateLimitMaxRequests,
-    windowMs: config.roomTokenRateLimitWindowMs
+    windowMs: config.roomTokenRateLimitWindowMs,
+    message: 'Too many room requests. Please wait before trying again.'
   });
 
   route.post('/', rateLimit, async (c) => {

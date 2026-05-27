@@ -7,6 +7,7 @@ import { createAccessGateMiddleware } from './middleware/accessGate.js';
 import { createCorsMiddleware } from './middleware/cors.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
 import { healthRoute } from './routes/health.js';
+import { createImageTranslateRoute } from './routes/imageTranslate.js';
 import { createRealtimeRoute } from './routes/realtime.js';
 import { createRoomsRoute } from './routes/rooms.js';
 import type { createLiveKitRoomService } from './services/liveKitRooms.js';
@@ -30,9 +31,11 @@ export const createApp = (
 
   app.use('/realtime/*', accessGate);
   app.use('/rooms/*', accessGate);
+  app.use('/image/*', accessGate);
 
   app.route('/realtime', createRealtimeRoute(config, dependencies));
   app.route('/rooms', createRoomsRoute(config, dependencies));
+  app.route('/image', createImageTranslateRoute(config, dependencies));
 
   app.notFound((c) =>
     c.json(

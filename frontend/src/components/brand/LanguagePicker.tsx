@@ -9,9 +9,11 @@ type LangCardProps = {
   readonly lang: Language;
   readonly onPick: () => void;
   readonly disabled?: boolean;
+  /** Extra inset for the flag + language row (e.g. when a center connector overlaps the card). */
+  readonly contentInsetLeft?: number;
 };
 
-export const LangCard = ({ label, lang, onPick, disabled = false }: LangCardProps) => (
+export const LangCard = ({ label, lang, onPick, disabled = false, contentInsetLeft = 0 }: LangCardProps) => (
   <button
     type="button"
     onClick={onPick}
@@ -47,7 +49,7 @@ export const LangCard = ({ label, lang, onPick, disabled = false }: LangCardProp
         style={{ opacity: disabled ? 0 : 0.5 }}
       />
     </div>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: contentInsetLeft }}>
       <div
         style={{
           width: 42,
@@ -141,7 +143,10 @@ export const LanguagePickerSheet = ({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      onClick={onClose}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClose();
+      }}
       style={{
         position: 'fixed',
         inset: 0,
