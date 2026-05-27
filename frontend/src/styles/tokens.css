@@ -184,3 +184,8 @@ button:disabled { cursor: not-allowed; }
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0);   }
 }
+
+@keyframes st-letter-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%          { transform: translateY(-6px); }
+}

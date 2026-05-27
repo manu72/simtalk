@@ -287,3 +287,30 @@ export const LiveDot = ({ color = ST.cyan }: LiveDotProps) => (
     }}
   />
 );
+
+export type BouncingTextProps = {
+  readonly children: string;
+  readonly stagger?: number;
+  readonly style?: CSSProperties;
+};
+
+export const BouncingText = ({ children, stagger = 60, style }: BouncingTextProps) => {
+  const chars = Array.from(children);
+  return (
+    <span aria-label={children} style={{ display: 'inline-flex', whiteSpace: 'pre', ...style }}>
+      {chars.map((ch, i) => (
+        <span
+          key={`${ch}-${i}`}
+          aria-hidden="true"
+          style={{
+            display: 'inline-block',
+            animation: `st-letter-bounce 1.2s ${i * stagger}ms infinite ease-in-out`,
+            animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+          }}
+        >
+          {ch === ' ' ? '\u00A0' : ch}
+        </span>
+      ))}
+    </span>
+  );
+};
