@@ -150,6 +150,12 @@ export const CameraTranslateModal = ({
       }
       if (error instanceof AccessDeniedError) {
         if (onAccessDenied) {
+          // Roll the modal back to the preview so the user is not stuck on
+          // "Translating..." behind the access gate. If the user submits the
+          // password the queued retry calls performTranslate again, which
+          // re-enters the loading step. If the user dismisses the gate they
+          // remain on the preview and can retake, change target, or retry.
+          setStep('previewing');
           onAccessDenied(() => void performTranslate());
         } else {
           setErrorMessage('Access denied. Re-enter the access password and try again.');
