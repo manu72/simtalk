@@ -126,11 +126,13 @@ export const Lobby = ({
               label={mode === "turnabout" ? "You speak" : mode === "practice" ? "You speak" : "Detect"}
               lang={source}
               onPick={() => setPicker("source")}
+              contentInsetLeft={8}
             />
             <LangCard
               label={mode === "turnabout" ? "They speak" : mode === "practice" ? "Translate to" : "Translate into"}
               lang={target}
               onPick={() => setPicker("target")}
+              contentInsetLeft={8}
             />
           </div>
           <button
