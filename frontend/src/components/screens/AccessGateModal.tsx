@@ -47,7 +47,14 @@ export const AccessGateModal = ({ open, errorMessage, onSubmit, onClose }: Acces
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 90,
+        // The access gate must always sit above every other modal in the app:
+        // without auth, nothing else functions, so it has to remain reachable
+        // even when triggered from inside the camera translate modal, the
+        // language picker, the dev drawer, the remote-name modal, or any
+        // future overlay. Keep this strictly higher than every other zIndex
+        // used in this app (camera/dev drawer at 200, language picker at 100,
+        // remote-name at 90, FAB at 50).
+        zIndex: 300,
         background: 'rgba(6,10,46,0.65)',
         backdropFilter: 'blur(8px)',
         display: 'flex',
