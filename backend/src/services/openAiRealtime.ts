@@ -150,7 +150,7 @@ export const createOpenAiRealtimeService = (
       // exposing the bearer token. The body for this endpoint contains an
       // OpenAI error envelope (no audio, no transcripts) so it is safe to
       // log truncated.
-      let bodySnippet = '';
+      let bodySnippet: string;
       try {
         const text = await response.text();
         bodySnippet = text.slice(0, 500);
