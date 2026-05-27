@@ -261,7 +261,7 @@ export const Lobby = ({
           setPicker(null);
         }}
         onClose={() => setPicker(null)}
-        title={mode === "turnabout" ? "PICK PERSON A" : mode === "listener" ? "DETECT FROM" : "PICK YOUR LANGUAGE"}
+        title={mode === "turnabout" ? "PICK YOUR LANGUAGE" : mode === "listener" ? "DETECT FROM" : "PICK YOUR LANGUAGE"}
         languages={mode === "listener" ? [AUTO_LANGUAGE, ...LANGUAGES] : LANGUAGES}
       />
       <LanguagePickerSheet
@@ -272,7 +272,7 @@ export const Lobby = ({
           setPicker(null);
         }}
         onClose={() => setPicker(null)}
-        title={mode === "listener" ? "TRANSLATE INTO" : mode === "turnabout" ? "PICK PERSON B" : "TRANSLATE TO"}
+        title={mode === "listener" ? "TRANSLATE INTO" : mode === "turnabout" ? "PICK THEIR LANGUAGE" : "TRANSLATE TO"}
       />
     </div>
   );
