@@ -3,7 +3,7 @@
 
 ## Purpose
 
-Browser-side React/Vite app that captures microphone audio, establishes a WebRTC session with OpenAI Realtime Translate, plays translated audio, renders source/translated transcripts, and (optionally) records locally.
+Browser-side React/Vite app that captures microphone audio, establishes a WebRTC session with OpenAI Realtime Translate, plays translated audio, renders source/translated transcripts, and (optionally) records locally. Also drives the camera/image-translate flow: capture or upload a photo, compress in-browser, post to the backend image-translate endpoint, and render the returned source/translated text.
 
 ## Owned paths
 
@@ -13,14 +13,17 @@ Browser-side React/Vite app that captures microphone audio, establishes a WebRTC
 ## Public contracts
 
 - Calls backend token endpoints (`POST /realtime/token`, room token routes) using Zod-validated shared contracts from `@simtalk/shared-types`.
+- Calls backend `POST /image-translate/translate` (multipart) for camera/image translation; outbound JSON fields are validated against the shared schema before assembling FormData.
 - Establishes WebRTC peer connection directly with OpenAI Realtime Translate using the issued ephemeral token. Reference: OpenAI `gpt-realtime-translate` and `/v1/realtime/translations`.
-- Consumes translated audio frames and transcript deltas from OpenAI; emits no audio or transcripts back to the SimTalk backend.
+- Consumes translated audio frames and transcript deltas from OpenAI; emits no audio or transcripts back to the SimTalk backend. Image bytes are sent only to the SimTalk backend, never directly to OpenAI from the browser.
 
 ## Source-of-truth files
 
 - `frontend/src/App.tsx` — top-level mode/session/access-gate/room flow orchestration.
 - `frontend/src/realtimeTranslationSession.ts` — WebRTC session lifecycle (mic, RTCPeerConnection, SDP exchange, playback, transcripts, teardown).
-- `frontend/src/realtimeTokenClient.ts`, `frontend/src/roomTokenClient.ts` — backend token clients; attach `X-Access-Password` when present.
+- `frontend/src/realtimeTokenClient.ts`, `frontend/src/roomTokenClient.ts`, `frontend/src/cameraTranslateClient.ts` — backend clients; all attach `X-Access-Password` when present, validate outbound requests with shared Zod schemas, and surface a typed `AccessDeniedError` on 401.
+- `frontend/src/components/screens/CameraTranslateModal.tsx` — camera/upload + result UI for image translation.
+- `frontend/src/components/screens/cameraTranslate/compressImage.ts` — client-side image compression before upload (size/MIME shaping).
 - `frontend/src/accessGate.ts`, `frontend/src/components/screens/AccessGateModal.tsx` — local access-gate UX and session storage (UX only, not auth).
 - `PRD.md` — mode specifications.
 - `System_Architecture.md` §2, §6 — browser responsibilities and per-mode behaviour.
@@ -42,10 +45,12 @@ Browser-side React/Vite app that captures microphone audio, establishes a WebRTC
 - The access-gate password in `sessionStorage` is UX convenience only; backend middleware is the enforcement boundary.
 - Translated audio playback latency target: time-to-first-audio < 2 seconds (PRD success metric).
 - Recording is OFF by default. If enabled, audio and transcripts stay in browser memory or local file blobs only.
+- Captured/uploaded images for camera-translate live only as Blobs in memory for the duration of the request; they MUST NOT be persisted to disk, localStorage, or IndexedDB.
 - Refreshing the page MUST clear unsaved session data; nothing persists to a server.
 - All UI state changes from session events must be derived from declared event handlers; do not poll OpenAI state.
+- Modal layering: backdrop dismissal of a child picker MUST NOT close its parent modal; access-gate prompts MUST render above any open modal.
 - TypeScript strict mode required; no `any` without explicit, documented justification.
-- Active CSS lives in `frontend/src/styles/tokens.css`; preserve the 8px spacing rhythm and `prefers-reduced-motion` handling.
+- Active CSS lives in `frontend/src/styles/tokens.css`; preserve the 8px spacing rhythm and `prefers-reduced-motion` handling. Inline styles MUST NOT silently override the `:active`/press animations defined on shared button/FAB classes.
 
 ## Common failure modes
 

@@ -91,4 +91,34 @@ describe('createOpenAiImageTranslateService', () => {
       modelTier: 'fallback'
     });
   });
+
+  it('does not retry fallback when the primary request times out', async () => {
+    // Simulate the in-process AbortController firing — same shape Node's
+    // fetch raises when our timeout aborts the request. Retrying the
+    // fallback would roughly double the user's wait, so we fail fast.
+    const fetchMock = vi.fn(async () => {
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      throw abortError;
+    });
+    const service = createOpenAiImageTranslateService(createTestConfig(), fetchMock);
+
+    await expect(service.translateImage(imageTranslateInput)).rejects.toMatchObject({
+      kind: 'upstream_unavailable'
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('still retries the fallback on non-abort transport failures', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('fetch failed: ECONNRESET'))
+      .mockResolvedValueOnce(createJsonResponse(successPayload));
+    const service = createOpenAiImageTranslateService(createTestConfig(), fetchMock);
+
+    const result = await service.translateImage(imageTranslateInput);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.modelTier).toBe('fallback');
+  });
 });

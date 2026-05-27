@@ -21,8 +21,8 @@ SimTalk is a realtime speech-to-speech translation web app that lets people who 
 
 ## Major subsystems
 
-- `web` — React/Vite/TS frontend; mic, WebRTC, mode UI, transcripts, local recording. `frontend/`. See `SUBSYSTEMS/web.md`.
-- `api` — Node/Hono backend; ephemeral token minting, validation, rate limiting, security headers. `backend/`. See `SUBSYSTEMS/api.md`.
+- `web` — React/Vite/TS frontend; mic, WebRTC, mode UI, transcripts, local recording, camera/image-translate flow. `frontend/`. See `SUBSYSTEMS/web.md`.
+- `api` — Node/Hono backend; ephemeral realtime token minting, image-translate brokering, room token issuance, validation, rate limiting, security headers. `backend/`. See `SUBSYSTEMS/api.md`.
 - `shared` — Cross-package TypeScript types and Zod contracts. `shared/types/`. See `SUBSYSTEMS/shared.md`.
 - `tests` — Vitest + Playwright suites at repo root. `tests/`. See `SUBSYSTEMS/tests.md`.
 - `infra` — Vercel deploy config, GitHub Actions, Phase 2 Cloud Run plan. `.github/workflows/`. See `SUBSYSTEMS/infra.md`.
@@ -33,7 +33,7 @@ SimTalk is a realtime speech-to-speech translation web app that lets people who 
 - `System_Architecture.md` — Phase 1/2 architecture, security controls, runtime flow.
 - `README.md` — repo conventions, commands, env vars, decision log.
 - `CLAUDE.md` — repo-shape and hard invariants for agents.
-- `backend/src/routes/` — API surface (realtime + room tokens).
+- `backend/src/routes/` — API surface (realtime token, image-translate, room tokens, health).
 - `backend/src/middleware/accessGate.ts` — app-level shared-password gate.
 - `shared/types/src/index.ts` — Zod contracts shared between frontend and backend.
 
@@ -66,7 +66,7 @@ SimTalk validates whether OpenAI's realtime translation can deliver "natural" cr
 
 ## Architectural philosophy
 
-- The backend is a token-minting service only — it never sees audio or transcripts. This is the single most important architectural constraint and shapes every other decision (no DB, no audio proxy, browser-direct WebRTC to OpenAI).
+- The backend is a thin broker, not a data plane. For realtime translation it only mints ephemeral tokens (never sees audio or transcripts). For image translation it accepts image bytes for the lifetime of a single request, calls OpenAI vision, and returns text — no persistence, no logging of image content or OCR text. Anything beyond this (audio/transcript storage, durable image storage, multi-step ingestion) is a Phase-shift decision requiring an entry in `LESSONS/decisions.md`.
 - Privacy-by-default: optional recording is browser-local, off by default, cleared on refresh.
 - Phase 1 decisions must not block Phase 2 — keep the backend thin and portable; avoid hard-coding single-peer assumptions in shared abstractions.
 - TypeScript strict mode everywhere; validate every cross-boundary payload with Zod from `@simtalk/shared-types`.

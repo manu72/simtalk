@@ -177,7 +177,12 @@ const callOnce = async (
   fetchImpl: Fetch,
   input: ImageTranslateServiceInput,
   model: string
-): Promise<{ readonly data: ImageTranslateResponse } | { readonly retryable: true } | { readonly blocked: true }> => {
+): Promise<
+  | { readonly data: ImageTranslateResponse }
+  | { readonly retryable: true }
+  | { readonly blocked: true }
+  | { readonly timedOut: true }
+> => {
   const dataUrl = toDataUrl(input.imageBytes, input.mimeType);
   const systemMessage: ChatCompletionMessage = {
     role: 'system',
@@ -217,8 +222,13 @@ const callOnce = async (
       body: JSON.stringify(body)
     });
   } catch (error) {
+    // Our own timeout fires an AbortError. Retrying the fallback model with
+    // the same timeout would double the user's wait (~40s) before they see
+    // any error, and a same-tier fallback rarely recovers from upstream
+    // slowness. Surface as a non-retryable upstream failure. Genuine
+    // transport errors (DNS, ECONNRESET, etc.) still fall through to retry.
     if (isAbortError(error)) {
-      return { retryable: true };
+      return { timedOut: true };
     }
     return { retryable: true };
   } finally {
@@ -307,6 +317,15 @@ export const createOpenAiImageTranslateService = (
             'Image content was blocked by safety filters',
             'content_blocked'
           );
+        }
+        if ('timedOut' in result) {
+          // Surface as upstream_unavailable but do NOT try the fallback —
+          // see the catch block in callOnce for the rationale.
+          lastError = new OpenAiImageTranslateError(
+            `OpenAI image translation timed out on tier ${tier}`,
+            'upstream_unavailable'
+          );
+          break;
         }
         if ('retryable' in result) {
           lastError = new OpenAiImageTranslateError(
