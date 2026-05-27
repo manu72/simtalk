@@ -14,9 +14,9 @@ Cross-package TypeScript types and Zod schemas used by both the frontend and the
 
 ## Public contracts
 
-- API request/response Zod schemas + inferred TypeScript types for the realtime token endpoint and room token endpoints.
-- `Mode` enum and language tag types.
-- Standard error envelope shape used by the backend and consumed by the frontend.
+- API request/response Zod schemas + inferred TypeScript types for the realtime token endpoint, room token endpoints, and the image-translate endpoint (request, response, MIME allowlist, model-tier enum).
+- `Mode` enum and language tag types (`languageCodeSchema`).
+- Standard error envelope shape (`apiErrorSchema` / `ApiErrorCode`) used by the backend and consumed by the frontend.
 - Package name: `@simtalk/shared-types`. Must be **built before** backend/frontend typecheck or test (root scripts do this; per-package scripts may not).
 
 ## Source-of-truth files

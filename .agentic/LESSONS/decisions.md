@@ -75,3 +75,19 @@ Durable architectural and design decisions only. Not every change.
 - Decision: Use a temporary shared-password gate enforced by backend `APP_ACCESS_PASSWORD` and the `X-Access-Password` request header; frontend session storage and modal prompts are UX only.
 - Consequences: Protected actions fail closed outside development when the password is not configured. This is not a user auth model and must be replaced before public or multi-user use.
 - Alternatives considered: Rely only on Vercel Password Protection (too coarse for API calls); add full auth now (too much Phase 1 scope).
+
+## 2026-05-27 — Add backend-brokered image translation (Phase 1.6)
+
+- Date: 2026-05-27
+- Context: Camera/photo translation is a non-realtime, request/response flow with no streaming need. Doing it browser-direct to OpenAI would leak the API key; doing it via a separate service is unjustified for Phase 1.
+- Decision: Add `POST /image-translate/translate` on the existing Hono backend. The browser uploads a compressed image as multipart/form-data; the backend reads bytes for the lifetime of one request, calls OpenAI chat completions with vision (primary `gpt-4o`-class model, fallback `gpt-4o-mini`-class), and returns `{ sourceLanguage, originalText, translatedText, modelTier }`. No persistence, no logging of image content or extracted text. Reuses `accessGate`, dedicated rate limiter, and shared Zod contracts.
+- Consequences: Backend is no longer a pure token-minting service for all flows — it is a token-minting service for realtime and a thin broker for image translation. Adds a content-policy surface (refusals must be sanitized to `content_blocked`). Adds an OpenAI-vision cost line. Keeps the realtime/audio invariants untouched.
+- Alternatives considered: Browser-direct vision calls (rejected: would expose `OPENAI_API_KEY`); separate microservice (rejected: scope inflation for Phase 1); store-and-process worker (rejected: persistence reopens the privacy posture).
+
+## 2026-05-27 — Fail-fast on image-translate AbortController timeout; do not retry the fallback model
+
+- Date: 2026-05-27
+- Context: `openAiImageTranslate.ts` wraps each upstream call in an `AbortController` with a bounded timeout. The natural pattern would be to retry the fallback tier on any error, including timeouts.
+- Decision: When the primary call aborts because OUR timeout fired, surface the failure as a non-retryable `upstream_unavailable` and do NOT retry the fallback. Genuine transport errors (DNS, ECONNRESET, etc.) still fall through to the fallback.
+- Consequences: A timed-out request fails after ~one timeout window instead of ~two. Same-tier fallback rarely recovers from upstream slowness; the cost of double-waiting outweighs the marginal recovery chance. Encoded as an invariant in `SUBSYSTEMS/api.md` and exercised by `tests/backend/unit/services/openAiImageTranslate.test.ts`.
+- Alternatives considered: Retry fallback on all errors (rejected: doubles user wait on the most common slow-path); shorter timeouts (rejected: would increase false negatives on genuinely slow large images).

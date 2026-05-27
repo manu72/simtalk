@@ -10,7 +10,7 @@ import { AccessDeniedError } from '../../accessGate';
 import { STIcon } from '../brand/Icons';
 import { LangCard, LanguagePickerSheet } from '../brand/LanguagePicker';
 import { LANGUAGES, type Language } from '../brand/languages';
-import { FONT_BODY, FONT_DISPLAY, ST, STButton } from '../brand/primitives';
+import { BouncingText, FONT_BODY, FONT_DISPLAY, ST, STButton } from '../brand/primitives';
 import { compressImage, CompressImageError } from './cameraTranslate/compressImage';
 
 type CameraTranslateModalProps = {
@@ -340,7 +340,7 @@ export const CameraTranslateModal = ({
                     textAlign: 'center'
                   }}
                 >
-                  Preparing image…
+                  <BouncingText>Preparing image…</BouncingText>
                 </p>
               ) : null}
             </section>
@@ -386,7 +386,7 @@ export const CameraTranslateModal = ({
                   color: ST.navy
                 }}
               >
-                Translating…
+                <BouncingText>Translating…</BouncingText>
               </div>
               <STButton variant="ghost" size="sm" onClick={handleCancelLoading} icon="x">
                 Cancel
