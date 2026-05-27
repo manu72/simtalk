@@ -136,7 +136,15 @@ export const compressImage = async (
     if (!lastBlob) {
       throw new CompressImageError('Image compression produced no output');
     }
-    return { blob: lastBlob, width, height, bytes: lastBlob.size };
+
+    // Every quality step overshot the target. Returning the over-sized blob
+    // here would push the upload onto the server (where it would either be
+    // wastefully transferred and then rejected with payload_too_large, or
+    // accepted but defeat the point of our compression budget). Fail locally
+    // with a message the user can act on instead.
+    throw new CompressImageError(
+      'This image is too detailed for us to compress for upload. Try retaking it or pick a different photo.'
+    );
   } finally {
     closeBitmap(bitmap);
   }
