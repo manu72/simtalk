@@ -25,7 +25,15 @@ type ChatCompletionChoice = {
   readonly finish_reason?: unknown;
 };
 
-type ChatCompletionResponse = {
+type ChatCompletionErrorEnvelope = {
+  readonly error?: {
+    readonly code?: unknown;
+    readonly type?: unknown;
+    readonly message?: unknown;
+  };
+};
+
+type ChatCompletionResponse = ChatCompletionErrorEnvelope & {
   readonly choices?: readonly ChatCompletionChoice[];
 };
 
@@ -125,14 +133,38 @@ const parseModelJsonContent = (raw: unknown): ImageTranslateResponse => {
   } satisfies ImageTranslateResponse;
 };
 
-const isContentBlocked = (status: number, finishReason: unknown): boolean => {
-  if (typeof finishReason === 'string' && finishReason.toLowerCase() === 'content_filter') return true;
-  // OpenAI may surface 400 for safety blocks; treat 422 the same.
-  return status === 422;
+const isSafetyErrorCode = (errorCode: unknown): boolean => {
+  if (typeof errorCode !== 'string') return false;
+  const normalized = errorCode.toLowerCase();
+  return normalized === 'content_policy_violation' || normalized === 'content_filter';
 };
 
-const isRetryable = (status: number, finishReason: unknown): boolean => {
-  if (isContentBlocked(status, finishReason)) return false;
+const isContentBlocked = (
+  status: number,
+  finishReason: unknown,
+  errorCode: unknown
+): boolean => {
+  // Successful completions can still carry a content_filter finish reason.
+  if (typeof finishReason === 'string' && finishReason.toLowerCase() === 'content_filter') {
+    return true;
+  }
+  // Some OpenAI tenants/models surface safety blocks as HTTP 422.
+  if (status === 422) return true;
+  // Most current safety blocks come back as HTTP 400 with a content-policy
+  // error code in the standard error envelope. Without this branch a safety
+  // block is misclassified as upstream_unavailable, the fallback model is
+  // retried for nothing, and the user sees "service unavailable" instead of
+  // the proper "we could not translate that image".
+  if (status === 400 && isSafetyErrorCode(errorCode)) return true;
+  return false;
+};
+
+const isRetryable = (
+  status: number,
+  finishReason: unknown,
+  errorCode: unknown
+): boolean => {
+  if (isContentBlocked(status, finishReason, errorCode)) return false;
   // 4xx other than 408/429 generally indicates bad input or auth issues — retrying with a different model won't help.
   if (status === 408 || status === 429) return true;
   if (status >= 500) return true;
@@ -194,16 +226,19 @@ const callOnce = async (
 
   if (!response.ok) {
     let finishReason: unknown;
+    let errorCode: unknown;
     try {
       const payload = (await response.json()) as ChatCompletionResponse;
       finishReason = payload.choices?.[0]?.finish_reason;
+      errorCode = payload.error?.code;
     } catch {
       finishReason = undefined;
+      errorCode = undefined;
     }
-    if (isContentBlocked(response.status, finishReason)) {
+    if (isContentBlocked(response.status, finishReason, errorCode)) {
       return { blocked: true };
     }
-    if (isRetryable(response.status, finishReason)) {
+    if (isRetryable(response.status, finishReason, errorCode)) {
       return { retryable: true };
     }
     throw new OpenAiImageTranslateError(
@@ -230,7 +265,7 @@ const callOnce = async (
     );
   }
 
-  if (isContentBlocked(response.status, choice.finish_reason)) {
+  if (isContentBlocked(response.status, choice.finish_reason, undefined)) {
     return { blocked: true };
   }
 
