@@ -37,6 +37,13 @@ const createTestConfig = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   liveKitRoomDepartureTimeoutSeconds: 60,
   roomTokenRateLimitWindowMs: 60_000,
   roomTokenRateLimitMaxRequests: 10,
+  openAiChatCompletionsUrl: 'https://api.openai.test/v1/chat/completions',
+  openAiImageModelPrimary: 'gpt-5-nano',
+  openAiImageModelFallback: 'gpt-5.4-nano',
+  openAiImageRequestTimeoutMs: 20_000,
+  imageTranslateMaxBytes: 6 * 1024 * 1024,
+  imageTranslateRateLimitWindowMs: 60_000,
+  imageTranslateRateLimitMaxRequests: 10,
   ...overrides
 });
 

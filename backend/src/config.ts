@@ -17,12 +17,22 @@ export type AppConfig = {
   readonly liveKitRoomDepartureTimeoutSeconds: number;
   readonly roomTokenRateLimitWindowMs: number;
   readonly roomTokenRateLimitMaxRequests: number;
+  readonly openAiChatCompletionsUrl: string;
+  readonly openAiImageModelPrimary: string;
+  readonly openAiImageModelFallback: string;
+  readonly openAiImageRequestTimeoutMs: number;
+  readonly imageTranslateMaxBytes: number;
+  readonly imageTranslateRateLimitWindowMs: number;
+  readonly imageTranslateRateLimitMaxRequests: number;
 };
 
 const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'] as const;
 const defaultOpenAiRealtimeClientSecretUrl =
   'https://api.openai.com/v1/realtime/translations/client_secrets';
 const defaultRealtimeInputTranscriptionModel = 'gpt-realtime-whisper';
+const defaultOpenAiChatCompletionsUrl = 'https://api.openai.com/v1/chat/completions';
+const defaultOpenAiImageModelPrimary = 'gpt-5-nano';
+const defaultOpenAiImageModelFallback = 'gpt-5.4-nano';
 
 const parseAllowedOrigins = (value: string | undefined): readonly string[] => {
   const origins = value
@@ -118,6 +128,36 @@ export const createAppConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig
     ),
     roomTokenRateLimitMaxRequests: parseIntegerInRange(
       env.ROOM_TOKEN_RATE_LIMIT_MAX_REQUESTS,
+      10,
+      1,
+      100
+    ),
+    openAiChatCompletionsUrl:
+      env.OPENAI_CHAT_COMPLETIONS_URL?.trim() || defaultOpenAiChatCompletionsUrl,
+    openAiImageModelPrimary:
+      env.OPENAI_IMAGE_MODEL_PRIMARY?.trim() || defaultOpenAiImageModelPrimary,
+    openAiImageModelFallback:
+      env.OPENAI_IMAGE_MODEL_FALLBACK?.trim() || defaultOpenAiImageModelFallback,
+    openAiImageRequestTimeoutMs: parseIntegerInRange(
+      env.OPENAI_IMAGE_REQUEST_TIMEOUT_MS,
+      20_000,
+      1_000,
+      60_000
+    ),
+    imageTranslateMaxBytes: parseIntegerInRange(
+      env.IMAGE_TRANSLATE_MAX_BYTES,
+      6 * 1024 * 1024,
+      64 * 1024,
+      20 * 1024 * 1024
+    ),
+    imageTranslateRateLimitWindowMs: parseIntegerInRange(
+      env.IMAGE_TRANSLATE_RATE_LIMIT_WINDOW_MS,
+      60_000,
+      1_000,
+      3_600_000
+    ),
+    imageTranslateRateLimitMaxRequests: parseIntegerInRange(
+      env.IMAGE_TRANSLATE_RATE_LIMIT_MAX_REQUESTS,
       10,
       1,
       100

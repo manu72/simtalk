@@ -21,6 +21,7 @@ type LobbyProps = {
   readonly onSwap: () => void;
   readonly onLaunch: () => void;
   readonly onCreateRoom?: () => void;
+  readonly onOpenCameraTranslate?: () => void;
 };
 
 const TITLES: Record<ConversationMode, { line1: string; line2?: string; tagline: string }> = {
@@ -51,6 +52,7 @@ export const Lobby = ({
   onSwap,
   onLaunch,
   onCreateRoom,
+  onOpenCameraTranslate,
 }: LobbyProps) => {
   const [picker, setPicker] = useState<"source" | "target" | null>(null);
   const titles = TITLES[mode];
@@ -220,6 +222,34 @@ export const Lobby = ({
           </p>
         )}
       </div>
+
+      {onOpenCameraTranslate ? (
+        <button
+          type="button"
+          className="st-camera-fab"
+          onClick={onOpenCameraTranslate}
+          aria-label="Translate image with camera"
+          style={{
+            position: "fixed",
+            left: "50%",
+            bottom: `calc(env(safe-area-inset-bottom, 0px) + 28px)`,
+            transform: "translateX(-50%)",
+            width: 72,
+            height: 72,
+            borderRadius: 999,
+            background: ST.cyan,
+            border: `4px solid ${ST.pink}`,
+            boxShadow: `0 0 0 3px ${ST.navy}, 0 6px 0 0 ${ST.navy}, 0 0 28px rgba(255,62,158,0.55)`,
+            padding: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+          }}
+        >
+          <STIcon name="camera" size={32} color={ST.navy} />
+        </button>
+      ) : null}
 
       <LanguagePickerSheet
         open={picker === "source"}

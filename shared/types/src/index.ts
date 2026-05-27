@@ -6,6 +6,17 @@ export const roomTokenRoute = (roomId: string): string =>
   `/rooms/${encodeURIComponent(roomId)}/token`;
 export const openAiRealtimeTranslationCallsUrl =
   'https://api.openai.com/v1/realtime/translations/calls';
+export const imageTranslateRoute = '/image/translate';
+
+export const imageTranslateMimeTypes = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif'
+] as const;
+
+export const imageTranslateMimeTypeSchema = z.enum(imageTranslateMimeTypes);
 
 export const conversationModes = ['listener', 'turnabout', 'practice'] as const;
 
@@ -106,6 +117,19 @@ export const roomTokenResponseSchema = z.object({
   expiresAt: z.string().datetime()
 });
 
+export const imageTranslateRequestSchema = z.object({
+  targetLanguage: languageCodeSchema
+});
+
+export const imageTranslateModelTierSchema = z.enum(['primary', 'fallback']);
+
+export const imageTranslateResponseSchema = z.object({
+  sourceLanguage: languageCodeSchema.nullable(),
+  originalText: z.string(),
+  translatedText: z.string(),
+  modelTier: imageTranslateModelTierSchema
+});
+
 export const apiErrorCodes = [
   'bad_request',
   'validation_error',
@@ -115,7 +139,10 @@ export const apiErrorCodes = [
   'openai_unavailable',
   'livekit_unavailable',
   'not_found',
-  'internal_error'
+  'internal_error',
+  'payload_too_large',
+  'unsupported_media_type',
+  'content_blocked'
 ] as const;
 
 export const apiErrorCodeSchema = z.enum(apiErrorCodes);
@@ -144,3 +171,7 @@ export type RoomTokenResponse = z.infer<typeof roomTokenResponseSchema>;
 export type ApiErrorCode = z.infer<typeof apiErrorCodeSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
+export type ImageTranslateMimeType = z.infer<typeof imageTranslateMimeTypeSchema>;
+export type ImageTranslateRequest = z.infer<typeof imageTranslateRequestSchema>;
+export type ImageTranslateModelTier = z.infer<typeof imageTranslateModelTierSchema>;
+export type ImageTranslateResponse = z.infer<typeof imageTranslateResponseSchema>;

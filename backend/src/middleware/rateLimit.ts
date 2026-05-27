@@ -6,6 +6,7 @@ type RateLimitOptions = {
   readonly maxRequests: number;
   readonly windowMs: number;
   readonly maxEntries?: number;
+  readonly message?: string;
 };
 
 type RateLimitEntry = {
@@ -48,7 +49,8 @@ const pruneEntries = (
 export const createRateLimitMiddleware = ({
   maxRequests,
   windowMs,
-  maxEntries = 1_000
+  maxEntries = 1_000,
+  message = 'Too many requests. Please wait before trying again.'
 }: RateLimitOptions): MiddlewareHandler => {
   const entries = new Map<string, RateLimitEntry>();
 
@@ -70,7 +72,7 @@ export const createRateLimitMiddleware = ({
         apiErrorSchema.parse({
           error: {
             code: 'rate_limited',
-            message: 'Too many realtime token requests. Please wait before trying again.'
+            message
           }
         }),
         429

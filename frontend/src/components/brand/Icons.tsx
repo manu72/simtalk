@@ -25,7 +25,10 @@ export type IconName =
   | 'info'
   | 'video'
   | 'video-off'
-  | 'audio-bars';
+  | 'audio-bars'
+  | 'camera'
+  | 'image'
+  | 'upload';
 
 const PATHS: Record<IconName, string> = {
   mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 1 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a1 1 0 1 0-2 0 9 9 0 0 0 8 8.95V22a1 1 0 1 0 2 0v-1.05A9 9 0 0 0 21 12a1 1 0 1 0-2 0 7 7 0 1 1-14 0Z',
@@ -61,7 +64,13 @@ const PATHS: Record<IconName, string> = {
   'video-off':
     'M3 3.7 4.3 2.4l18.3 18.3-1.3 1.3-2.4-2.4a2 2 0 0 1-1 .4H4a2 2 0 0 1-2-2V8a2 2 0 0 1 1.1-1.8L3 6V3.7Zm17 2.3v4l4-3v9l-4-3v.5l-9-9H14a2 2 0 0 1 2 2v.7l4-2.7Z',
   'audio-bars':
-    'M3 10h3v4H3v-4Zm6-4h3v12H9V6Zm6 2h3v8h-3V8Z'
+    'M3 10h3v4H3v-4Zm6-4h3v12H9V6Zm6 2h3v8h-3V8Z',
+  camera:
+    'M9.4 4 8 6H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4l-1.4-2H9.4Zm2.6 4a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
+  image:
+    'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 12 4-4 3 3 5-6 4 5V6H4v10Zm4-7a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z',
+  upload:
+    'M5 20h14v2H5v-2Zm7-18 7 7-1.4 1.4L13 5.8V16h-2V5.8L6.4 10.4 5 9l7-7Z'
 };
 
 export type STIconProps = Omit<SVGProps<SVGSVGElement>, 'children'> & {

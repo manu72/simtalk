@@ -27,7 +27,8 @@ export const createRealtimeRoute = (
   const realtimeService = createOpenAiRealtimeService(config, dependencies.fetch);
   const rateLimit = createRateLimitMiddleware({
     maxRequests: config.realtimeTokenRateLimitMaxRequests,
-    windowMs: config.realtimeTokenRateLimitWindowMs
+    windowMs: config.realtimeTokenRateLimitWindowMs,
+    message: 'Too many realtime token requests. Please wait before trying again.'
   });
 
   route.post('/token', rateLimit, async (c) => {

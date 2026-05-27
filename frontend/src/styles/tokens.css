@@ -132,6 +132,37 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
+/* Camera FAB on the Lobby. Inline styles can't express :focus-visible or
+   :active, so the focus ring, press transform, and reduced-motion guard live
+   here. The transform composition preserves the centring translate(-50%). */
+.st-camera-fab {
+  transition: transform var(--st-dur-fast) var(--st-ease-bounce),
+              box-shadow var(--st-dur-fast) var(--st-ease-bounce);
+}
+
+.st-camera-fab:focus { outline: none; }
+
+.st-camera-fab:focus-visible {
+  outline: 3px solid var(--st-navy);
+  outline-offset: 4px;
+}
+
+.st-camera-fab:active {
+  transform: translate(-50%, 2px);
+  box-shadow:
+    0 0 0 3px var(--st-navy),
+    0 2px 0 0 var(--st-navy),
+    0 0 22px rgba(255, 62, 158, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-camera-fab,
+  .st-camera-fab:active {
+    transition: none;
+    transform: translateX(-50%);
+  }
+}
+
 /* Reusable signature animations */
 @keyframes st-pulse-soft {
   0%, 100% { opacity: 0.4; transform: scale(1); }
