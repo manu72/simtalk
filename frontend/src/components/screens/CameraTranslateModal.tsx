@@ -140,7 +140,13 @@ export const CameraTranslateModal = ({
         },
         { signal: controller.signal }
       );
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        // The user pressed Cancel after the response had already arrived but
+        // before React committed it. Drop the result and roll back to the
+        // preview, matching the in-flight cancel branch in the catch block.
+        setStep('previewing');
+        return;
+      }
       setResult(response);
       setStep('result');
     } catch (error) {
