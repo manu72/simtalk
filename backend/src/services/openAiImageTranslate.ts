@@ -41,7 +41,8 @@ export type OpenAiImageTranslateErrorKind =
   | 'missing_config'
   | 'upstream_unavailable'
   | 'invalid_upstream_response'
-  | 'content_blocked';
+  | 'content_blocked'
+  | 'invalid_request';
 
 export class OpenAiImageTranslateError extends Error {
   constructor(message: string, readonly kind: OpenAiImageTranslateErrorKind) {
@@ -243,7 +244,7 @@ const callOnce = async (
     }
     throw new OpenAiImageTranslateError(
       `OpenAI image translation rejected the request (status ${response.status})`,
-      'upstream_unavailable'
+      'invalid_request'
     );
   }
 
