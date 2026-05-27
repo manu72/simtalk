@@ -435,7 +435,9 @@ export const CameraTranslateModal = ({
                       opacity: 0.75
                     }}
                   >
-                    No readable text was found in this image.
+                    {result.originalText.trim().length === 0
+                      ? 'No readable text was found in this image.'
+                      : "We couldn't translate this image. The extracted text is shown below."}
                   </div>
                 ) : (
                   <div
