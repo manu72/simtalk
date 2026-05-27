@@ -123,12 +123,12 @@ export const Lobby = ({
         <div style={{ position: "relative" }}>
           <div style={{ display: "flex", alignItems: "stretch", gap: 10 }}>
             <LangCard
-              label={mode === "turnabout" ? "Person A" : mode === "practice" ? "You speak" : "Detect"}
+              label={mode === "turnabout" ? "You speak" : mode === "practice" ? "You speak" : "Detect"}
               lang={source}
               onPick={() => setPicker("source")}
             />
             <LangCard
-              label={mode === "turnabout" ? "Person B" : mode === "practice" ? "Translate to" : "Translate into"}
+              label={mode === "turnabout" ? "They speak" : mode === "practice" ? "Translate to" : "Translate into"}
               lang={target}
               onPick={() => setPicker("target")}
             />

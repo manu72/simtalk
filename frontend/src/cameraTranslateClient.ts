@@ -1,5 +1,6 @@
 import {
   apiErrorSchema,
+  imageTranslateRequestSchema,
   imageTranslateResponseSchema,
   imageTranslateRoute,
   type ApiErrorCode,
@@ -49,15 +50,28 @@ export const requestImageTranslate = async (
     signal
   }: CameraTranslateClientOptions = {}
 ): Promise<ImageTranslateResponse> => {
+  // Validate the JSON-shaped fields against the same shared schema the backend
+  // route uses, so client and server stay in sync. The image bytes are a
+  // separate multipart field and are not covered by this schema — size/MIME
+  // are enforced server-side, with a basic empty-blob guard kept here so we
+  // never bother the network with an obviously useless request.
+  const parsedRequest = imageTranslateRequestSchema.safeParse({
+    targetLanguage: input.targetLanguage
+  });
+  if (!parsedRequest.success) {
+    const firstIssue = parsedRequest.error.issues[0]?.message;
+    throw new CameraTranslateClientError(
+      firstIssue ?? 'Target language is required',
+      'validation_error'
+    );
+  }
+
   if (!input.image || input.image.size === 0) {
     throw new CameraTranslateClientError('No image to translate', 'validation_error');
   }
-  if (!input.targetLanguage || input.targetLanguage.trim().length === 0) {
-    throw new CameraTranslateClientError('Target language is required', 'validation_error');
-  }
 
   const form = new FormData();
-  form.append('targetLanguage', input.targetLanguage.trim());
+  form.append('targetLanguage', parsedRequest.data.targetLanguage);
   form.append('image', input.image, input.imageFilename);
 
   const controller = new AbortController();
