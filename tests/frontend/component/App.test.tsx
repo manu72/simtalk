@@ -818,7 +818,52 @@ describe('Remote room language mirroring', () => {
     await act(async () => {
       fireEvent.click(await screen.findByRole('button', { name: /join room/i }));
     });
-    await waitFor(() => expect(setLocalYouHear).toHaveBeenCalledWith('es'));
+    // YOU HEAR defaults to English (the user's primary language) when no
+    // stored preference exists — it is NOT seeded from the lobby's THEY SPEAK.
+    await waitFor(() => expect(setLocalYouHear).toHaveBeenCalledWith('en'));
+  });
+
+  it('defaults THEY SPEAK to Automatic and YOU HEAR to the lobby YOU SPEAK after Create Remote Room', async () => {
+    mockFetch(roomCreateJsonResponse());
+    render(<App />);
+
+    // Sanity: lobby defaults are YOU SPEAK=English and THEY SPEAK=Spanish.
+    const lobbyCards = screen.getAllByRole('button', { name: /you speak|they speak/i });
+    expect(lobbyCards.length).toBeGreaterThanOrEqual(2);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /create remote room/i }));
+    });
+
+    await screen.findByRole('heading', { name: /remote talk/i });
+
+    // THEY SPEAK in the remote room must default to Automatic — never the
+    // lobby's YOU SPEAK value (English here).
+    const theySpeak = screen.getByRole('button', { name: /they speak/i });
+    expect(theySpeak).toHaveTextContent(/automatic/i);
+    expect(theySpeak).not.toHaveTextContent(/english/i);
+
+    // YOU HEAR must default to the lobby's YOU SPEAK (English) — never the
+    // lobby's THEY SPEAK (Spanish).
+    const youHear = screen.getByRole('button', { name: /you hear/i });
+    expect(youHear).toHaveTextContent(/english/i);
+    expect(youHear).not.toHaveTextContent(/spanish/i);
+  });
+
+  it('preserves a stored YOU HEAR preference when entering a remote room via Create Remote Room', async () => {
+    // Stored YOU HEAR from a previous remote-room visit takes precedence over
+    // any lobby-derived default on subsequent Create Remote Room actions.
+    window.localStorage.setItem('simtalk.remoteRoom.targetLanguage', 'fr');
+    mockFetch(roomCreateJsonResponse());
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /create remote room/i }));
+    });
+
+    await screen.findByRole('heading', { name: /remote talk/i });
+    const youHear = screen.getByRole('button', { name: /you hear/i });
+    expect(youHear).toHaveTextContent(/french/i);
   });
 });
 
