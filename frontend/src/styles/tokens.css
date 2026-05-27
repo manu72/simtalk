@@ -132,10 +132,16 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
-/* Camera FAB on the Lobby. Inline styles can't express :focus-visible or
-   :active, so the focus ring, press transform, and reduced-motion guard live
-   here. The transform composition preserves the centring translate(-50%). */
+/* Camera FAB on the Lobby. The centring transform and resting box-shadow
+   live here (not inline) so the :active press state and reduced-motion
+   guard below can actually override them — inline styles always beat
+   class-based pseudo-class rules regardless of specificity. */
 .st-camera-fab {
+  transform: translateX(-50%);
+  box-shadow:
+    0 0 0 3px var(--st-navy),
+    0 6px 0 0 var(--st-navy),
+    0 0 28px rgba(255, 62, 158, 0.55);
   transition: transform var(--st-dur-fast) var(--st-ease-bounce),
               box-shadow var(--st-dur-fast) var(--st-ease-bounce);
 }
