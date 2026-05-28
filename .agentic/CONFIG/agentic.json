@@ -4,7 +4,23 @@
     "provider": "understand-anything",
     "path": ".understand-anything/knowledge-graph.json",
     "required": true,
-    "fallback": "codemap"
+    "fallback": "codemap",
+    "dependency_edge_types": ["imports", "calls", "depends_on", "references"],
+    "test_edge_types": ["tested_by", "tests"],
+    "dependency_fanout": 4
+  },
+  "routing": {
+    "budgets": { "anchors": 6, "deps": 4, "search": 6, "tests": 4 },
+    "hard_cap": 12,
+    "min_search_score_with_anchors": 3
+  },
+  "subsystem_path_roots": {
+    "frontend": "web",
+    "backend": "api",
+    "shared": "shared",
+    "tests": "tests",
+    ".github": "infra",
+    "api": "api"
   },
   "paths": {
     "memory_root": ".agentic",
@@ -50,16 +66,16 @@
     "**/test_*.py"
   ],
   "high_risk_patterns": [
-    { "match": "**/auth/**", "tags": ["security", "authn"] },
-    { "match": "**/middleware/**", "tags": ["security"] },
-    { "match": "**/secrets/**", "tags": ["secrets"] },
-    { "match": "**/.env*", "tags": ["secrets"] },
-    { "match": "**/realtime/**", "tags": ["realtime", "latency"] },
-    { "match": "**/webrtc/**", "tags": ["realtime", "latency"] },
-    { "match": "**/recording/**", "tags": ["privacy"] },
-    { "match": "**/infra/**", "tags": ["infra"] },
-    { "match": "**/.github/workflows/**", "tags": ["infra", "ci"] },
-    { "match": "**/Dockerfile", "tags": ["infra"] }
+    { "match": "**/auth/**", "tags": ["security", "authn"], "keywords": ["auth", "login", "authn", "authz"] },
+    { "match": "**/middleware/**", "tags": ["security"], "keywords": ["middleware", "cors", "ratelimit"] },
+    { "match": "**/secrets/**", "tags": ["secrets"], "keywords": ["secret", "secrets"] },
+    { "match": "**/.env*", "tags": ["secrets"], "keywords": ["env", "secret", "key"] },
+    { "match": "**/realtime/**", "tags": ["realtime", "latency"], "keywords": ["realtime", "webrtc", "latency"] },
+    { "match": "**/webrtc/**", "tags": ["realtime", "latency"], "keywords": ["webrtc", "rtc", "peerconnection"] },
+    { "match": "**/recording/**", "tags": ["privacy"], "keywords": ["recording", "record", "transcript"] },
+    { "match": "**/infra/**", "tags": ["infra"], "keywords": ["infra", "deploy", "vercel"] },
+    { "match": "**/.github/workflows/**", "tags": ["infra", "ci"], "keywords": ["ci", "workflow", "github-actions"] },
+    { "match": "**/Dockerfile", "tags": ["infra"], "keywords": ["dockerfile", "docker", "container"] }
   ],
   "subsystem_keywords": {
     "web": [

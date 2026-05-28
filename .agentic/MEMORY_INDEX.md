@@ -55,8 +55,8 @@ See `.agentic/GRAPH_INDEX.md`.
 
 ## Memory freshness
 
-- Last refreshed: 2026-05-27T07:14:16Z
-- Files refreshed this run: .agentic/GRAPH_INDEX.md, .agentic/MEMORY_INDEX.md, .cursor/plans/phase_1.6_camera_translate_ee0ea704.plan.md, backend/.env.example, backend/src/app.ts, backend/src/config.ts, backend/src/middleware/rateLimit.ts, backend/src/routes/imageTranslate.ts, backend/src/routes/realtime.ts, backend/src/routes/rooms.ts, backend/src/services/openAiImageTranslate.ts, backend/src/services/openAiRealtime.ts, frontend/src/App.tsx, frontend/src/cameraTranslateClient.ts, frontend/src/components/brand/Icons.tsx, frontend/src/components/brand/LanguagePicker.tsx, frontend/src/components/screens/AccessGateModal.tsx, frontend/src/components/screens/CameraTranslateModal.tsx, frontend/src/components/screens/Lobby.tsx, frontend/src/components/screens/RemoteNameModal.tsx, frontend/src/components/screens/cameraTranslate/compressImage.ts, frontend/src/styles/tokens.css, shared/types/src/index.ts, tests/backend/unit/services/openAiImageTranslate.test.ts, tests/backend/unit/services/openAiRealtime.test.ts, tests/e2e/home.spec.ts, tests/frontend/component/App.test.tsx, tests/frontend/component/RemoteNameModal.test.tsx
+- Last refreshed: 2026-05-28T01:02:14Z
+- Files refreshed this run: .agentic/CONFIG/agentic.json, .agentic/GRAPH_INDEX.md, .agentic/MEMORY_INDEX.md, scripts/agentic/README.md, scripts/agentic/route_task.py, tests/agentic/
 - Source: scripts/agentic/update_memory.py
 <!-- agentic:managed:end -->
 
