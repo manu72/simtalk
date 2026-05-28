@@ -445,6 +445,33 @@ class ConfigTypeValidation(unittest.TestCase):
                 "bool budgets.tests silently coerced to 1 instead of default",
             )
 
+    def test_bool_hard_cap_falls_back_to_default(self) -> None:
+        """A ``bool`` ``hard_cap`` must not silently cap the bundle to one path.
+
+        ``isinstance(True, int)`` is true in Python, so the previous bespoke
+        ``hard_cap`` validator accepted ``True`` and treated it as ``1``,
+        causing ``_add_path``'s ``total >= hard_cap`` gate to abort after the
+        first selection. Routing must fall back to ``DEFAULT_HARD_CAP`` so
+        anchors and dependency expansion still surface.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"routing": {"hard_cap": True}},
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            self.assertIn(
+                "backend/src/routes/realtime.ts",
+                bundle["selected_paths"],
+                "user-named anchor missing under bool hard_cap",
+            )
+            total = len(bundle["selected_paths"]) + len(bundle["selected_tests"])
+            self.assertGreater(
+                total,
+                1,
+                "bool hard_cap silently coerced to 1 instead of default",
+            )
+
 
 class RelatedTestsBudget(unittest.TestCase):
     """``related_tests`` must honour ``budgets.tests`` in both branches.
@@ -642,6 +669,51 @@ class RiskUnification(unittest.TestCase):
 
 
 class ConfidenceRules(unittest.TestCase):
+    def test_anchored_test_file_suppresses_no_tests_unknown(self) -> None:
+        """Anchoring a test file directly puts it in ``selected_tests``;
+        Stage 5 dedupes it out of ``related_tests``. The unknowns guard
+        must treat ``selected_tests`` as valid test evidence and NOT emit
+        the misleading "No related tests located" advisory.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(Path(tmp))
+            bundle = _run(
+                root,
+                "review tests/backend/unit/realtime.test.ts and backend/src/routes/realtime.ts",
+            )
+            self.assertIn(
+                "tests/backend/unit/realtime.test.ts", bundle["selected_tests"]
+            )
+            self.assertFalse(
+                any("No related tests" in u for u in bundle["unknowns"]),
+                f"spurious no-tests unknown emitted with test evidence "
+                f"in selected_tests: {bundle['unknowns']}",
+            )
+
+    def test_anchored_test_file_keeps_confidence_high(self) -> None:
+        """Anchored runs should be ``high`` confidence when ANY test
+        evidence is present, including in ``selected_tests``.
+
+        Before the fix, ``_compute_confidence`` only counted
+        ``related_tests`` so a user anchoring a test file directly was
+        silently demoted from ``high`` to ``medium`` confidence.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(Path(tmp))
+            bundle = _run(
+                root,
+                "review tests/backend/unit/realtime.test.ts and backend/src/routes/realtime.ts",
+            )
+            self.assertIn(
+                "tests/backend/unit/realtime.test.ts", bundle["selected_tests"]
+            )
+            self.assertEqual(
+                bundle["confidence"],
+                "high",
+                f"explicit anchors + test evidence in selected_tests must be "
+                f"high confidence; got {bundle['confidence']!r}",
+            )
+
     def test_graph_route_with_no_tests_is_unknown_not_stop(self) -> None:
         graph = copy.deepcopy(build_fixture.DEFAULT_GRAPH)
         graph["edges"] = [e for e in graph["edges"] if e.get("type") != "tested_by"]

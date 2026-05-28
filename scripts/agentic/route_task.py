@@ -907,6 +907,7 @@ def _compute_confidence(
     has_explicit_anchors: bool,
     selected_paths_count: int,
     related_tests_count: int,
+    selected_tests_count: int,
     selected_subsystems_count: int,
 ) -> tuple[str, list[str]]:
     """Compute the confidence level and any hard stop conditions.
@@ -914,14 +915,21 @@ def _compute_confidence(
     No-test-found is deliberately NOT a stop when the route is graph-driven
     and has produced paths — the caller can still proceed by reading the
     selected sources. It becomes an ``unknowns`` entry in main().
+
+    Test evidence is measured as the union of ``selected_tests`` and
+    ``related_tests``: a user who anchors a test file directly (which
+    routes into ``selected_tests`` and gets correctly suppressed from
+    ``related_tests`` by Stage 5 dedupe) must not be demoted to
+    ``medium`` confidence as if no tests were found.
     """
     stops: list[str] = []
     if selected_paths_count == 0:
         stops.append("No paths matched the task; refine the task string or supply a file anchor.")
         return "low", stops
 
+    has_test_evidence = (related_tests_count + selected_tests_count) > 0
     if has_explicit_anchors:
-        level = "high" if related_tests_count > 0 else "medium"
+        level = "high" if has_test_evidence else "medium"
     elif graph_available and selected_paths_count > 0:
         level = "medium"
     else:
@@ -984,14 +992,13 @@ def main(argv: list[str]) -> int:
     # the last unsanitised block.
     for _bkey, _bdefault in DEFAULT_BUDGETS.items():
         budgets[_bkey] = _positive_int_or_default(budgets.get(_bkey), _bdefault)
-    hard_cap = routing_block.get("hard_cap") or DEFAULT_HARD_CAP
-    if not isinstance(hard_cap, int) or hard_cap <= 0:
-        hard_cap = DEFAULT_HARD_CAP
-    min_score_with_anchors = routing_block.get(
-        "min_search_score_with_anchors", DEFAULT_MIN_SEARCH_SCORE_WITH_ANCHORS
+    hard_cap = _positive_int_or_default(
+        routing_block.get("hard_cap"), DEFAULT_HARD_CAP
     )
-    if not isinstance(min_score_with_anchors, int):
-        min_score_with_anchors = DEFAULT_MIN_SEARCH_SCORE_WITH_ANCHORS
+    min_score_with_anchors = _positive_int_or_default(
+        routing_block.get("min_search_score_with_anchors"),
+        DEFAULT_MIN_SEARCH_SCORE_WITH_ANCHORS,
+    )
 
     subsystem_path_roots = cfg.get("subsystem_path_roots") or DEFAULT_SUBSYSTEM_PATH_ROOTS
     fallback_artifact = REPO_ROOT / ".agentic" / "CODEMAP.json"
@@ -1273,6 +1280,7 @@ def main(argv: list[str]) -> int:
         has_explicit_anchors=has_explicit_anchors,
         selected_paths_count=len(selected_paths) + len(selected_tests),
         related_tests_count=len(related_tests),
+        selected_tests_count=len(selected_tests),
         selected_subsystems_count=len(selected_subsystems),
     )
 
@@ -1295,7 +1303,13 @@ def main(argv: list[str]) -> int:
         graph_available
         and (selected_paths or selected_tests)
         and not related_tests
+        and not selected_tests
     ):
+        # Test evidence is the union of ``selected_tests`` (anchored or
+        # graph-search-matched tests) and ``related_tests`` (tests reached
+        # via ``tested_by`` edges or stem-matching walks). If either bucket
+        # is populated, the bundle already carries test signal and this
+        # advisory would be misleading.
         unknowns.append(
             "No related tests located; identify or add a test before non-trivial changes."
         )
