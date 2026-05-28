@@ -179,16 +179,30 @@ class EdgeTypeBreadth(unittest.TestCase):
             self.assertIn("backend/src/middleware/cors.ts", bundle["selected_paths"])
             self.assertIn("calls", bundle["_explain"]["edge_types_used"])
 
-    def test_test_edges_flow_into_related_tests_not_dependency_paths(self) -> None:
+    def test_test_edges_flow_into_test_buckets_not_dependency_paths(self) -> None:
+        """tested_by edges must surface the test file as a test, never as a dep.
+
+        The test file may land in either ``selected_tests`` (when graph
+        search also matches it) or ``related_tests`` (when only the
+        ``tested_by`` edge surfaces it), but it must never appear in
+        ``dependency_paths`` and must not be duplicated across the two
+        test buckets.
+        """
         with tempfile.TemporaryDirectory() as tmp:
             root = build_fixture.build(Path(tmp))
             bundle = _run(root, "review backend/src/routes/realtime.ts")
+            test_path = "tests/backend/unit/realtime.test.ts"
+            test_buckets = set(bundle["selected_tests"]) | set(bundle["related_tests"])
             self.assertIn(
-                "tests/backend/unit/realtime.test.ts", bundle["related_tests"]
+                test_path,
+                test_buckets,
+                "tested_by edge should surface the test in selected_tests or related_tests",
             )
-            self.assertNotIn(
-                "tests/backend/unit/realtime.test.ts", bundle["dependency_paths"]
+            self.assertFalse(
+                test_path in bundle["selected_tests"] and test_path in bundle["related_tests"],
+                "test file must not be duplicated across selected_tests and related_tests",
             )
+            self.assertNotIn(test_path, bundle["dependency_paths"])
 
     def test_disabled_edge_type_is_not_traversed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -205,6 +219,36 @@ class EdgeTypeBreadth(unittest.TestCase):
             if cors_reason is not None:
                 # If it appears, it must not be via dep expansion.
                 self.assertNotIn("dependency", cors_reason)
+
+
+class TestFileDeduplication(unittest.TestCase):
+    """A test file selected as an anchor must not also appear in related_tests.
+
+    ``_add_path`` routes test files into ``selected_tests`` (kept separate
+    from ``selected_paths``). The fs-walk fallback historically deduped
+    against ``set(selected_paths)`` only, so a test anchor could surface
+    again as a "related" test. The fix threads ``selected_tests`` through
+    the fallback's ``exclude`` parameter; the graph branch already dedupes
+    against ``selection_reasons`` so it was not affected.
+    """
+
+    def test_walk_fallback_does_not_duplicate_anchored_test(self) -> None:
+        # Strip tested_by edges so the fallback path runs.
+        graph = copy.deepcopy(build_fixture.DEFAULT_GRAPH)
+        graph["edges"] = [e for e in graph["edges"] if e.get("type") != "tested_by"]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(Path(tmp), graph=graph)
+            bundle = _run(
+                root,
+                "review tests/backend/unit/realtime.test.ts and backend/src/routes/realtime.ts",
+            )
+            test_path = "tests/backend/unit/realtime.test.ts"
+            self.assertIn(test_path, bundle["selected_tests"])
+            self.assertNotIn(
+                test_path,
+                bundle["related_tests"],
+                "test file already in selected_tests must not duplicate into related_tests",
+            )
 
 
 class GraphRelatedTestsDefensive(unittest.TestCase):
@@ -309,9 +353,10 @@ class ConfigTypeValidation(unittest.TestCase):
                 config_extra={"graph": {"test_edge_types": "tested_by"}},
             )
             bundle = _run(root, "review backend/src/routes/realtime.ts")
+            test_buckets = set(bundle["selected_tests"]) | set(bundle["related_tests"])
             self.assertIn(
                 "tests/backend/unit/realtime.test.ts",
-                bundle["related_tests"],
+                test_buckets,
                 "graph-driven test discovery silently degraded under string config",
             )
 
@@ -430,12 +475,17 @@ class RelatedTestsBudget(unittest.TestCase):
 
 class GraphVsWalkTests(unittest.TestCase):
     def test_graph_driven_tests_path_preferred(self) -> None:
+        """Graph-edge test discovery should surface the test file and record
+        the ``tested_by`` edge as used. The file may land in either
+        ``selected_tests`` (when graph search also matches it) or
+        ``related_tests`` (when only the edge surfaces it); both signal
+        successful graph-driven discovery.
+        """
         with tempfile.TemporaryDirectory() as tmp:
             root = build_fixture.build(Path(tmp))
             bundle = _run(root, "review backend/src/routes/realtime.ts", explain=True)
-            self.assertIn(
-                "tests/backend/unit/realtime.test.ts", bundle["related_tests"]
-            )
+            test_buckets = set(bundle["selected_tests"]) | set(bundle["related_tests"])
+            self.assertIn("tests/backend/unit/realtime.test.ts", test_buckets)
             self.assertIn("tested_by", bundle["_explain"]["edge_types_used"])
 
     def test_tsconfig_test_json_is_rejected(self) -> None:

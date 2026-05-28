@@ -668,6 +668,7 @@ def _related_tests_for(
     *,
     cap: int = 10,
     dropped: list[str] | None = None,
+    exclude: Iterable[str] | None = None,
 ) -> list[str]:
     """Walk-based test discovery (graph-unavailable fallback).
 
@@ -678,9 +679,17 @@ def _related_tests_for(
     ``dropped`` (optional) collects glob-matched paths that were rejected
     by ``_is_test_path`` (e.g. ``tsconfig.test.json``) so ``--explain``
     can show why a candidate didn't make it through.
+
+    ``exclude`` (optional) is an additional set of paths to deduplicate
+    against. Callers should pass any test files that have already been
+    routed into ``selected_tests`` (since ``_add_path`` splits them out
+    of ``selected_paths``) so the fallback does not surface the same file
+    twice — once as a selected anchor and again as a "related" test.
     """
     stems: set[str] = set()
     selected_set = set(selected_paths)
+    if exclude is not None:
+        selected_set |= set(exclude)
     for p in selected_paths:
         if _is_test_path(p, test_discovery):
             continue
@@ -1202,6 +1211,7 @@ def main(argv: list[str]) -> int:
                 test_discovery,
                 cap=tests_cap,
                 dropped=dropped_test_candidates,
+                exclude=selected_tests,
             )
     else:
         related_tests = _related_tests_for(
@@ -1209,6 +1219,7 @@ def main(argv: list[str]) -> int:
             test_discovery,
             cap=tests_cap,
             dropped=dropped_test_candidates,
+            exclude=selected_tests,
         )
 
     # ---- Subsystem overlay (soft hint, additive; intersected once) --------
