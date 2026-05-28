@@ -274,6 +274,75 @@ class GraphRelatedTestsDefensive(unittest.TestCase):
             )
 
 
+class ConfigTypeValidation(unittest.TestCase):
+    """Mistyped config values must not silently degrade routing.
+
+    A string mistakenly configured where a list is expected would otherwise
+    become a per-character set when fed to ``set(...)`` in the edge-type
+    filters, breaking dependency expansion without surfacing any error.
+    These tests lock the safe-default fallback in place.
+    """
+
+    def test_string_dependency_edge_types_falls_back_to_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"graph": {"dependency_edge_types": "imports"}},
+            )
+            bundle = _run(
+                root, "review backend/src/routes/realtime.ts", explain=True
+            )
+            # With safe defaults restored, imports edges are traversed and
+            # openAiRealtime.ts surfaces via dependency expansion. If the
+            # string had become a character set, no dependency would appear.
+            self.assertIn(
+                "backend/src/services/openAiRealtime.ts",
+                bundle["selected_paths"],
+                "dependency expansion silently degraded under string config",
+            )
+            self.assertIn("imports", bundle["_explain"]["edge_types_used"])
+
+    def test_string_test_edge_types_falls_back_to_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"graph": {"test_edge_types": "tested_by"}},
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            self.assertIn(
+                "tests/backend/unit/realtime.test.ts",
+                bundle["related_tests"],
+                "graph-driven test discovery silently degraded under string config",
+            )
+
+    def test_list_with_non_string_items_is_sanitised(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={
+                    "graph": {"dependency_edge_types": ["imports", 42, None]}
+                },
+            )
+            bundle = _run(
+                root, "review backend/src/routes/realtime.ts", explain=True
+            )
+            # Non-string items dropped; imports still applied.
+            self.assertIn("imports", bundle["_explain"]["edge_types_used"])
+
+    def test_non_int_dependency_fanout_falls_back_to_default(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"graph": {"dependency_fanout": "four"}},
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            # Dependency expansion still works under string fanout.
+            self.assertIn(
+                "backend/src/services/openAiRealtime.ts",
+                bundle["selected_paths"],
+            )
+
+
 class RelatedTestsBudget(unittest.TestCase):
     """``related_tests`` must honour ``budgets.tests`` in both branches.
 

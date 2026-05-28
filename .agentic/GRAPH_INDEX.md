@@ -7,7 +7,7 @@
 - Graph path: `.understand-anything/knowledge-graph.json`
 - Graph mode available: yes
 - Fallback mode: codemap
-- Last checked: 2026-05-28T02:22:41Z
+- Last checked: 2026-05-28T02:27:48Z
 - Last generated: 2026-05-26T06:52:24Z
 - Parseable: yes
 - Non-empty: yes

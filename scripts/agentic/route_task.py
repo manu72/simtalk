@@ -131,6 +131,35 @@ def _die(msg: str, code: int = 1) -> None:
     sys.exit(code)
 
 
+def _string_list_or_default(value: Any, default: list[str]) -> list[str]:
+    """Return ``value`` as a validated ``list[str]``; fall back to ``default``.
+
+    Guards against the silent failure where a config value mistyped as a
+    bare string (e.g. ``"imports"`` instead of ``["imports"]``) is later
+    fed to ``set(...)`` for edge-type filtering and becomes a character set
+    that matches nothing useful. Non-string items inside an otherwise valid
+    list are filtered out; an empty list after filtering also falls back.
+    """
+    if not isinstance(value, list):
+        return default
+    valid = [v for v in value if isinstance(v, str)]
+    return valid if valid else default
+
+
+def _positive_int_or_default(value: Any, default: int) -> int:
+    """Return ``value`` as a positive ``int``; fall back to ``default``.
+
+    ``bool`` is a subclass of ``int`` in Python; that path is excluded so a
+    configured ``True``/``False`` (almost certainly a typo for a numeric
+    budget) is not silently coerced into ``1``/``0``.
+    """
+    if isinstance(value, bool):
+        return default
+    if not isinstance(value, int) or value <= 0:
+        return default
+    return value
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -926,11 +955,15 @@ def main(argv: list[str]) -> int:
     graph_path_str = graph_block.get("path")
     graph_required = bool(graph_block.get("required", True))
     graph_fallback = graph_block.get("fallback") or "none"
-    dep_edge_types = graph_block.get("dependency_edge_types") or DEFAULT_DEPENDENCY_EDGE_TYPES
-    test_edge_types = graph_block.get("test_edge_types") or DEFAULT_TEST_EDGE_TYPES
-    dep_fanout = graph_block.get("dependency_fanout") or DEFAULT_DEPENDENCY_FANOUT
-    if not isinstance(dep_fanout, int) or dep_fanout <= 0:
-        dep_fanout = DEFAULT_DEPENDENCY_FANOUT
+    dep_edge_types = _string_list_or_default(
+        graph_block.get("dependency_edge_types"), DEFAULT_DEPENDENCY_EDGE_TYPES
+    )
+    test_edge_types = _string_list_or_default(
+        graph_block.get("test_edge_types"), DEFAULT_TEST_EDGE_TYPES
+    )
+    dep_fanout = _positive_int_or_default(
+        graph_block.get("dependency_fanout"), DEFAULT_DEPENDENCY_FANOUT
+    )
 
     routing_block = cfg.get("routing") or {}
     budgets = {**DEFAULT_BUDGETS, **(routing_block.get("budgets") or {})}
