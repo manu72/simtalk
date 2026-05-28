@@ -207,6 +207,73 @@ class EdgeTypeBreadth(unittest.TestCase):
                 self.assertNotIn("dependency", cors_reason)
 
 
+class GraphRelatedTestsDefensive(unittest.TestCase):
+    """``_graph_related_tests`` must not trust edge type alone.
+
+    A malformed or over-permissive graph (test edges pointing at docs,
+    config, or other sources) would otherwise leak non-test files into
+    ``related_tests`` and downstream into the bundle that consumers treat
+    as authoritative test evidence.
+    """
+
+    def test_test_edge_pointing_at_doc_is_rejected(self) -> None:
+        # Inject a tested_by edge from realtime.ts to a .md document.
+        graph = copy.deepcopy(build_fixture.DEFAULT_GRAPH)
+        graph["nodes"].append(
+            {
+                "id": "document:docs/realtime-notes.md",
+                "type": "document",
+                "name": "realtime-notes.md",
+                "filePath": "docs/realtime-notes.md",
+                "tags": ["documentation"],
+                "summary": "Notes about the realtime route",
+            }
+        )
+        graph["edges"].append(
+            {
+                "source": "file:backend/src/routes/realtime.ts",
+                "target": "document:docs/realtime-notes.md",
+                "type": "tested_by",
+                "direction": "forward",
+                "weight": 1,
+            }
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(Path(tmp), graph=graph)
+            # Make the doc file exist so its absence isn't what's filtering it.
+            (root / "docs").mkdir(parents=True, exist_ok=True)
+            (root / "docs" / "realtime-notes.md").write_text("", encoding="utf-8")
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            for t in bundle["related_tests"]:
+                self.assertFalse(
+                    t.endswith(".md"),
+                    f"doc leaked into related_tests via tested_by edge: {t}",
+                )
+            self.assertNotIn("docs/realtime-notes.md", bundle["related_tests"])
+
+    def test_test_edge_pointing_at_source_is_rejected(self) -> None:
+        # Bogus tested_by edge to another source file (e.g. a graph provider
+        # that emits both directions or a hand-authored edge mistake).
+        graph = copy.deepcopy(build_fixture.DEFAULT_GRAPH)
+        graph["edges"].append(
+            {
+                "source": "file:backend/src/routes/realtime.ts",
+                "target": "file:backend/src/middleware/cors.ts",
+                "type": "tested_by",
+                "direction": "forward",
+                "weight": 1,
+            }
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(Path(tmp), graph=graph)
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            self.assertNotIn(
+                "backend/src/middleware/cors.ts",
+                bundle["related_tests"],
+                "non-test source must not leak into related_tests",
+            )
+
+
 class GraphVsWalkTests(unittest.TestCase):
     def test_graph_driven_tests_path_preferred(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

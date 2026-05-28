@@ -434,18 +434,41 @@ def _graph_related_tests(
     idx: dict[str, Any],
     source_paths: list[str],
     test_edge_types: list[str],
+    test_discovery: list[str],
     edge_types_used: set[str] | None = None,
 ) -> list[str]:
-    """Collect test paths via test-type graph edges from source file nodes."""
+    """Collect test paths via test-type graph edges from source file nodes.
+
+    Edge-type filtering alone is not a sufficient guarantee that the other
+    endpoint is actually a test file: a graph provider may emit the
+    relationship in both directions (so an ``edges_to`` traversal of a
+    ``tested_by`` edge can surface a non-test source), a user-configured
+    ``test_edge_types`` may include an over-broad type, or a malformed graph
+    may point a test edge at a doc or config file. ``_is_test_path`` is the
+    authoritative check used elsewhere in the router and is applied here so
+    ``related_tests`` always carries real test files.
+    """
     allowed = set(test_edge_types)
     out: list[str] = []
     seen: set[str] = set()
 
-    def _add(fp: str | None) -> None:
-        if not isinstance(fp, str) or not fp or fp in seen:
+    def _add(fp: str) -> None:
+        if fp in seen:
             return
         seen.add(fp)
         out.append(fp)
+
+    def _consider(other: dict[str, Any] | None, etype: str) -> None:
+        if other is None:
+            return
+        fp = other.get("filePath")
+        if not isinstance(fp, str) or not fp:
+            return
+        if not _is_test_path(fp, test_discovery):
+            return
+        _add(fp)
+        if isinstance(edge_types_used, set):
+            edge_types_used.add(etype)
 
     for sp in source_paths:
         file_node = _file_node_for_path(idx, sp)
@@ -458,20 +481,12 @@ def _graph_related_tests(
             etype = edge.get("type")
             if etype not in allowed:
                 continue
-            other = idx["nodes_by_id"].get(edge.get("target") or "")
-            if other is not None:
-                _add(other.get("filePath"))
-                if isinstance(edge_types_used, set):
-                    edge_types_used.add(etype)
+            _consider(idx["nodes_by_id"].get(edge.get("target") or ""), etype)
         for edge in idx["edges_to"].get(nid, []):
             etype = edge.get("type")
             if etype not in allowed:
                 continue
-            other = idx["nodes_by_id"].get(edge.get("source") or "")
-            if other is not None:
-                _add(other.get("filePath"))
-                if isinstance(edge_types_used, set):
-                    edge_types_used.add(etype)
+            _consider(idx["nodes_by_id"].get(edge.get("source") or ""), etype)
     return out
 
 
@@ -1133,6 +1148,7 @@ def main(argv: list[str]) -> int:
             idx,
             selected_paths,
             test_edge_types,
+            test_discovery,
             edge_types_used=edge_types_used,
         )
         for t in graph_tests:
