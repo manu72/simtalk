@@ -1324,6 +1324,7 @@ export const App = () => {
               onFlip={() => {
                 void flipTurnaboutSides();
               }}
+              onStop={endSession}
               onMicDown={onMicDown}
               onMicUp={onMicUp}
             />

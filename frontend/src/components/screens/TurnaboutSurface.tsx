@@ -24,6 +24,7 @@ type TurnaboutSurfaceProps = {
   readonly liveDst: string;
   readonly busy?: boolean;
   readonly onFlip: () => void;
+  readonly onStop: () => void;
   readonly onMicDown: () => void;
   readonly onMicUp: () => void;
 };
@@ -153,6 +154,7 @@ export const TurnaboutSurface = ({
   liveDst,
   busy = false,
   onFlip,
+  onStop,
   onMicDown,
   onMicUp
 }: TurnaboutSurfaceProps) => {
@@ -225,87 +227,114 @@ export const TurnaboutSurface = ({
           color: ST.navy,
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          justifyContent: 'space-between'
+          gap: 12
         }}
       >
-        <button
-          type="button"
-          onClick={onFlip}
-          aria-label="Flip speaker sides"
-          disabled={busy || recording}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 14px',
-            background: busy || recording ? 'rgba(43,230,242,0.4)' : ST.cyan,
-            color: ST.navy,
-            border: `3px solid ${ST.navy}`,
-            borderRadius: 16,
-            boxShadow: `0 4px 0 0 ${ST.navy}`,
-            fontFamily: FONT_DISPLAY,
-            fontSize: 14,
-            letterSpacing: '0.06em',
-            opacity: busy || recording ? 0.65 : 1,
-            cursor: busy || recording ? 'not-allowed' : 'pointer'
-          }}
-        >
-          <STIcon name="flip" size={16} color={ST.navy} />
-          {busy ? 'SWITCHING…' : 'FLIP'}
-        </button>
-
-        <div style={{ flex: 1, textAlign: 'right' }}>
-          <div style={{ fontFamily: FONT_DISPLAY, fontSize: 13, letterSpacing: '0.06em' }}>
-            {busy ? 'SWITCHING…' : recording ? 'LISTENING…' : 'HOLD TO TALK'}
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
-            Speaker: {speakerLang.code} {speakerLang.flag}
-          </div>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+          <button
+            type="button"
+            onClick={onFlip}
+            aria-label="Flip speaker sides"
+            disabled={busy || recording}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              background: busy || recording ? 'rgba(43,230,242,0.4)' : ST.cyan,
+              color: ST.navy,
+              border: `3px solid ${ST.navy}`,
+              borderRadius: 16,
+              boxShadow: `0 4px 0 0 ${ST.navy}`,
+              fontFamily: FONT_DISPLAY,
+              fontSize: 14,
+              letterSpacing: '0.06em',
+              opacity: busy || recording ? 0.65 : 1,
+              cursor: busy || recording ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <STIcon name="flip" size={16} color={ST.navy} />
+            {busy ? 'SWITCHING…' : 'FLIP'}
+          </button>
         </div>
 
-        <button
-          type="button"
-          aria-label="Hold to talk"
-          disabled={busy}
-          onPointerDown={(event) => {
-            if (busy) return;
-            event.preventDefault();
-            event.currentTarget.setPointerCapture(event.pointerId);
-            onMicDown();
-          }}
-          onPointerUp={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-            onMicUp();
-          }}
-          onPointerCancel={onMicUp}
-          onContextMenu={(event) => event.preventDefault()}
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 999,
-            background: busy ? 'rgba(255,62,158,0.4)' : recording ? ST.pinkDeep : ST.pink,
-            border: `3px solid ${ST.navy}`,
-            boxShadow: recording ? `0 2px 0 0 ${ST.navy}` : `0 6px 0 0 ${ST.navy}`,
-            transform: recording ? 'translateY(4px)' : undefined,
-            transition: 'transform 100ms cubic-bezier(.34,1.56,.64,1), box-shadow 100ms, background 80ms',
-            color: ST.white,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            touchAction: 'none',
-            WebkitUserSelect: 'none',
-            WebkitTouchCallout: 'none',
-            userSelect: 'none',
-            opacity: busy ? 0.6 : 1,
-            cursor: busy ? 'not-allowed' : 'pointer'
-          }}
-        >
-          <STIcon name="mic" size={28} color={ST.white} />
-        </button>
+        <div style={{ flex: 0, display: 'flex', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={onStop}
+            aria-label="Stop session"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 999,
+              border: `2px solid ${ST.navy}`,
+              background: ST.white,
+              boxShadow: `0 4px 0 0 ${ST.navy}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: 0,
+              flexShrink: 0
+            }}
+          >
+            <STIcon name="stop" size={20} color={ST.navy} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <div style={{ textAlign: 'right', minWidth: 0 }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 13, letterSpacing: '0.06em' }}>
+              {busy ? 'SWITCHING…' : recording ? 'LISTENING…' : 'HOLD TO TALK'}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
+              Speaker: {speakerLang.code} {speakerLang.flag}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Hold to talk"
+            disabled={busy}
+            onPointerDown={(event) => {
+              if (busy) return;
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              onMicDown();
+            }}
+            onPointerUp={(event) => {
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              }
+              onMicUp();
+            }}
+            onPointerCancel={onMicUp}
+            onContextMenu={(event) => event.preventDefault()}
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 999,
+              background: busy ? 'rgba(255,62,158,0.4)' : recording ? ST.pinkDeep : ST.pink,
+              border: `3px solid ${ST.navy}`,
+              boxShadow: recording ? `0 2px 0 0 ${ST.navy}` : `0 6px 0 0 ${ST.navy}`,
+              transform: recording ? 'translateY(4px)' : undefined,
+              transition: 'transform 100ms cubic-bezier(.34,1.56,.64,1), box-shadow 100ms, background 80ms',
+              color: ST.white,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              touchAction: 'none',
+              WebkitUserSelect: 'none',
+              WebkitTouchCallout: 'none',
+              userSelect: 'none',
+              opacity: busy ? 0.6 : 1,
+              cursor: busy ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <STIcon name="mic" size={28} color={ST.white} />
+          </button>
+        </div>
       </div>
     </div>
   );
