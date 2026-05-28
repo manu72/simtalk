@@ -387,6 +387,64 @@ class ConfigTypeValidation(unittest.TestCase):
                 bundle["selected_paths"],
             )
 
+    def test_string_tests_budget_falls_back_to_default(self) -> None:
+        """A non-int ``budgets.tests`` must not raise TypeError mid-routing.
+
+        ``tests_cap`` flows into ``len(related_tests) >= tests_cap`` and
+        ``_related_tests_for(cap=tests_cap)``; a string here would crash
+        the comparison/cap logic. The merged-budgets sanitiser must coerce
+        to ``DEFAULT_BUDGETS['tests']`` so routing degrades safely.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"routing": {"budgets": {"tests": "many"}}},
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            test_buckets = set(bundle["selected_tests"]) | set(bundle["related_tests"])
+            self.assertIn(
+                "tests/backend/unit/realtime.test.ts",
+                test_buckets,
+                "Stage 5 silently broke under string budgets.tests",
+            )
+
+    def test_negative_anchors_budget_falls_back_to_default(self) -> None:
+        """Negative/zero budgets must fall back to the documented default.
+
+        ``_filesystem_anchors(cap=...)`` and ``_add_path``'s stage gate both
+        consume budget values directly; a negative ``anchors`` budget would
+        suppress every filesystem anchor and silently degrade routing.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"routing": {"budgets": {"anchors": -3}}},
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            self.assertIn(
+                "backend/src/routes/realtime.ts",
+                bundle["selected_paths"],
+                "filesystem anchor silently dropped under negative anchors budget",
+            )
+
+    def test_bool_tests_budget_falls_back_to_default(self) -> None:
+        """``bool`` is an ``int`` subclass in Python; ``True`` would otherwise
+        coerce to ``1``, silently capping related_tests to one entry. The
+        sanitiser must reject bool and fall back to the documented default.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                config_extra={"routing": {"budgets": {"tests": True}}},
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            test_buckets = set(bundle["selected_tests"]) | set(bundle["related_tests"])
+            self.assertIn(
+                "tests/backend/unit/realtime.test.ts",
+                test_buckets,
+                "bool budgets.tests silently coerced to 1 instead of default",
+            )
+
 
 class RelatedTestsBudget(unittest.TestCase):
     """``related_tests`` must honour ``budgets.tests`` in both branches.

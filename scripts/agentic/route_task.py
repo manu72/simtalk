@@ -976,6 +976,14 @@ def main(argv: list[str]) -> int:
 
     routing_block = cfg.get("routing") or {}
     budgets = {**DEFAULT_BUDGETS, **(routing_block.get("budgets") or {})}
+    # Coerce every documented budget key to a positive int. Without this, a
+    # misconfigured value (string, None, negative, bool) would propagate to
+    # ``len(...) >= cap`` comparisons and ``_related_tests_for(cap=...)``
+    # and raise TypeError mid-routing. Other numeric/list config fields in
+    # this module are already validated via the same helpers; budgets were
+    # the last unsanitised block.
+    for _bkey, _bdefault in DEFAULT_BUDGETS.items():
+        budgets[_bkey] = _positive_int_or_default(budgets.get(_bkey), _bdefault)
     hard_cap = routing_block.get("hard_cap") or DEFAULT_HARD_CAP
     if not isinstance(hard_cap, int) or hard_cap <= 0:
         hard_cap = DEFAULT_HARD_CAP

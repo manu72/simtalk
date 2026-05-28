@@ -55,8 +55,8 @@ See `.agentic/GRAPH_INDEX.md`.
 
 ## Memory freshness
 
-- Last refreshed: 2026-05-28T02:46:58Z
-- Files refreshed this run: .agentic/GRAPH_INDEX.md, .agentic/MEMORY_INDEX.md, scripts/agentic/route_task.py, tests/agentic/test_route_task.py
+- Last refreshed: 2026-05-28T03:28:12Z
+- Files refreshed this run: .agentic/GRAPH_INDEX.md, scripts/agentic/route_task.py, tests/agentic/test_route_task.py
 - Source: scripts/agentic/update_memory.py
 <!-- agentic:managed:end -->
 
