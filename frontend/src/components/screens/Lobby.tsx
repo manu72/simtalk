@@ -6,7 +6,7 @@ import { STIcon } from "../brand/Icons";
 import { FONT_DISPLAY, ST, STButton, STTitle } from "../brand/primitives";
 import { LangCard, LanguagePickerSheet } from "../brand/LanguagePicker";
 import { ModeSegmented } from "../brand/ModeSegmented";
-import { AUTO_LANGUAGE, LANGUAGES, isAutoLanguage, type Language } from "../brand/languages";
+import { AUTO_LANGUAGE, LANGUAGES, TARGET_LANGUAGES, isAutoLanguage, type Language } from "../brand/languages";
 
 type LobbyProps = {
   readonly mode: ConversationMode;
@@ -271,6 +271,7 @@ export const Lobby = ({
         }}
         onClose={() => setPicker(null)}
         title={mode === "listener" ? "TRANSLATE INTO" : mode === "turnabout" ? "PICK THEIR LANGUAGE" : "TRANSLATE TO"}
+        languages={TARGET_LANGUAGES}
       />
     </div>
   );
