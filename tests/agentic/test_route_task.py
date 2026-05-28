@@ -274,6 +274,91 @@ class GraphRelatedTestsDefensive(unittest.TestCase):
             )
 
 
+class RelatedTestsBudget(unittest.TestCase):
+    """``related_tests`` must honour ``budgets.tests`` in both branches.
+
+    The contract documented in scripts/agentic/README.md states that
+    ``tests`` is the bound on graph-driven and walk-driven test discovery
+    combined. Both branches of Stage 5 must enforce the same cap so a hub
+    file with many ``tested_by`` edges (graph branch) or many stem-matching
+    walk hits (fallback branch) cannot overflow the bundle.
+    """
+
+    def test_graph_branch_respects_tests_cap(self) -> None:
+        # Add multiple tested_by edges from realtime.ts to N test files; the
+        # cap must clip the resulting related_tests list.
+        graph = copy.deepcopy(build_fixture.DEFAULT_GRAPH)
+        extra_tests = [
+            f"tests/backend/unit/realtime_extra_{i}.test.ts" for i in range(6)
+        ]
+        for t in extra_tests:
+            graph["nodes"].append(
+                {
+                    "id": f"file:{t}",
+                    "type": "file",
+                    "name": t.rsplit("/", 1)[-1],
+                    "filePath": t,
+                    "tags": ["test", "backend", "unit"],
+                    "summary": "Extra unit test",
+                }
+            )
+            graph["edges"].append(
+                {
+                    "source": "file:backend/src/routes/realtime.ts",
+                    "target": f"file:{t}",
+                    "type": "tested_by",
+                    "direction": "forward",
+                    "weight": 1,
+                }
+            )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                graph=graph,
+                config_extra={
+                    "routing": {
+                        "budgets": {"anchors": 6, "deps": 4, "search": 6, "tests": 2},
+                        "hard_cap": 12,
+                    }
+                },
+            )
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            self.assertLessEqual(
+                len(bundle["related_tests"]),
+                2,
+                f"graph branch ignored tests cap: {bundle['related_tests']}",
+            )
+
+    def test_walk_fallback_respects_tests_cap(self) -> None:
+        # Strip test edges so the fallback runs, then ensure the cap is
+        # enforced (previously a +6 cushion blew past the configured value).
+        graph = copy.deepcopy(build_fixture.DEFAULT_GRAPH)
+        graph["edges"] = [e for e in graph["edges"] if e.get("type") != "tested_by"]
+        # Drop the existing test nodes so the fixture's own test files don't
+        # gate the walk, then create N stem-matching test files on disk.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = build_fixture.build(
+                Path(tmp),
+                graph=graph,
+                config_extra={
+                    "routing": {
+                        "budgets": {"anchors": 6, "deps": 4, "search": 6, "tests": 2},
+                        "hard_cap": 12,
+                    }
+                },
+            )
+            tests_dir = root / "tests" / "backend" / "unit"
+            tests_dir.mkdir(parents=True, exist_ok=True)
+            for i in range(6):
+                (tests_dir / f"realtime_extra_{i}.test.ts").write_text("", encoding="utf-8")
+            bundle = _run(root, "review backend/src/routes/realtime.ts")
+            self.assertLessEqual(
+                len(bundle["related_tests"]),
+                2,
+                f"walk fallback ignored tests cap: {bundle['related_tests']}",
+            )
+
+
 class GraphVsWalkTests(unittest.TestCase):
     def test_graph_driven_tests_path_preferred(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -1142,6 +1142,12 @@ def main(argv: list[str]) -> int:
         selected_subsystems |= codemap_subs
 
     # ---- Stage 5: related tests (graph-edge preferred, fs-walk fallback)
+    # The same cap applies to both branches so the bundle's
+    # ``related_tests`` length is bounded by the configured test budget
+    # regardless of whether discovery was graph-driven or walk-driven. This
+    # matches the documented contract that ``tests`` is the bound on
+    # graph-driven and walk-driven test discovery combined.
+    tests_cap = budgets.get("tests", DEFAULT_BUDGETS["tests"])
     related_tests: list[str] = []
     if idx is not None:
         graph_tests = _graph_related_tests(
@@ -1155,18 +1161,20 @@ def main(argv: list[str]) -> int:
             if t in selection_reasons or t in related_tests:
                 continue
             related_tests.append(t)
+            if len(related_tests) >= tests_cap:
+                break
         if not related_tests:
             related_tests = _related_tests_for(
                 selected_paths,
                 test_discovery,
-                cap=budgets.get("tests", DEFAULT_BUDGETS["tests"]) + 6,
+                cap=tests_cap,
                 dropped=dropped_test_candidates,
             )
     else:
         related_tests = _related_tests_for(
             selected_paths,
             test_discovery,
-            cap=budgets.get("tests", DEFAULT_BUDGETS["tests"]) + 6,
+            cap=tests_cap,
             dropped=dropped_test_candidates,
         )
 
