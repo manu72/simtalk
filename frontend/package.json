@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@simtalk/shared-types": "workspace:*",
+    "@vercel/analytics": "^2.0.1",
     "livekit-client": "^2.19.0",
     "react": "19.2.6",
     "react-dom": "19.2.6"
